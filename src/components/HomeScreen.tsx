@@ -1,13 +1,32 @@
 import React from 'react';
-import { ViewTab } from '../types';
-import { Layers, Briefcase, Sparkles, ArrowRight, Zap, Smartphone, MessageCircle, ExternalLink, ShieldCheck } from 'lucide-react';
+import { ViewTab, ProjectRecommendation } from '../types';
+import {
+  Layers,
+  Briefcase,
+  Sparkles,
+  ArrowRight,
+  Zap,
+  Smartphone,
+  MessageCircle,
+  ExternalLink,
+  ShieldCheck,
+  RotateCcw,
+} from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 
 interface HomeScreenProps {
   onNavigate: (tab: ViewTab) => void;
+  recommendation: ProjectRecommendation | null;
+  onOpenRecommendation: () => void;
+  onOpenOnboarding: () => void;
 }
 
-export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
+export const HomeScreen: React.FC<HomeScreenProps> = ({
+  onNavigate,
+  recommendation,
+  onOpenRecommendation,
+  onOpenOnboarding,
+}) => {
   const { t } = useTranslation();
 
   return (
@@ -54,6 +73,52 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
         </div>
       </div>
 
+      {/* Banner de Recomendação Personalizada (quando disponível) */}
+      {recommendation && (
+        <div className="rounded-2xl bg-gradient-to-r from-indigo-950/70 via-slate-900 to-slate-900 border border-indigo-500/35 p-4 shadow-md space-y-3">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-xs font-bold text-white">
+                  {t.home.recommendationBannerTitle}
+                </h3>
+                <p className="text-[11px] text-slate-400 mt-0.5">
+                  {recommendation.planName} • {recommendation.segmentLabel}
+                </p>
+              </div>
+            </div>
+
+            <span className="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shrink-0">
+              Personalizado
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 pt-1">
+            <button
+              type="button"
+              onClick={onOpenRecommendation}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 text-white font-bold text-xs shadow-md shadow-indigo-950/50 hover:from-indigo-500 hover:to-cyan-400 transition-all"
+            >
+              <span>{t.home.viewRecommendationBtn}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+
+            <button
+              type="button"
+              onClick={onOpenOnboarding}
+              className="py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-400 hover:text-white border border-slate-700 text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
+              title={t.home.redoQuestionsBtn}
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span className="hidden xs:inline">{t.home.redoQuestionsBtn}</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 3 Botões de Ação Principais da NexaWeb */}
       <div className="space-y-3">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-400 px-1">
@@ -62,8 +127,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
 
         {/* 1. Conhecer os Serviços */}
         <button
+          type="button"
           onClick={() => onNavigate('services')}
-          className="w-full text-left group relative flex items-center justify-between p-4 rounded-xl bg-slate-900/90 hover:bg-slate-850 border border-slate-800 hover:border-indigo-500/50 transition-all duration-150 shadow-sm"
+          className="min-h-[52px] w-full text-left group relative flex items-center justify-between p-4 rounded-xl bg-slate-900/90 hover:bg-slate-850 border border-slate-800 hover:border-indigo-500/50 transition-all duration-150 shadow-sm active:scale-[0.985]"
         >
           <div className="flex items-center gap-3.5">
             <div className="w-11 h-11 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center group-hover:scale-105 group-hover:bg-indigo-500/20 transition-all">
@@ -90,8 +156,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
 
         {/* 2. Ver o Portfólio */}
         <button
+          type="button"
           onClick={() => onNavigate('portfolio')}
-          className="w-full text-left group relative flex items-center justify-between p-4 rounded-xl bg-slate-900/90 hover:bg-slate-850 border border-slate-800 hover:border-cyan-500/50 transition-all duration-150 shadow-sm"
+          className="min-h-[52px] w-full text-left group relative flex items-center justify-between p-4 rounded-xl bg-slate-900/90 hover:bg-slate-850 border border-slate-800 hover:border-cyan-500/50 transition-all duration-150 shadow-sm active:scale-[0.985]"
         >
           <div className="flex items-center gap-3.5">
             <div className="w-11 h-11 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center group-hover:scale-105 group-hover:bg-cyan-500/20 transition-all">
@@ -118,8 +185,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
 
         {/* 3. Iniciar um Projeto */}
         <button
+          type="button"
           onClick={() => onNavigate('project')}
-          className="w-full text-left group relative flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-indigo-950/70 via-slate-900 to-slate-900 hover:from-indigo-900/50 hover:to-slate-850 border border-indigo-500/40 hover:border-indigo-400 transition-all duration-150 shadow-lg shadow-indigo-950/20"
+          className="min-h-[52px] w-full text-left group relative flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-indigo-950/70 via-slate-900 to-slate-900 hover:from-indigo-900/50 hover:to-slate-850 border border-indigo-500/40 hover:border-indigo-400 transition-all duration-150 shadow-lg shadow-indigo-950/20 active:scale-[0.985]"
         >
           <div className="flex items-center gap-3.5">
             <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-600 to-cyan-500 text-white flex items-center justify-center group-hover:scale-105 shadow-md shadow-indigo-600/30 transition-all">

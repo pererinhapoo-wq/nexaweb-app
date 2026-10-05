@@ -15,7 +15,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
   const { language, t } = useTranslation();
   const plans = getNexawebPlans(language);
 
-  const getThemeStyles = (cor: 'azul' | 'dourado' | 'roxo') => {
+  const getThemeStyles = (cor: 'azul' | 'dourado' | 'roxo' | 'esmeralda') => {
     switch (cor) {
       case 'azul':
         return {
@@ -40,6 +40,15 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
           gradientBar: 'from-purple-600 to-indigo-600',
           iconColor: 'text-purple-400',
           btnBg: 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-purple-900/40',
+        };
+      case 'esmeralda':
+      default:
+        return {
+          cardBorder: 'border-emerald-500/30 hover:border-emerald-500/60',
+          badgeBg: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
+          gradientBar: 'from-emerald-600 to-teal-500',
+          iconColor: 'text-emerald-400',
+          btnBg: 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/40',
         };
     }
   };
@@ -127,7 +136,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
                 <button
                   type="button"
                   onClick={() => onSelectPlan(plan.id)}
-                  className={`w-full py-3 px-4 rounded-xl text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2 ${theme.btnBg}`}
+                  className={`min-h-[44px] w-full py-3 px-4 rounded-xl text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2 active:scale-[0.98] ${theme.btnBg}`}
                 >
                   <span>{t.services.requestPlan}</span>
                   <ArrowRight className="w-4 h-4" />

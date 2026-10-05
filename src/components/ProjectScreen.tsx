@@ -17,13 +17,15 @@ import { useTranslation } from '../contexts/LanguageContext';
 interface ProjectScreenProps {
   initialPlan?: string;
   initialModel?: string;
+  initialWebsiteLanguage?: WebsiteLanguage;
   onNavigate: (tab: ViewTab) => void;
 }
 
 export const ProjectScreen: React.FC<ProjectScreenProps> = ({
   initialPlan,
   initialModel,
-  onNavigate
+  initialWebsiteLanguage,
+  onNavigate,
 }) => {
   const { language, t } = useTranslation();
 
@@ -34,7 +36,9 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
   const [selectedModel, setSelectedModel] = useState<string>(initialModel || portfolioProjects[0]?.titulo || '');
   const [selectedSegment, setSelectedSegment] = useState<string>('services');
   const [selectedPlan, setSelectedPlan] = useState<string>(initialPlan || 'profissional');
-  const [siteLanguage, setSiteLanguage] = useState<WebsiteLanguage>('pt');
+  const [siteLanguage, setSiteLanguage] = useState<WebsiteLanguage>(
+    initialWebsiteLanguage || (language === 'pt-PT' ? 'pt-PT' : language === 'en' ? 'en' : language === 'es' ? 'es' : language === 'fr' ? 'fr' : 'pt-BR')
+  );
 
   const [businessName, setBusinessName] = useState('');
   const [description, setDescription] = useState('');
@@ -42,7 +46,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
   const [contactWhatsapp, setContactWhatsapp] = useState('');
   const [copied, setCopied] = useState(false);
 
-  // Sync props if changed externally
+  // Sincroniza props se alteradas externamente
   useEffect(() => {
     if (initialPlan) setSelectedPlan(initialPlan);
   }, [initialPlan]);
@@ -54,11 +58,19 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     }
   }, [initialModel]);
 
+  useEffect(() => {
+    if (initialWebsiteLanguage) {
+      setSiteLanguage(initialWebsiteLanguage);
+    }
+  }, [initialWebsiteLanguage]);
+
   const segmentsOptions: { id: string; label: string }[] = [
     { id: 'beauty', label: t.segments.beauty },
-    { id: 'health', label: t.segments.health },
-    { id: 'food', label: t.segments.food },
+    { id: 'barber', label: t.segments.barber },
+    { id: 'fitness', label: t.segments.fitness },
     { id: 'realEstate', label: t.segments.realEstate },
+    { id: 'clinic', label: t.segments.clinic },
+    { id: 'food', label: t.segments.food },
     { id: 'services', label: t.segments.services },
     { id: 'retail', label: t.segments.retail },
     { id: 'other', label: t.segments.other },
@@ -68,16 +80,24 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
 
   const getSiteLanguageLabel = (langCode: WebsiteLanguage): string => {
     switch (langCode) {
-      case 'pt':
-        return t.project.langPt;
+      case 'pt-BR':
+        return t.project.langPtBr;
+      case 'pt-PT':
+        return t.project.langPtPt;
       case 'en':
         return t.project.langEn;
+      case 'es':
+        return t.project.langEs;
+      case 'fr':
+        return t.project.langFr;
       case 'pt-en':
-        return t.project.langBoth;
+        return t.project.langPtEn;
+      case 'other':
+        return t.project.langOther;
     }
   };
 
-  const getOriginText = (targetLang: 'pt' | 'en'): string => {
+  const getOriginText = (targetLang: 'pt-BR' | 'pt-PT' | 'en' | 'es' | 'fr'): string => {
     const segmentLabel = segmentsOptions.find((s) => s.id === selectedSegment)?.label || selectedSegment;
 
     if (targetLang === 'en') {
@@ -86,6 +106,25 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
       return 'Custom idea / Tailor-made project from scratch';
     }
 
+    if (targetLang === 'es') {
+      if (startType === 'modelo') return `Basado en demo: ${selectedModel}`;
+      if (startType === 'segmento') return `Sector: ${segmentLabel}`;
+      return 'Idea propia / Proyecto a medida desde cero';
+    }
+
+    if (targetLang === 'fr') {
+      if (startType === 'modelo') return `D'après la démo: ${selectedModel}`;
+      if (startType === 'segmento') return `Secteur: ${segmentLabel}`;
+      return 'Idée propre / Projet sur mesure de A à Z';
+    }
+
+    if (targetLang === 'pt-PT') {
+      if (startType === 'modelo') return `Baseado no modelo: ${selectedModel}`;
+      if (startType === 'segmento') return `Segmento: ${segmentLabel}`;
+      return 'Ideia própria / Projeto à medida de raiz';
+    }
+
+    // pt-BR
     if (startType === 'modelo') return `Baseado no modelo: ${selectedModel}`;
     if (startType === 'segmento') return `Segmento: ${segmentLabel}`;
     return 'Ideia própria / Projeto sob medida do zero';
@@ -105,9 +144,48 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
 - *What I need:* ${description || 'I would like more information and guidance from the team'}`;
     }
 
-    // 2. Mensagem Bilíngue (Português + English)
+    // 2. Mensagem em Espanhol
+    if (siteLanguage === 'es') {
+      const origin = getOriginText('es');
+      return `¡Hola NexaWeb! Me gustaría solicitar un proyecto de sitio web:
+- *Empresa/Negocio:* ${businessName || 'A definir'}
+- *Responsable:* ${contactName || 'No informado'}
+- *WhatsApp de Contacto:* ${contactWhatsapp || 'No informado'}
+- *Punto de Partida:* ${origin}
+- *Plan de Interés:* Plan ${planObj.nome} (${planObj.tagline})
+- *Idioma del Sitio Web:* 🇪🇸 Español
+- *Qué necesito:* ${description || 'Deseo más información y asesoramiento del equipo'}`;
+    }
+
+    // 3. Mensagem em Francês
+    if (siteLanguage === 'fr') {
+      const origin = getOriginText('fr');
+      return `Bonjour NexaWeb ! Je souhaite commander un projet de site web :
+- *Entreprise/Activité :* ${businessName || 'À définir'}
+- *Responsable :* ${contactName || 'Non renseigné'}
+- *WhatsApp de Contact :* ${contactWhatsapp || 'Non renseigné'}
+- *Point de Départ :* ${origin}
+- *Formule Envisagée :* Formule ${planObj.nome} (${planObj.tagline})
+- *Langue du Site Web :* 🇫🇷 Français
+- *Besoins :* ${description || 'Je souhaite plus d’informations et l’avis de l’équipe'}`;
+    }
+
+    // 4. Mensagem em Português de Portugal (PT-PT)
+    if (siteLanguage === 'pt-PT') {
+      const origin = getOriginText('pt-PT');
+      return `Olá NexaWeb! Gostaria de solicitar um projeto de sítio web:
+- *Empresa/Negócio:* ${businessName || 'A definir'}
+- *Responsável:* ${contactName || 'Não informado'}
+- *Telemóvel / WhatsApp de Contacto:* ${contactWhatsapp || 'Não informado'}
+- *Ponto de Partida:* ${origin}
+- *Plano de Interesse:* Plano ${planObj.nome} (${planObj.tagline})
+- *Idioma do Sítio Web:* 🇵🇹 Português (Portugal)
+- *O que necessito:* ${description || 'Quero mais informações e orientação da equipa'}`;
+    }
+
+    // 5. Mensagem Bilíngue (Português + English)
     if (siteLanguage === 'pt-en') {
-      const originPt = getOriginText('pt');
+      const originPt = getOriginText('pt-BR');
       const originEn = getOriginText('en');
       return `Olá NexaWeb! / Hello NexaWeb!
 Solicitação de Projeto de Site Bilíngue / Bilingual Website Project Request:
@@ -120,15 +198,28 @@ Solicitação de Projeto de Site Bilíngue / Bilingual Website Project Request:
 - *O que preciso / What I need:* ${description || 'Quero mais informações e orientação da equipe / Seeking guidance'}`;
     }
 
-    // 3. Mensagem em Português (padrão)
-    const origin = getOriginText('pt');
+    // 6. Outro Idioma
+    if (siteLanguage === 'other') {
+      const origin = getOriginText('pt-BR');
+      return `Olá NexaWeb! Gostaria de solicitar um projeto de site internacional:
+- *Empresa/Negócio:* ${businessName || 'Ainda a definir'}
+- *Responsável:* ${contactName || 'Não informado'}
+- *WhatsApp de Contato:* ${contactWhatsapp || 'Não informado'}
+- *Ponto de Partida:* ${origin}
+- *Plano de Interesse:* Plano ${planObj.nome} (${planObj.tagline})
+- *Idioma do Site:* 🌐 Outro idioma personalizado (a definir)
+- *O que preciso:* ${description || 'Quero alinhar os detalhes e idiomas com a equipe'}`;
+    }
+
+    // 7. Mensagem em Português Brasileiro (pt-BR - padrão)
+    const origin = getOriginText('pt-BR');
     return `Olá NexaWeb! Gostaria de solicitar um projeto de site:
 - *Empresa/Negócio:* ${businessName || 'Ainda a definir'}
 - *Responsável:* ${contactName || 'Não informado'}
 - *WhatsApp de Contato:* ${contactWhatsapp || 'Não informado'}
 - *Ponto de Partida:* ${origin}
 - *Plano de Interesse:* Plano ${planObj.nome} (${planObj.tagline})
-- *Idioma do Site:* 🇧🇷 Português
+- *Idioma do Site:* 🇧🇷 Português (Brasil)
 - *O que preciso:* ${description || 'Quero mais informações e orientação da equipe'}`;
   };
 
@@ -325,63 +416,57 @@ Solicitação de Projeto de Site Bilíngue / Bilingual Website Project Request:
         </div>
       </div>
 
-      {/* Step 3: Idioma do Site (Novo Requisito Obrigatório) */}
+      {/* Step 3: Idioma do Site (Separado do Idioma do App) */}
       <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-sm">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 text-xs font-bold flex items-center justify-center border border-indigo-500/30">
-            3
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Globe2 className="w-4 h-4 text-cyan-400" />
-            <h2 className="text-sm font-bold text-white">
-              {t.project.step3Title}
-            </h2>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 text-xs font-bold flex items-center justify-center border border-indigo-500/30">
+              3
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Globe2 className="w-4 h-4 text-cyan-400" />
+              <h2 className="text-sm font-bold text-white">
+                {t.project.step3Title}
+              </h2>
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          {/* Opção Português */}
-          <button
-            type="button"
-            onClick={() => setSiteLanguage('pt')}
-            className={`py-2.5 px-3 rounded-xl border text-center text-xs font-bold transition-all ${
-              siteLanguage === 'pt'
-                ? 'bg-indigo-950/50 border-indigo-500 text-white shadow-sm'
-                : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
-            }`}
-          >
-            {t.project.langPt}
-          </button>
+        <p className="text-[11px] text-slate-400">
+          {t.project.langNote}
+        </p>
 
-          {/* Opção English */}
-          <button
-            type="button"
-            onClick={() => setSiteLanguage('en')}
-            className={`py-2.5 px-3 rounded-xl border text-center text-xs font-bold transition-all ${
-              siteLanguage === 'en'
-                ? 'bg-indigo-950/50 border-indigo-500 text-white shadow-sm'
-                : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
-            }`}
-          >
-            {t.project.langEn}
-          </button>
-
-          {/* Opção Bilíngue */}
-          <button
-            type="button"
-            onClick={() => setSiteLanguage('pt-en')}
-            className={`py-2.5 px-3 rounded-xl border text-center text-xs font-bold transition-all ${
-              siteLanguage === 'pt-en'
-                ? 'bg-indigo-950/50 border-indigo-500 text-white shadow-sm'
-                : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
-            }`}
-          >
-            {t.project.langBoth}
-          </button>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {[
+            { id: 'pt-BR', label: t.project.langPtBr },
+            { id: 'pt-PT', label: t.project.langPtPt },
+            { id: 'en', label: t.project.langEn },
+            { id: 'es', label: t.project.langEs },
+            { id: 'fr', label: t.project.langFr },
+            { id: 'pt-en', label: t.project.langPtEn },
+            { id: 'other', label: t.project.langOther },
+          ].map((item) => {
+            const isSelected = siteLanguage === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setSiteLanguage(item.id as WebsiteLanguage)}
+                className={`py-2 px-2.5 rounded-xl border text-center text-xs font-semibold transition-all truncate ${
+                  isSelected
+                    ? 'bg-indigo-950/60 border-indigo-500 text-white shadow-sm'
+                    : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
+                }`}
+                title={item.label}
+              >
+                {item.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Step 4: Informações do Projeto */}
+      {/* Step 4: Informações do Negócio */}
       <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3.5 shadow-sm">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 text-xs font-bold flex items-center justify-center border border-indigo-500/30">
@@ -475,7 +560,7 @@ Solicitação de Projeto de Site Bilíngue / Bilingual Website Project Request:
           <button
             type="button"
             onClick={handleSendWhatsapp}
-            className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-950/40 transition-all"
+            className="min-h-[48px] flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-950/40 transition-all active:scale-[0.98]"
           >
             <MessageSquare className="w-4 h-4 fill-current" />
             <span>{t.project.sendWhatsappBtn}</span>
@@ -484,7 +569,7 @@ Solicitação de Projeto de Site Bilíngue / Bilingual Website Project Request:
           <button
             type="button"
             onClick={handleCopyBriefing}
-            className={`py-3 px-4 rounded-xl font-semibold text-xs border transition-all flex items-center justify-center gap-1.5 ${
+            className={`min-h-[48px] py-3 px-4 rounded-xl font-semibold text-xs border transition-all flex items-center justify-center gap-1.5 active:scale-[0.98] ${
               copied
                 ? 'bg-cyan-950/50 border-cyan-500 text-cyan-300'
                 : 'bg-slate-800 hover:bg-slate-750 border-slate-700 text-slate-300'

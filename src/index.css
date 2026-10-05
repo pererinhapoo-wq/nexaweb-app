@@ -16,4 +16,188 @@
 body {
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Microinterações sutis e fluidas */
+button, a {
+  -webkit-touch-callout: none;
+}
+
+/* Suporte rigoroso a prefers-reduced-motion e à preferência do usuário no app */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+html.reduced-motion *,
+html.reduced-motion *::before,
+html.reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* TEMA CLARO ELEGANTE E SEGURO (Preserva identidade NexaWeb e contraste perfeito) */
+html.light body,
+html[data-theme="light"] body {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+html.light .min-h-screen.bg-slate-950,
+html[data-theme="light"] .min-h-screen.bg-slate-950 {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+/* Headers e Navegação em Tema Claro */
+html.light header,
+html[data-theme="light"] header {
+  background-color: rgba(255, 255, 255, 0.92) !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+html.light nav,
+html[data-theme="light"] nav {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 -4px 16px -2px rgba(15, 23, 42, 0.05);
+}
+
+/* Cartões e superfícies no Tema Claro */
+html.light .bg-slate-900,
+html.light .bg-slate-900\/80,
+html.light .bg-slate-900\/90,
+html.light .bg-slate-900\/95,
+html.light .bg-slate-900\/70,
+html.light .bg-slate-900\/60,
+html.light .bg-slate-900\/50,
+html[data-theme="light"] .bg-slate-900,
+html[data-theme="light"] .bg-slate-900\/80,
+html[data-theme="light"] .bg-slate-900\/90,
+html[data-theme="light"] .bg-slate-900\/95,
+html[data-theme="light"] .bg-slate-900\/70,
+html[data-theme="light"] .bg-slate-900\/60,
+html[data-theme="light"] .bg-slate-900\/50 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light .bg-slate-950,
+html.light .bg-slate-950\/80,
+html.light .bg-slate-950\/90,
+html.light .bg-slate-950\/60,
+html.light .bg-slate-950\/40,
+html.light .bg-slate-950\/30,
+html[data-theme="light"] .bg-slate-950,
+html[data-theme="light"] .bg-slate-950\/80,
+html[data-theme="light"] .bg-slate-950\/90,
+html[data-theme="light"] .bg-slate-950\/60,
+html[data-theme="light"] .bg-slate-950\/40,
+html[data-theme="light"] .bg-slate-950\/30 {
+  background-color: #f1f5f9 !important;
+}
+
+html.light .bg-slate-800,
+html.light .bg-slate-800\/80,
+html.light .bg-slate-800\/60,
+html.light .bg-slate-800\/50,
+html[data-theme="light"] .bg-slate-800,
+html[data-theme="light"] .bg-slate-800\/80,
+html[data-theme="light"] .bg-slate-800\/60,
+html[data-theme="light"] .bg-slate-800\/50 {
+  background-color: #f8fafc !important;
+}
+
+/* Bordas em Tema Claro */
+html.light .border-slate-800,
+html.light .border-slate-800\/80,
+html.light .border-slate-800\/60,
+html.light .border-slate-800\/40,
+html.light .border-slate-700,
+html.light .border-slate-700\/60,
+html.light .divide-slate-800\/80 > :not([hidden]) ~ :not([hidden]),
+html[data-theme="light"] .border-slate-800,
+html[data-theme="light"] .border-slate-800\/80,
+html[data-theme="light"] .border-slate-800\/60,
+html[data-theme="light"] .border-slate-800\/40,
+html[data-theme="light"] .border-slate-700,
+html[data-theme="light"] .border-slate-700\/60,
+html[data-theme="light"] .divide-slate-800\/80 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #e2e8f0 !important;
+}
+
+/* Tipografia adaptativa em Tema Claro */
+html.light .text-white,
+html[data-theme="light"] .text-white {
+  color: #0f172a !important;
+}
+
+html.light .text-slate-100,
+html.light .text-slate-200,
+html[data-theme="light"] .text-slate-100,
+html[data-theme="light"] .text-slate-200 {
+  color: #1e293b !important;
+}
+
+html.light .text-slate-300,
+html[data-theme="light"] .text-slate-300 {
+  color: #334155 !important;
+}
+
+html.light .text-slate-400,
+html[data-theme="light"] .text-slate-400 {
+  color: #64748b !important;
+}
+
+/* Formulários e Entradas no Tema Claro */
+html.light input,
+html.light textarea,
+html.light select,
+html[data-theme="light"] input,
+html[data-theme="light"] textarea,
+html[data-theme="light"] select {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light input::placeholder,
+html.light textarea::placeholder,
+html[data-theme="light"] input::placeholder,
+html[data-theme="light"] textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Cores e Botões de Ação preservam texto legível */
+html.light .bg-indigo-600 .text-white,
+html.light .bg-indigo-500 .text-white,
+html.light button.bg-indigo-600,
+html.light a.bg-indigo-600,
+html[data-theme="light"] .bg-indigo-600 .text-white,
+html[data-theme="light"] .bg-indigo-500 .text-white,
+html[data-theme="light"] button.bg-indigo-600,
+html[data-theme="light"] a.bg-indigo-600 {
+  color: #ffffff !important;
+}
+
+html.light .text-indigo-400,
+html.light .text-indigo-300,
+html[data-theme="light"] .text-indigo-400,
+html[data-theme="light"] .text-indigo-300 {
+  color: #4f46e5 !important;
+}
+
+html.light .text-cyan-400,
+html[data-theme="light"] .text-cyan-400 {
+  color: #0284c7 !important;
 }
