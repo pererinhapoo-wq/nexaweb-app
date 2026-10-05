@@ -1,6 +1,6 @@
 {
   "name": "NexaWeb App",
-  "description": "Ferramenta interna da NexaWeb para prospecção, acompanhamento de leads e portfólio de demonstrações.",
+  "description": "Aplicativo oficial da NexaWeb. Conheça nossos planos, serviços, portfólio de demonstrações e inicie o projeto do seu site profissional.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -1,222 +1,130 @@
-import React, { useState, useEffect } from 'react';
-import { ViewTab, Lead, LeadStatus } from './types';
-import { getStoredLeads, getStoredLeadsNative, saveStoredLeads } from './utils/storage';
+import React, { useState, useEffect, useCallback } from 'react';
+import { ViewTab } from './types';
 import { Header } from './components/Header';
 import { BottomNav } from './components/BottomNav';
 import { HomeScreen } from './components/HomeScreen';
-import { FindClientsScreen } from './components/FindClientsScreen';
-import { MyLeadsScreen } from './components/MyLeadsScreen';
+import { ServicesScreen } from './components/ServicesScreen';
 import { PortfolioScreen } from './components/PortfolioScreen';
-import { LeadDetailModal } from './components/LeadDetailModal';
-import { LeadFormModal } from './components/LeadFormModal';
+import { ProjectScreen } from './components/ProjectScreen';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { SplashScreen } from '@capacitor/splash-screen';
+import { LanguageProvider } from './contexts/LanguageContext';
 
-export default function App() {
+function AppContent() {
   const [currentTab, setCurrentTab] = useState<ViewTab>('home');
-  const [leads, setLeads] = useState<Lead[]>(() => getStoredLeads());
-  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
-  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
-  const [editingLead, setEditingLead] = useState<Lead | null>(null);
-  const [preFillLocation, setPreFillLocation] = useState<{
-    cidade: string;
-    segmento: string;
-  } | null>(null);
+  const [selectedPlanForProject, setSelectedPlanForProject] = useState<string>('profissional');
+  const [selectedModelForProject, setSelectedModelForProject] = useState<string | undefined>(undefined);
 
-  // Inicialização nativa segura (Status Bar, Splash Screen e Reconciliação do Storage Nativo)
+  // Inicialização nativa segura (Status Bar e Splash Screen do Android)
   useEffect(() => {
     async function initNativePlatform() {
       try {
-        // Carrega leads da persistência nativa se houver dados
-        const nativeLeads = await getStoredLeadsNative();
-        if (nativeLeads && nativeLeads.length > 0) {
-          setLeads(nativeLeads);
-        }
-      } catch (err) {
-        console.warn('Persistência nativa não disponível:', err);
-      }
-
-      try {
-        // Configura a barra de status do Android com a cor escura slate-950 (#020617)
         await StatusBar.setStyle({ style: Style.Dark });
         await StatusBar.setBackgroundColor({ color: '#020617' });
       } catch {
-        // Ignorado no navegador web
+        // Ignorado em ambiente web
       }
 
       try {
-        // Oculta a tela de splash nativa após o carregamento
         await SplashScreen.hide();
       } catch {
-        // Ignorado no navegador web
+        // Ignorado em ambiente web
       }
     }
 
     initNativePlatform();
   }, []);
 
-  // Sync to storage whenever leads changes
-  useEffect(() => {
-    saveStoredLeads(leads);
-  }, [leads]);
-
-  // Keep selectedLead in sync with leads list
-  useEffect(() => {
-    if (selectedLead) {
-      const updated = leads.find((l) => l.id === selectedLead.id);
-      if (updated) {
-        setSelectedLead(updated);
-      }
+  // Suporte aprimorado ao botão físico/gestual de voltar do Android
+  const handleAndroidBack = useCallback(() => {
+    // Se a aba atual não for 'home', volta suavemente para 'home'
+    if (currentTab !== 'home') {
+      setCurrentTab('home');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }, [leads]);
+  }, [currentTab]);
 
-  // Handlers
-  const handleSaveLead = (leadToSave: Lead) => {
-    setLeads((prev) => {
-      const existsIndex = prev.findIndex((l) => l.id === leadToSave.id);
-      if (existsIndex >= 0) {
-        const next = [...prev];
-        next[existsIndex] = leadToSave;
-        return next;
+  useEffect(() => {
+    const handleBackButtonEvent = () => {
+      // Se não há modal ativo na história do browser, navega internamente
+      if (!window.history.state?.modalOpen) {
+        handleAndroidBack();
       }
-      return [leadToSave, ...prev];
-    });
-    setEditingLead(null);
+    };
+
+    document.addEventListener('backbutton', handleBackButtonEvent);
+    return () => {
+      document.removeEventListener('backbutton', handleBackButtonEvent);
+    };
+  }, [handleAndroidBack]);
+
+  // Handlers de navegação cruzada inteligente
+  const handleSelectPlan = (planId: string) => {
+    setSelectedPlanForProject(planId);
+    setCurrentTab('project');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleUpdateStatus = (id: string, newStatus: LeadStatus) => {
-    setLeads((prev) =>
-      prev.map((lead) =>
-        lead.id === id
-          ? {
-              ...lead,
-              status: newStatus,
-              dataAtualizacao: new Date().toISOString(),
-            }
-          : lead
-      )
-    );
+  const handleSelectProjectForBriefing = (projectTitle: string) => {
+    setSelectedModelForProject(projectTitle);
+    setCurrentTab('project');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleUpdateNotes = (id: string, notes: string) => {
-    setLeads((prev) =>
-      prev.map((lead) =>
-        lead.id === id
-          ? {
-              ...lead,
-              observacoes: notes,
-              dataAtualizacao: new Date().toISOString(),
-            }
-          : lead
-      )
-    );
-  };
-
-  const handleUpdateMessage = (id: string, message: string) => {
-    setLeads((prev) =>
-      prev.map((lead) =>
-        lead.id === id
-          ? {
-              ...lead,
-              mensagemAbordagem: message,
-              dataAtualizacao: new Date().toISOString(),
-            }
-          : lead
-      )
-    );
-  };
-
-  const handleDeleteLead = (id: string) => {
-    setLeads((prev) => prev.filter((lead) => lead.id !== id));
-    if (selectedLead?.id === id) {
-      setSelectedLead(null);
-    }
-  };
-
-  const handleOpenNewLeadModal = () => {
-    setEditingLead(null);
-    setPreFillLocation(null);
-    setIsFormModalOpen(true);
-  };
-
-  const handlePreFillLead = (cidade: string, segmento: string) => {
-    setEditingLead(null);
-    setPreFillLocation({ cidade, segmento });
-    setIsFormModalOpen(true);
-  };
-
-  const handleEditLead = (lead: Lead) => {
-    setEditingLead(lead);
-    setIsFormModalOpen(true);
+  const handleNavigate = (tab: ViewTab) => {
+    setCurrentTab(tab);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
-      {/* Header */}
+      {/* Header oficial da NexaWeb com seletor de idioma PT/EN */}
       <Header
         currentTab={currentTab}
-        onNavigate={setCurrentTab}
-        leadCount={leads.length}
+        onNavigate={handleNavigate}
       />
 
-      {/* Main Content Area */}
+      {/* Área de conteúdo principal */}
       <main className="flex-1 max-w-3xl w-full mx-auto px-4 py-4 sm:py-6">
         {currentTab === 'home' && (
-          <HomeScreen
-            onNavigate={setCurrentTab}
-            leads={leads}
-            onOpenNewLeadModal={handleOpenNewLeadModal}
+          <HomeScreen onNavigate={handleNavigate} />
+        )}
+
+        {currentTab === 'services' && (
+          <ServicesScreen
+            onSelectPlan={handleSelectPlan}
+            onNavigate={handleNavigate}
           />
         )}
 
-        {currentTab === 'find' && (
-          <FindClientsScreen onPreFillLead={handlePreFillLead} />
-        )}
-
-        {currentTab === 'leads' && (
-          <MyLeadsScreen
-            leads={leads}
-            onSelectLead={setSelectedLead}
-            onOpenNewLeadModal={handleOpenNewLeadModal}
-            onUpdateStatus={handleUpdateStatus}
+        {currentTab === 'portfolio' && (
+          <PortfolioScreen
+            onSelectProjectForBriefing={handleSelectProjectForBriefing}
           />
         )}
 
-        {currentTab === 'portfolio' && <PortfolioScreen />}
+        {currentTab === 'project' && (
+          <ProjectScreen
+            initialPlan={selectedPlanForProject}
+            initialModel={selectedModelForProject}
+            onNavigate={handleNavigate}
+          />
+        )}
       </main>
 
-      {/* Bottom Navigation */}
+      {/* Navegação inferior (Início, Serviços, Portfólio, Projeto) */}
       <BottomNav
         currentTab={currentTab}
-        onNavigate={setCurrentTab}
-        leadCount={leads.length}
-      />
-
-      {/* Modal Detalhes do Lead */}
-      <LeadDetailModal
-        lead={selectedLead}
-        isOpen={Boolean(selectedLead)}
-        onClose={() => setSelectedLead(null)}
-        onUpdateStatus={handleUpdateStatus}
-        onUpdateNotes={handleUpdateNotes}
-        onUpdateMessage={handleUpdateMessage}
-        onEditLead={handleEditLead}
-        onDeleteLead={handleDeleteLead}
-      />
-
-      {/* Modal Formulário do Lead (Criar / Editar) */}
-      <LeadFormModal
-        isOpen={isFormModalOpen}
-        onClose={() => {
-          setIsFormModalOpen(false);
-          setEditingLead(null);
-          setPreFillLocation(null);
-        }}
-        onSave={handleSaveLead}
-        initialLead={editingLead}
-        defaultCidade={preFillLocation?.cidade}
-        defaultSegmento={preFillLocation?.segmento}
+        onNavigate={handleNavigate}
       />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
   );
 }

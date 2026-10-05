@@ -1,27 +1,8 @@
-export type LeadStatus =
-  | 'Novo'
-  | 'Contatado'
-  | 'Respondeu'
-  | 'Interessado'
-  | 'Fechado'
-  | 'Perdido';
+export type Language = 'pt' | 'en';
 
-export interface Lead {
-  id: string;
-  nomeEmpresa: string;
-  segmento: string;
-  cidade: string;
-  instagram?: string;
-  site?: string;
-  whatsapp?: string;
-  observacoes?: string;
-  status: LeadStatus;
-  mensagemAbordagem?: string;
-  dataCriacao: string;
-  dataAtualizacao?: string;
-}
+export type WebsiteLanguage = 'pt' | 'en' | 'pt-en';
 
-export type ViewTab = 'home' | 'find' | 'leads' | 'portfolio';
+export type ViewTab = 'home' | 'services' | 'portfolio' | 'project';
 
 export interface PortfolioCategory {
   id: string;
@@ -39,5 +20,27 @@ export interface PortfolioProject {
   tags: string[];
   recursos: string[];
   corDestaque: string;
-  linkDemo?: string;
+  linkDemo: string;
 }
+
+export interface ServicePlan {
+  id: string;
+  nome: string;
+  tagline: string;
+  corIdentidade: 'azul' | 'dourado' | 'roxo';
+  destaque?: boolean;
+  descricao: string;
+  recursos: string[];
+}
+
+export interface ProjectBriefingData {
+  tipoInicio: 'modelo' | 'segmento' | 'propria';
+  modeloEscolhido?: string;
+  segmentoEscolhido?: string;
+  planoEscolhido?: string;
+  nomeNegocio: string;
+  descricaoNecessidade: string;
+  nomeContato: string;
+  whatsappContato: string;
+}
+
