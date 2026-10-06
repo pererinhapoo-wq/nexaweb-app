@@ -12,6 +12,10 @@ import { ServicesScreen } from './components/ServicesScreen';
 import { PortfolioScreen } from './components/PortfolioScreen';
 import { ProjectScreen } from './components/ProjectScreen';
 import { SettingsScreen } from './components/SettingsScreen';
+import { PortalScreen } from './components/PortalScreen';
+import { AdminScreen } from './components/AdminScreen';
+import { AppDrawer } from './components/AppDrawer';
+import { ContactModal } from './components/ContactModal';
 import { OnboardingModal } from './components/OnboardingModal';
 import { RecommendationModal } from './components/RecommendationModal';
 import { LanguageModal } from './components/LanguageModal';
@@ -45,7 +49,9 @@ function AppContent() {
   const [selectedModelForProject, setSelectedModelForProject] = useState<string | undefined>(undefined);
   const [selectedWebsiteLanguageForProject, setSelectedWebsiteLanguageForProject] = useState<WebsiteLanguage | undefined>(undefined);
 
-  // Estados dos Modais
+  // Estados dos Modais & Drawer
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const [isContactOpen, setIsContactOpen] = useState<boolean>(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState<boolean>(false);
   const [isRecommendationOpen, setIsRecommendationOpen] = useState<boolean>(false);
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState<boolean>(false);
@@ -77,10 +83,8 @@ function AppContent() {
       try {
         const completed = await isOnboardingCompleted();
         if (!completed) {
-          // Primeira abertura: exibe experiência inicial com escolha de idioma após a intro
           setIsOnboardingOpen(true);
         } else {
-          // Já completou antes: recupera respostas para montar a recomendação ativa
           const savedAnswers = await getSavedOnboardingAnswers();
           if (savedAnswers) {
             const rec = calculateRecommendation(savedAnswers, language, t);
@@ -96,8 +100,13 @@ function AppContent() {
     checkFirstOpenAndLoadRecommendation();
   }, [language, t]);
 
-  // Suporte aprimorado ao botão físico/gestual de voltar do Android
+  // Suporte aprimorado e intuitivo ao botão físico/gestual de voltar do Android
   const handleAndroidBack = useCallback(() => {
+    // 1. Modais têm prioridade máxima de fechamento
+    if (isContactOpen) {
+      setIsContactOpen(false);
+      return;
+    }
     if (isLanguageModalOpen) {
       setIsLanguageModalOpen(false);
       return;
@@ -110,17 +119,30 @@ function AppContent() {
       setIsRecommendationOpen(false);
       return;
     }
+
+    // 2. Se o Menu lateral/drawer estiver aberto: fecha o menu
+    if (isMenuOpen) {
+      setIsMenuOpen(false);
+      return;
+    }
+
+    // 3. Se estiver em tela interna (Portal, Admin, Configurações, etc.): volta para Início
     if (currentTab !== 'home') {
       setCurrentTab('home');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }, [currentTab, isOnboardingOpen, isRecommendationOpen, isLanguageModalOpen]);
+  }, [
+    currentTab,
+    isMenuOpen,
+    isContactOpen,
+    isOnboardingOpen,
+    isRecommendationOpen,
+    isLanguageModalOpen,
+  ]);
 
   useEffect(() => {
     const handleBackButtonEvent = () => {
-      if (!window.history.state?.modalOpen && !window.history.state?.onboardingOpen && !window.history.state?.recommendationOpen) {
-        handleAndroidBack();
-      }
+      handleAndroidBack();
     };
 
     document.addEventListener('backbutton', handleBackButtonEvent);
@@ -202,11 +224,12 @@ function AppContent() {
       {/* Intro splash suave e não intrusiva */}
       {showIntro && <IntroSplash onFinish={() => setShowIntro(false)} />}
 
-      {/* Header oficial da NexaWeb com seletor discreto de idioma e botão personalizar */}
+      {/* Header oficial da NexaWeb com seletor discreto de idioma, botão personalizar e menu hambúrguer */}
       <Header
         currentTab={currentTab}
         onNavigate={handleNavigate}
         onOpenOnboarding={() => setIsOnboardingOpen(true)}
+        onOpenMenu={() => setIsMenuOpen(true)}
       />
 
       {/* Área de conteúdo principal */}
@@ -217,6 +240,8 @@ function AppContent() {
             recommendation={recommendation}
             onOpenRecommendation={() => setIsRecommendationOpen(true)}
             onOpenOnboarding={() => setIsOnboardingOpen(true)}
+            onSelectProjectForBriefing={handleSelectProjectForBriefing}
+            onSelectPlan={handleSelectPlan}
           />
         )}
 
@@ -224,6 +249,7 @@ function AppContent() {
           <ServicesScreen
             onSelectPlan={handleSelectPlan}
             onNavigate={handleNavigate}
+            onSelectProjectForBriefing={handleSelectProjectForBriefing}
           />
         )}
 
@@ -242,6 +268,10 @@ function AppContent() {
           />
         )}
 
+        {currentTab === 'portal' && <PortalScreen />}
+
+        {currentTab === 'admin' && <AdminScreen />}
+
         {currentTab === 'settings' && (
           <SettingsScreen
             onOpenLanguageModal={() => setIsLanguageModalOpen(true)}
@@ -249,20 +279,35 @@ function AppContent() {
         )}
       </main>
 
-      {/* Navegação inferior (Início, Serviços, Portfólio, Projeto, Configurações) */}
+      {/* Navegação inferior estritamente simples (Início, Serviços, Portfólio, Projeto) */}
       <BottomNav
         currentTab={currentTab}
         onNavigate={handleNavigate}
       />
 
-      {/* Modal de Onboarding com seleção de idioma inicial, 5 perguntas e revisão */}
+      {/* Menu Drawer lateral/sheet com todas as áreas */}
+      <AppDrawer
+        isOpen={isMenuOpen}
+        onClose={() => setIsMenuOpen(false)}
+        currentTab={currentTab}
+        onNavigate={handleNavigate}
+        onOpenContact={() => setIsContactOpen(true)}
+      />
+
+      {/* Modal Falar com a NexaWeb */}
+      <ContactModal
+        isOpen={isContactOpen}
+        onClose={() => setIsContactOpen(false)}
+      />
+
+      {/* Modal de Onboarding */}
       <OnboardingModal
         isOpen={isOnboardingOpen}
         onClose={() => setIsOnboardingOpen(false)}
         onComplete={handleOnboardingComplete}
       />
 
-      {/* Modal de Recomendação Personalizada com justificativas, alternativa e demos relacionadas */}
+      {/* Modal de Recomendação Personalizada */}
       <RecommendationModal
         isOpen={isRecommendationOpen}
         recommendation={recommendation}

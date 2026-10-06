@@ -18,7 +18,7 @@ export type WebsiteLanguage =
   | 'pt-en'
   | 'other';
 
-export type ViewTab = 'home' | 'services' | 'portfolio' | 'project' | 'settings';
+export type ViewTab = 'home' | 'services' | 'portfolio' | 'project' | 'portal' | 'admin' | 'settings';
 
 export type ThemeMode = 'dark' | 'light' | 'auto';
 
@@ -41,16 +41,59 @@ export interface PortfolioProject {
   recursos: string[];
   corDestaque: string;
   linkDemo: string;
+  planoId?: 'essencial' | 'profissional' | 'personalizado' | 'premium';
+  imagemUrl?: string;
+  destaqueHome?: boolean;
 }
 
 export interface ServicePlan {
-  id: string;
+  id: 'essencial' | 'profissional' | 'personalizado' | 'premium' | string;
   nome: string;
   tagline: string;
+  preco: string;
+  prazo?: string;
   corIdentidade: 'azul' | 'dourado' | 'roxo' | 'esmeralda';
   destaque?: boolean;
   descricao: string;
   recursos: string[];
+  projetosRelacionados?: string[];
+}
+
+export interface ProjectUpdate {
+  id: string;
+  data: string;
+  titulo: string;
+  descricao: string;
+  status: 'concluido' | 'em_progresso' | 'planejado';
+}
+
+export interface ClientRequest {
+  id: string;
+  projectId: string;
+  assunto: string;
+  mensagem: string;
+  dataEnvio: string;
+  status: 'pendente' | 'em_analise' | 'respondido';
+  respostaAdmin?: string;
+  dataResposta?: string;
+}
+
+export interface ClientProject {
+  id: string;
+  chaveAcesso: string;
+  nomeCliente: string;
+  nomeProjeto: string;
+  planoId: string;
+  status: 'planejamento' | 'desenvolvimento' | 'revisao' | 'publicado' | 'em_andamento';
+  etapaAtual: string;
+  progresso: number; // 0 a 100
+  mensagemStatus: string;
+  versaoTesteUrl?: string;
+  sitePublicadoUrl?: string;
+  dataInicio: string;
+  previsaoEntrega: string;
+  historico: ProjectUpdate[];
+  solicitacoes: ClientRequest[];
 }
 
 export interface ProjectBriefingData {

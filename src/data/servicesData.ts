@@ -7,63 +7,82 @@ export const getNexawebPlans = (lang: Language = 'pt-BR'): ServicePlan[] => {
         id: 'essencial',
         nome: 'ESSENCIAL',
         tagline: 'Professional website to get started',
+        preco: 'R$ 1.000',
+        prazo: '3–5 days',
         corIdentidade: 'azul',
-        descricao: 'Ideal for independent professionals and small businesses needing an impactful, fast, and professional digital presence.',
+        descricao: 'Professional website to get started. Ideal for small businesses and independent professionals.',
         recursos: [
-          'Professional single-page landing page',
-          'Responsive design for mobile, tablet, and desktop',
-          'Direct WhatsApp contact buttons',
-          'Optimized fast loading speed',
-          'Services & products showcase section',
-          'Secure hosting & SSL certificate included'
-        ]
+          'Professional presentation',
+          'Essential structure & sections',
+          'WhatsApp direct button',
+          'Social media links',
+          '100% mobile responsiveness',
+          'Basic Google SEO',
+          'Secure cloud hosting',
+          'SSL security certificate',
+          'Client review & approval'
+        ],
+        projetosRelacionados: ['demo-barbearia-kings']
       },
       {
         id: 'profissional',
         nome: 'PROFISSIONAL',
         tagline: 'More features for your business',
+        preco: 'R$ 1.700',
+        prazo: '5–8 days',
         corIdentidade: 'dourado',
         destaque: true,
-        descricao: 'The top choice for established companies looking to attract new clients, build brand authority, and highlight their key differentiators.',
+        descricao: 'More resources and strategic impact for established businesses looking to stand out and generate contacts.',
         recursos: [
-          'Multi-page structure or in-depth sections',
-          'Interactive catalog of services or products',
-          'Smart client inquiry form',
-          'Complete Google SEO optimization',
-          'Google Maps and review integration',
-          'Custom premium layout with tailored typography and palette',
-          'Floating personalized customer service button'
-        ]
-      },
-      {
-        id: 'premium',
-        nome: 'PREMIUM',
-        tagline: 'Maximum authority and digital prominence',
-        corIdentidade: 'esmeralda',
-        descricao: 'High-end design, advanced animations, and robust lead capture for brands seeking maximum market credibility and online excellence.',
-        recursos: [
-          'Exclusive luxury visual layout tailored to your brand',
-          'Advanced Google SEO Master positioning',
-          'High-converting micro-interactions and smooth effects',
-          'Strategic customer conversion and multi-channel triage',
-          'Blazing fast cloud hosting with global SSL',
-          'Priority VIP maintenance and technical monitoring'
-        ]
+          'More complete site structure',
+          'Strategic conversion sections',
+          'Optimized CTAs & triggers',
+          'Interactive highlights & catalog',
+          'Core Web Vitals high performance',
+          'WhatsApp & Business Email',
+          'Advanced lead capture forms',
+          'Full smartphone responsiveness',
+          'Client milestone approval'
+        ],
+        projetosRelacionados: ['demo-salao-premium', 'demo-academia-premium']
       },
       {
         id: 'personalizado',
         nome: 'PERSONALIZADO',
-        tagline: 'A custom project crafted for you',
+        tagline: 'A project crafted for you',
+        preco: 'Starting from R$ 2.800',
+        prazo: 'Custom scope',
         corIdentidade: 'roxo',
-        descricao: 'Tailor-made development featuring exclusive architecture, custom functionalities, and direct strategic support from NexaWeb.',
+        descricao: 'A tailor-made project designed exclusively for your unique brand identity and goals.',
         recursos: [
-          '100% custom project built for your unique business',
-          'Specific systems (online booking, custom menu, dynamic portfolio)',
-          'Strategic persuasive copywriting aligned with your audience',
-          'Integration with management tools and CRM',
-          'Advanced performance and metrics optimization',
-          'Priority dedicated support and guidance'
-        ]
+          'Custom visual design',
+          'Distinctive brand identity',
+          'Tailor-made site architecture',
+          'Bespoke references & moodboard',
+          'Customized interactive features',
+          'Collaborative interactive briefing',
+          'Dedicated consultative support'
+        ],
+        projetosRelacionados: ['demo-imobiliaria-premium', 'demo-restaurante-premium']
+      },
+      {
+        id: 'premium',
+        nome: 'PREMIUM',
+        tagline: 'High-impact digital experience',
+        preco: 'Starting from R$ 4.500',
+        prazo: 'VIP delivery',
+        corIdentidade: 'dourado',
+        descricao: 'High-impact digital experience featuring top-tier art direction, micro-interactions, and VIP support.',
+        recursos: [
+          'Master art direction & luxury styling',
+          'Premium visual presentation',
+          'Refined high-converting micro-interactions',
+          'Distinctive custom brand experiences',
+          'Strategic copywriting & persuasive text',
+          'Priority VIP support & monitoring',
+          'Tailored scope resources'
+        ],
+        projetosRelacionados: ['demo-clinica-saude']
       }
     ];
   }
@@ -73,64 +92,83 @@ export const getNexawebPlans = (lang: Language = 'pt-BR'): ServicePlan[] => {
       {
         id: 'essencial',
         nome: 'ESENCIAL',
-        tagline: 'Sitio web profesional para comenzar',
+        tagline: 'Sitio profesional para comenzar',
+        preco: 'R$ 1.000',
+        prazo: '3–5 días',
         corIdentidade: 'azul',
-        descricao: 'Ideal para profesionales autónomos y pequeños negocios que necesitan presencia digital profesional con rapidez y alto impacto.',
+        descricao: 'Sitio profesional para comenzar. Ideal para pequeños negocios y profesionales autónomos.',
         recursos: [
-          'Landing page profesional de página única',
-          'Diseño responsivo para móvil, tablet y ordenador',
-          'Botones de contacto directo hacia WhatsApp',
-          'Velocidad de carga ultra rápida optimizada',
-          'Sección para mostrar servicios o productos',
-          'Alojamiento web seguro y certificado SSL incluidos'
-        ]
+          'Presentación profesional',
+          'Estructura esencial de alta conversión',
+          'Botón directo a WhatsApp',
+          'Integración de redes sociales',
+          'Diseño 100% responsivo para móviles',
+          'SEO básico para Google',
+          'Alojamiento web seguro',
+          'Certificado SSL incluido',
+          'Aprobación y entrega al cliente'
+        ],
+        projetosRelacionados: ['demo-barbearia-kings']
       },
       {
         id: 'profissional',
         nome: 'PROFESIONAL',
         tagline: 'Más recursos para su negocio',
+        preco: 'R$ 1.700',
+        prazo: '5–8 días',
         corIdentidade: 'dourado',
         destaque: true,
-        descricao: 'La opción más elegida por empresas consolidadas que buscan atraer nuevos clientes, reforzar la autoridad de la marca y destacar sus ventajas.',
+        descricao: 'Más recursos y presencia sólida para negocios que buscan liderar su segmento y generar clientes.',
         recursos: [
-          'Estructura multisección o multipágina completa',
-          'Catálogo interactivo de servicios o productos',
-          'Formulario inteligente de captación de clientes',
-          'Optimización completa de SEO para Google',
-          'Integración con Google Maps y opiniones',
-          'Diseño visual exclusivo con tipografía a medida',
-          'Botón flotante de atención personalizada'
-        ]
-      },
-      {
-        id: 'premium',
-        nome: 'PREMIUM',
-        tagline: 'Máxima autoridad y excelencia digital',
-        corIdentidade: 'esmeralda',
-        descricao: 'Diseño de alto estándar, animaciones refinadas y captación estratégica de clientes para marcas que exigen distinción en el mercado.',
-        recursos: [
-          'Diseño visual exclusivo de lujo adaptado a su marca',
-          'Posicionamiento avanzado Google SEO Master',
-          'Microinteracciones y efectos de alto impacto',
-          'Canal prioritario de captación multicanal y WhatsApp',
-          'Alojamiento en la nube ultra veloz con SSL',
-          'Soporte técnico y monitorización VIP prioritaria'
-        ]
+          'Estructura más completa y secciones ricas',
+          'Secciones estratégicas de conversión',
+          'Llamadas a la acción (CTAs) de impacto',
+          'Destaques interactivos de productos/servicios',
+          'Optimización Core Web Vitals de alta velocidad',
+          'WhatsApp y Correo corporativo',
+          'Formularios avanzados de contacto',
+          'Responsividad impecable en teléfonos',
+          'Aprobación guiada con el cliente'
+        ],
+        projetosRelacionados: ['demo-salao-premium', 'demo-academia-premium']
       },
       {
         id: 'personalizado',
         nome: 'PERSONALIZADO',
-        tagline: 'Un proyecto hecho a su medida',
+        tagline: 'Un proyecto hecho para usted',
+        preco: 'A partir de R$ 2.800',
+        prazo: 'Según alcance',
         corIdentidade: 'roxo',
-        descricao: 'Desarrollo exclusivo con arquitectura única, funciones avanzadas y acompañamiento estratégico directo de NexaWeb.',
+        descricao: 'Un proyecto exclusivo hecho para su negocio, con arquitectura a medida y atención estratégica.',
         recursos: [
-          'Proyecto 100% exclusivo diseñado para su negocio',
-          'Sistemas específicos (reservas, menú digital, catálogo dinámico)',
-          'Textos persuasivos orientados a la conversión',
-          'Integración con herramientas de gestión o CRM',
-          'Optimización avanzada de rendimiento y analítica',
-          'Soporte prioritario y asesoramiento directo'
-        ]
+          'Diseño visual personalizado',
+          'Identidad visual adaptada',
+          'Estructura sob medida',
+          'Inspiración y referencias guiadas',
+          'Funcionalidades interactivas personalizadas',
+          'Briefing colaborativo interactivo',
+          'Soporte consultivo directo'
+        ],
+        projetosRelacionados: ['demo-imobiliaria-premium', 'demo-restaurante-premium']
+      },
+      {
+        id: 'premium',
+        nome: 'PREMIUM',
+        tagline: 'Experiencia digital de alto impacto',
+        preco: 'A partir de R$ 4.500',
+        prazo: 'Entrega VIP',
+        corIdentidade: 'dourado',
+        descricao: 'Experiencia digital de alto impacto con dirección de arte exclusiva y nivel superior de sofisticación.',
+        recursos: [
+          'Dirección de arte exclusiva de lujo',
+          'Presentación premium de marca',
+          'Microinteracciones dinámicas refinadas',
+          'Experiencias diferenciadas y envolventes',
+          'Copywriting persuasivo estratégico',
+          'Soporte técnico VIP prioritario',
+          'Recursos y módulos según alcance'
+        ],
+        projetosRelacionados: ['demo-clinica-saude']
       }
     ];
   }
@@ -141,63 +179,82 @@ export const getNexawebPlans = (lang: Language = 'pt-BR'): ServicePlan[] => {
         id: 'essencial',
         nome: 'ESSENTIEL',
         tagline: 'Site professionnel pour démarrer',
+        preco: 'R$ 1.000',
+        prazo: '3–5 jours',
         corIdentidade: 'azul',
-        descricao: 'Idéal pour indépendants et petites entreprises ayant besoin d’une présence numérique moderne, rapide et percutante.',
+        descricao: 'Site professionnel pour démarrer. Idéal pour indépendants et petites entreprises.',
         recursos: [
-          'Landing page professionnelle d’une page',
-          'Design 100% adapté aux smartphones et ordinateurs',
-          'Boutons d’accès direct vers WhatsApp',
-          'Vitesse de chargement ultra rapide',
-          'Section de présentation des services ou produits',
-          'Hébergement sécurisé et certificat SSL inclus'
-        ]
+          'Présentation professionnelle',
+          'Structure essentielle claire',
+          'Bouton d’action direct WhatsApp',
+          'Réseaux sociaux connectés',
+          'Design 100% adapté aux mobiles',
+          'Référencement naturel (SEO) de base',
+          'Hébergement cloud sécurisé',
+          'Certificat de sécurité SSL',
+          'Validation et approbation client'
+        ],
+        projetosRelacionados: ['demo-barbearia-kings']
       },
       {
         id: 'profissional',
         nome: 'PROFESSIONNEL',
         tagline: 'Davantage de fonctionnalités pour grandir',
+        preco: 'R$ 1.700',
+        prazo: '5–8 jours',
         corIdentidade: 'dourado',
         destaque: true,
-        descricao: 'Le choix privilégié des entreprises établies pour attirer de nouveaux prospects, asseoir leur crédibilité et valoriser leurs atouts.',
+        descricao: 'Davantage de ressources et d’impact pour les entreprises souhaitant affirmer leur crédibilité.',
         recursos: [
-          'Structure multi-pages ou sections approfondies',
-          'Catalogue interactif de services ou produits',
-          'Formulaire intelligent de qualification des contacts',
-          'Optimisation complète du référencement naturel (SEO)',
-          'Intégration Google Maps et avis clients',
-          'Identité graphique soignée et sur mesure',
-          'Bouton flottant d’assistance rapide'
-        ]
-      },
-      {
-        id: 'premium',
-        nome: 'PREMIUM',
-        tagline: 'Autorité maximale et prestige digital',
-        corIdentidade: 'esmeralda',
-        descricao: 'Design haut de gamme exclusif, animations raffinées et acquisition stratégique pour les marques visant l’excellence.',
-        recursos: [
-          'Identité visuelle de prestige conçue pour votre marque',
-          'Référencement naturel de pointe (Google SEO Master)',
-          'Micro-interactions fluides et dynamisme soigné',
-          'Acquisition de prospects qualifiés et WhatsApp direct',
-          'Hébergement cloud ultra rapide avec certificat SSL',
-          'Support technique prioritaire et suivi VIP'
-        ]
+          'Structure approfondie et complète',
+          'Sections stratégiques de conversion',
+          'Appels à l’action (CTA) ciblés',
+          'Mise en valeur interactive des services',
+          'Optimisation Core Web Vitals ultra-rapide',
+          'WhatsApp et Email professionnel',
+          'Formulaires avancés de contact',
+          'Ergonomie fluide sur smartphones',
+          'Validation par étapes'
+        ],
+        projetosRelacionados: ['demo-salao-premium', 'demo-academia-premium']
       },
       {
         id: 'personalizado',
         nome: 'SUR MESURE',
-        tagline: 'Un projet conçu exclusivement pour vous',
+        tagline: 'Un projet conçu pour vous',
+        preco: 'À partir de R$ 2.800',
+        prazo: 'Selon cahier des charges',
         corIdentidade: 'roxo',
-        descricao: 'Conception sur mesure dotée d’une architecture unique, de fonctionnalités spécifiques et du suivi stratégique direct de NexaWeb.',
+        descricao: 'Un projet conçu sur mesure selon vos exigences et votre identité de marque.',
         recursos: [
-          'Projet 100% sur mesure pour votre secteur',
-          'Modules dédiés (prise de rendez-vous, carte en ligne, portfolio)',
-          'Rédaction persuasive alignée sur votre audience',
-          'Intégration aux outils de gestion et CRM',
-          'Optimisation avancée des performances et métriques',
-          'Accompagnement et support prioritaire dédié'
-        ]
+          'Conception visuelle personnalisée',
+          'Identité visuelle harmonisée',
+          'Architecture sur mesure',
+          'Cahier de références & design dédié',
+          'Modules interactifs selon vos besoins',
+          'Briefing interactif et guidé',
+          'Accompagnement consultatif dédié'
+        ],
+        projetosRelacionados: ['demo-imobiliaria-premium', 'demo-restaurante-premium']
+      },
+      {
+        id: 'premium',
+        nome: 'PREMIUM',
+        tagline: 'Expérience digitale à fort impact',
+        preco: 'À partir de R$ 4.500',
+        prazo: 'Suivi VIP',
+        corIdentidade: 'dourado',
+        descricao: 'Expérience digitale d’excellence avec direction artistique d’élite et suivi VIP.',
+        recursos: [
+          'Direction artistique de prestige',
+          'Présentation graphique haut de gamme',
+          'Micro-interactions fluides et soignées',
+          'Expériences immersives mémorables',
+          'Copywriting persuasif sur mesure',
+          'Support et accompagnement VIP prioritaire',
+          'Ressources techniques selon le périmètre'
+        ],
+        projetosRelacionados: ['demo-clinica-saude']
       }
     ];
   }
@@ -208,63 +265,82 @@ export const getNexawebPlans = (lang: Language = 'pt-BR'): ServicePlan[] => {
         id: 'essencial',
         nome: 'ESSENCIAL',
         tagline: 'Sítio profissional para começar',
+        preco: 'R$ 1.000',
+        prazo: '3–5 dias',
         corIdentidade: 'azul',
-        descricao: 'Ideal para profissionais liberais e pequenas empresas que precisam de presença digital profissional com agilidade e elevado impacto.',
+        descricao: 'Sítio profissional para começar. Ideal para pequenos negócios e profissionais liberais.',
         recursos: [
-          'Landing page profissional de página única',
-          'Design responsivo para telemóvel, tablet e computador',
-          'Botões de contacto direto para o WhatsApp',
-          'Carregamento rápido otimizado',
-          'Secção de apresentação de serviços e produtos',
-          'Alojamento seguro e certificado SSL incluídos'
-        ]
+          'Apresentação profissional',
+          'Estrutura essencial focada',
+          'WhatsApp de contacto direto',
+          'Redes sociais integradas',
+          'Responsividade total para telemóveis',
+          'SEO básico para motores de busca',
+          'Alojamento em nuvem seguro',
+          'Certificado de segurança SSL',
+          'Aprovação do cliente'
+        ],
+        projetosRelacionados: ['demo-barbearia-kings']
       },
       {
         id: 'profissional',
         nome: 'PROFISSIONAL',
         tagline: 'Mais funcionalidades para o seu negócio',
+        preco: 'R$ 1.700',
+        prazo: '5–8 dias',
         corIdentidade: 'dourado',
         destaque: true,
-        descricao: 'A melhor escolha para empresas consolidadas que desejam atrair novos clientes, reforçar a autoridade da marca e destacar os seus diferenciais.',
+        descricao: 'Mais recursos para o seu negócio. Ideal para marcas que procuram destacar diferenciais e gerar contactos.',
         recursos: [
-          'Estrutura multipágina ou secções aprofundadas',
-          'Catálogo interativo de serviços ou produtos',
-          'Formulário inteligente de captação de clientes',
-          'Otimização completa de SEO para o Google',
-          'Integração com Google Maps e avaliações',
-          'Layout premium com tipografia e paleta à medida',
-          'Botão flutuante de atendimento personalizado'
-        ]
-      },
-      {
-        id: 'premium',
-        nome: 'PREMIUM',
-        tagline: 'Máxima autoridade e excelência digital',
-        corIdentidade: 'esmeralda',
-        descricao: 'Design exclusivo de alto luxo, animações refinadas e conversão estratégica para marcas que exigem destaque e credibilidade no mercado.',
-        recursos: [
-          'Identidade visual de luxo desenhada para a sua marca',
-          'Posicionamento de topo no Google (SEO Master)',
-          'Microinterações sofisticadas e carregamento instantâneo',
-          'Canal prioritário de captação comercial e WhatsApp',
-          'Alojamento em nuvem ultra rápido com certificado SSL',
-          'Acompanhamento técnico e monitorização VIP contínua'
-        ]
+          'Estrutura mais completa',
+          'Secções estratégicas de conversão',
+          'Chamadas para ação (CTAs) eficientes',
+          'Destaques interativos de catálogo',
+          'Otimização Core Web Vitals de alta velocidade',
+          'WhatsApp e correio eletrónico',
+          'Formulários avançados',
+          'Responsividade refinada',
+          'Aprovação em etapas com o cliente'
+        ],
+        projetosRelacionados: ['demo-salao-premium', 'demo-academia-premium']
       },
       {
         id: 'personalizado',
         nome: 'PERSONALIZADO',
-        tagline: 'Um projeto feito à sua medida',
+        tagline: 'Um projeto feito para si',
+        preco: 'A partir de R$ 2.800',
+        prazo: 'Sob consulta',
         corIdentidade: 'roxo',
-        descricao: 'Desenvolvimento à medida com arquitetura exclusiva, funcionalidades específicas e acompanhamento estratégico da NexaWeb.',
+        descricao: 'Um projeto feito para si, com arquitetura própria e acompanhamento consultivo da NexaWeb.',
         recursos: [
-          'Projeto 100% exclusivo criado para o seu negócio',
-          'Sistemas específicos (marcações, ementa própria, portfólio dinâmico)',
-          'Copywriting persuasivo e estratégico alinhado ao seu público',
-          'Integração com ferramentas de gestão e CRM',
-          'Otimização avançada de desempenho e métricas',
-          'Acompanhamento e apoio prioritário direto'
-        ]
+          'Visual personalizado',
+          'Identidade visual à medida',
+          'Estrutura sob medida',
+          'Referências e alinhamento dedicado',
+          'Recursos personalizados',
+          'Briefing interativo e estruturado',
+          'Apoio e suporte consultivo'
+        ],
+        projetosRelacionados: ['demo-imobiliaria-premium', 'demo-restaurante-premium']
+      },
+      {
+        id: 'premium',
+        nome: 'PREMIUM',
+        tagline: 'Experiência digital de alto impacto',
+        preco: 'A partir de R$ 4.500',
+        prazo: 'Acompanhamento VIP',
+        corIdentidade: 'dourado',
+        descricao: 'Experiência digital de alto impacto com direção de arte de topo e microinterações de prestígio.',
+        recursos: [
+          'Direção de arte e estilo de prestígio',
+          'Apresentação premium exclusiva',
+          'Microinterações fluidas',
+          'Experiências diferenciadas de navegação',
+          'Copywriting persuasivo e estratégico',
+          'Acompanhamento e suporte VIP',
+          'Recursos avançados conforme o âmbito'
+        ],
+        projetosRelacionados: ['demo-clinica-saude']
       }
     ];
   }
@@ -275,63 +351,82 @@ export const getNexawebPlans = (lang: Language = 'pt-BR'): ServicePlan[] => {
       id: 'essencial',
       nome: 'ESSENCIAL',
       tagline: 'Site profissional para começar',
+      preco: 'R$ 1.000',
+      prazo: '3–5 dias',
       corIdentidade: 'azul',
-      descricao: 'Ideal para profissionais autônomos e pequenos negócios que precisam de presença digital profissional com agilidade e alto impacto.',
+      descricao: 'Site profissional para começar. Ideal para pequenos negócios e profissionais autônomos.',
       recursos: [
-        'Landing page profissional de página única',
-        'Design responsivo para celular, tablet e computador',
-        'Botões de contato direto para o WhatsApp',
-        'Carregamento rápido otimizado',
-        'Seção de apresentação de serviços e produtos',
-        'Hospedagem segura e certificado SSL incluídos'
-      ]
+        'Apresentação profissional',
+        'Estrutura essencial',
+        'WhatsApp direto',
+        'Redes sociais integradas',
+        'Responsividade 100% mobile',
+        'SEO básico para Google',
+        'Hospedagem segura em nuvem',
+        'Certificado de segurança SSL',
+        'Aprovação do cliente'
+      ],
+      projetosRelacionados: ['demo-barbearia-kings']
     },
     {
       id: 'profissional',
       nome: 'PROFISSIONAL',
       tagline: 'Mais recursos para o seu negócio',
+      preco: 'R$ 1.700',
+      prazo: '5–8 dias',
       corIdentidade: 'dourado',
       destaque: true,
-      descricao: 'A melhor escolha para empresas consolidadas que desejam atrair novos clientes, fortalecer a autoridade da marca e destacar seus diferenciais.',
+      descricao: 'Mais recursos para o seu negócio. A escolha mais procurada por empresas para gerar autoridade e atrair clientes.',
       recursos: [
-        'Estrutura multipágina ou seções aprofundadas',
-        'Catálogo interativo de serviços ou produtos',
-        'Formulário inteligente de captação de clientes',
-        'Otimização completa de SEO para o Google',
-        'Integração com Google Maps e avaliações',
-        'Layout premium com tipografia e paleta sob medida',
-        'Botão flutuante de atendimento personalizado'
-      ]
-    },
-    {
-      id: 'premium',
-      nome: 'PREMIUM',
-      tagline: 'Máxima autoridade e destaque digital',
-      corIdentidade: 'esmeralda',
-      descricao: 'Design exclusivo de alto padrão, animações sofisticadas e captação estratégica para marcas que buscam liderança e autoridade máxima.',
-      recursos: [
-        'Identidade visual de alto luxo desenhada para a sua marca',
-        'Posicionamento de ponta no Google (SEO Master)',
-        'Microinterações refinadas e velocidade máxima de carregamento',
-        'Canal prioritário de conversão e captação no WhatsApp',
-        'Hospedagem em nuvem de alto desempenho com certificado SSL',
-        'Suporte prioritário e acompanhamento técnico VIP contínuo'
-      ]
+        'Estrutura mais completa',
+        'Seções estratégicas',
+        'CTAs otimizados',
+        'Destaques interativos',
+        'Core Web Vitals de alta velocidade',
+        'WhatsApp e e-mail corporativo',
+        'Formulários avançados de contato',
+        'Responsividade refinada para celular',
+        'Aprovação de projeto'
+      ],
+      projetosRelacionados: ['demo-salao-premium', 'demo-academia-premium']
     },
     {
       id: 'personalizado',
       nome: 'PERSONALIZADO',
       tagline: 'Um projeto feito para você',
+      preco: 'A partir de R$ 2.800',
+      prazo: 'Conforme escopo',
       corIdentidade: 'roxo',
-      descricao: 'Desenvolvimento sob medida com arquitetura exclusiva, funcionalidades específicas e acompanhamento estratégico da NexaWeb.',
+      descricao: 'Um projeto feito para você. Estrutura sob medida, visual exclusivo e suporte consultivo da NexaWeb.',
       recursos: [
-        'Projeto 100% exclusivo criado para o seu negócio',
-        'Sistemas específicos (agendamentos, cardápio próprio, portfólio dinâmico)',
-        'Copywriting persuasivo e estratégico alinhado ao seu público',
-        'Integração com ferramentas de gestão e CRM',
-        'Otimização avançada de performance e métricas',
-        'Acompanhamento e suporte prioritário direto'
-      ]
+        'Visual personalizado',
+        'Identidade visual sob medida',
+        'Estrutura sob medida',
+        'Referências e moodboard alinhados',
+        'Recursos personalizados',
+        'Briefing interativo',
+        'Suporte consultivo'
+      ],
+      projetosRelacionados: ['demo-imobiliaria-premium', 'demo-restaurante-premium']
+    },
+    {
+      id: 'premium',
+      nome: 'PREMIUM',
+      tagline: 'Experiência digital de alto impacto',
+      preco: 'A partir de R$ 4.500',
+      prazo: 'Atendimento VIP',
+      corIdentidade: 'dourado',
+      descricao: 'Experiência digital de alto impacto. Direção de arte exclusiva, microinterações e máxima autoridade de mercado.',
+      recursos: [
+        'Direção de arte refinada',
+        'Apresentação premium',
+        'Microinterações exclusivas',
+        'Experiências diferenciadas',
+        'Copywriting persuasivo e estratégico',
+        'Suporte VIP prioritário',
+        'Recursos conforme escopo'
+      ],
+      projetosRelacionados: ['demo-clinica-saude']
     }
   ];
 };

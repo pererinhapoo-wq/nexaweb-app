@@ -390,7 +390,7 @@ Solicitação de Projeto de Site Bilíngue / Bilingual Website Project Request:
           </button>
         </div>
 
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {plans.map((plan) => {
             const isSelected = selectedPlan === plan.id;
             return (
@@ -401,15 +401,15 @@ Solicitação de Projeto de Site Bilíngue / Bilingual Website Project Request:
                 className={`p-2.5 rounded-xl border text-center transition-all ${
                   isSelected
                     ? plan.corIdentidade === 'azul'
-                      ? 'bg-blue-950/40 border-blue-500 text-white'
-                      : plan.corIdentidade === 'dourado'
-                      ? 'bg-amber-950/40 border-amber-500 text-white'
-                      : 'bg-purple-950/40 border-purple-500 text-white'
+                      ? 'bg-blue-950/40 border-blue-500 text-white ring-1 ring-blue-500/40'
+                      : plan.corIdentidade === 'roxo'
+                      ? 'bg-purple-950/40 border-purple-500 text-white ring-1 ring-purple-500/40'
+                      : 'bg-amber-950/40 border-amber-500 text-white ring-1 ring-amber-500/40'
                     : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
                 }`}
               >
                 <span className="text-xs font-bold block">{plan.nome}</span>
-                <span className="text-[10px] text-slate-400 block mt-0.5 truncate">{plan.tagline}</span>
+                <span className="text-[10px] text-slate-400 block mt-0.5 truncate">{plan.preco}</span>
               </button>
             );
           })}

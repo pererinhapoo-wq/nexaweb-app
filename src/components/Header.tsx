@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ViewTab } from '../types';
-import { ArrowLeft, ExternalLink, Sparkles, ChevronDown } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Sparkles, ChevronDown, Menu } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 import { LanguageModal } from './LanguageModal';
 
@@ -8,19 +8,21 @@ interface HeaderProps {
   currentTab: ViewTab;
   onNavigate: (tab: ViewTab) => void;
   onOpenOnboarding: () => void;
+  onOpenMenu: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   currentTab,
   onNavigate,
   onOpenOnboarding,
+  onOpenMenu,
 }) => {
   const { currentLanguageOption, t } = useTranslation();
   const [isLangModalOpen, setIsLangModalOpen] = useState(false);
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800/80 px-3 sm:px-4 py-2.5">
+      <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800/80 px-3 sm:px-4 py-2.5 transition-colors">
         <div className="max-w-3xl mx-auto flex items-center justify-between gap-2">
           {/* Brand & Back Button */}
           <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
@@ -62,7 +64,7 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* Right side: Personalizar + Language Selector + Official link */}
+          {/* Right side: Personalizar + Language Selector + Menu Hamburger */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {/* Botão Personalizar Experiência */}
             <button
@@ -76,7 +78,7 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="hidden sm:inline">{t.header.customizeExp}</span>
             </button>
 
-            {/* Seletor discreto de idioma com bandeira + código */}
+            {/* Seletor discreto de idioma */}
             <button
               type="button"
               onClick={() => setIsLangModalOpen(true)}
@@ -93,18 +95,16 @@ export const Header: React.FC<HeaderProps> = ({
               <ChevronDown className="w-3 h-3 text-slate-400" />
             </button>
 
-            {/* Link para site oficial */}
-            <a
-              href="https://nexaweeb.vercel.app/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden md:flex items-center gap-1.5 px-2 py-1 rounded-full bg-slate-800/90 hover:bg-slate-800 border border-slate-700/60 text-xs text-slate-300 transition-colors"
-              title={t.header.visitWebsite}
+            {/* Botão Menu Principal (Abre AppDrawer com Área do Cliente, Admin, etc.) */}
+            <button
+              type="button"
+              onClick={onOpenMenu}
+              className="min-h-[36px] min-w-[36px] flex items-center justify-center p-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-750 text-white border border-slate-700/80 transition-all active:scale-95"
+              aria-label="Abrir Menu Principal"
+              title="Abrir Menu"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-              <span className="text-[11px] font-semibold text-white">nexaweeb</span>
-              <ExternalLink className="w-3 h-3 text-slate-400" />
-            </a>
+              <Menu className="w-5 h-5 text-cyan-400" />
+            </button>
           </div>
         </div>
       </header>

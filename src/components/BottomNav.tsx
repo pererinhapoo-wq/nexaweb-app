@@ -1,6 +1,6 @@
 import React from 'react';
 import { ViewTab } from '../types';
-import { Home, Layers, Briefcase, Sparkles, Settings } from 'lucide-react';
+import { Home, Layers, Briefcase, Sparkles } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 
 interface BottomNavProps {
@@ -35,16 +35,11 @@ export const BottomNav: React.FC<BottomNavProps> = ({
       label: t.nav.project,
       icon: <Sparkles className="w-5 h-5" />,
     },
-    {
-      tab: 'settings',
-      label: t.nav.settings,
-      icon: <Settings className="w-5 h-5" />,
-    },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-lg border-t border-slate-800/80 px-1 py-1.5 safe-area-pb transition-colors duration-200">
-      <div className="max-w-lg mx-auto grid grid-cols-5 gap-1">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-lg border-t border-slate-800/80 px-2 py-1.5 safe-area-pb transition-colors duration-200 shadow-lg">
+      <div className="max-w-md mx-auto grid grid-cols-4 gap-1">
         {navItems.map((item) => {
           const isActive = currentTab === item.tab;
           return (
@@ -61,7 +56,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
               <div className="relative">
                 {item.icon}
               </div>
-              <span className={`text-[10px] mt-1 truncate max-w-full leading-none ${isActive ? 'text-indigo-300 font-semibold' : 'text-slate-400'}`}>
+              <span className={`text-[10.5px] mt-1 truncate max-w-full leading-none ${isActive ? 'text-indigo-300 font-semibold' : 'text-slate-400'}`}>
                 {item.label}
               </span>
               {isActive && (

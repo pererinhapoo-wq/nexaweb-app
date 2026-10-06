@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getPortfolioCategories, getPortfolioProjects } from '../data/portfolioData';
 import { PortfolioProject } from '../types';
+import { ProjectCardImage } from './ProjectCardImage';
 import {
   ExternalLink,
   CheckCircle2,
@@ -246,31 +247,36 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
         ) : (
           filteredProjects.map((project) => {
             const isFav = favorites.includes(project.id);
+            const planBadge = project.planoId ? `Plano ${project.planoId.toUpperCase()}` : undefined;
 
             return (
               <div
                 key={project.id}
-                className="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden hover:border-slate-700 transition-all duration-150 shadow-sm"
+                className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden hover:border-slate-700 transition-all duration-150 shadow-md"
               >
-                {/* Visual Header Banner com Proporção Estável */}
-                <div
-                  className={`h-24 bg-gradient-to-r ${project.corDestaque} p-4 flex flex-col justify-between relative overflow-hidden`}
-                >
-                  <div className="absolute -right-6 -bottom-6 w-28 h-28 bg-white/10 rounded-full blur-xl pointer-events-none" />
-                  <div className="flex items-center justify-between relative z-10">
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-black/40 backdrop-blur-md text-white border border-white/20">
+                {/* 1. Imagem do Projeto com Captura Real e Fallback Responsivo */}
+                <ProjectCardImage
+                  project={project}
+                  aspectRatio="card"
+                  badge={planBadge}
+                />
+
+                {/* 2. Conteúdo do Card */}
+                <div className="p-4 space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
                       {categories.find((c) => c.id === project.categoria)?.nome || project.categoria}
                     </span>
 
-                    {/* Ações de Favoritar e Compartilhar no Header do Card */}
+                    {/* Ações Rápidas: Favoritar e Compartilhar */}
                     <div className="flex items-center gap-1.5">
                       <button
                         type="button"
                         onClick={(e) => handleToggleFavorite(project.id, e)}
-                        className={`p-1.5 rounded-full backdrop-blur-md transition-all ${
+                        className={`p-1.5 rounded-lg border transition-all ${
                           isFav
-                            ? 'bg-rose-600 text-white'
-                            : 'bg-black/30 hover:bg-black/50 text-white/90'
+                            ? 'bg-rose-600/20 border-rose-500 text-rose-400'
+                            : 'bg-slate-800/80 border-slate-700 text-slate-400 hover:text-white'
                         }`}
                         title={isFav ? t.portfolio.removeFromFavorites : t.portfolio.addToFavorites}
                         aria-label={isFav ? t.portfolio.removeFromFavorites : t.portfolio.addToFavorites}
@@ -281,7 +287,7 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
                       <button
                         type="button"
                         onClick={(e) => handleShare(project, e)}
-                        className="p-1.5 rounded-full bg-black/30 hover:bg-black/50 text-white/90 backdrop-blur-md transition-all"
+                        className="p-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-slate-400 hover:text-white transition-all"
                         title={t.portfolio.share}
                         aria-label={t.portfolio.share}
                       >
@@ -290,13 +296,10 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
                     </div>
                   </div>
 
-                  <h3 className="text-base font-bold text-white tracking-tight relative z-10 drop-shadow-sm truncate">
+                  <h3 className="text-base font-bold text-white tracking-tight">
                     {project.titulo}
                   </h3>
-                </div>
 
-                {/* Card Content */}
-                <div className="p-4 space-y-3">
                   <p className="text-xs text-slate-300 leading-relaxed">
                     {project.descricaoCurta}
                   </p>
@@ -319,26 +322,26 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
                     ))}
                   </div>
 
-                  {/* Action Buttons com Área de Toque Confortável */}
+                  {/* Action Buttons: "Ver site" com URL REAL em navegador externo */}
                   <div className="pt-2 flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setActiveDemo(project)}
-                      className="min-h-[44px] flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-white font-semibold text-xs border border-slate-700 transition-all active:scale-[0.98]"
-                    >
-                      <Eye className="w-4 h-4 text-cyan-400" />
-                      <span>{t.portfolio.detailsBtn}</span>
-                    </button>
-
                     <a
                       href={project.linkDemo}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="min-h-[44px] min-w-[44px] p-2.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-cyan-400 border border-slate-700 transition-all flex items-center justify-center active:scale-[0.98]"
-                      title={t.portfolio.openDirect}
+                      className="min-h-[44px] flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-cyan-300 font-bold text-xs border border-slate-700 hover:border-cyan-500/40 transition-all active:scale-[0.98]"
                     >
-                      <ExternalLink className="w-4 h-4" />
+                      <span>Ver site</span>
+                      <ExternalLink className="w-3.5 h-3.5 text-cyan-400" />
                     </a>
+
+                    <button
+                      type="button"
+                      onClick={() => setActiveDemo(project)}
+                      className="min-h-[44px] flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-white font-semibold text-xs border border-slate-700 transition-all active:scale-[0.98]"
+                    >
+                      <Eye className="w-3.5 h-3.5 text-indigo-400" />
+                      <span>Detalhes</span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -430,7 +433,7 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
                 <div className="p-4 space-y-3 bg-gradient-to-b from-slate-900 to-slate-950">
                   <div className={`p-4 rounded-xl bg-gradient-to-r ${activeDemo.corDestaque} text-white`}>
                     <span className="text-[10px] uppercase font-bold tracking-wider opacity-80 block">
-                      Preview
+                      Preview Oficial NexaWeb
                     </span>
                     <h4 className="text-lg font-extrabold mt-0.5">
                       {activeDemo.titulo}
@@ -461,7 +464,7 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
                   href={activeDemo.linkDemo}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="min-h-[44px] flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-xs bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-950/40 transition-all text-center active:scale-[0.98]"
+                  className="min-h-[46px] flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-xs bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-950/40 transition-all text-center active:scale-[0.98]"
                 >
                   <ExternalLink className="w-4 h-4" />
                   <span>{t.portfolio.openInBrowser}</span>
@@ -475,7 +478,7 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
                       setActiveDemo(null);
                       onSelectProjectForBriefing(title);
                     }}
-                    className="min-h-[44px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition-all shadow-md shadow-indigo-950 active:scale-[0.98]"
+                    className="min-h-[46px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition-all shadow-md shadow-indigo-950 active:scale-[0.98]"
                   >
                     <span>{t.portfolio.wantThisModel}</span>
                     <ArrowRight className="w-4 h-4" />

@@ -347,7 +347,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onOpenLanguageMo
         <div className="rounded-2xl divide-y divide-slate-800/80 bg-slate-900/80 border border-slate-800 shadow-md overflow-hidden">
           {/* 2.1 Instagram */}
           <a
-            href="https://instagram.com/nexaweb_oficial"
+            href="https://www.instagram.com/nexaw1/"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-between p-4 hover:bg-slate-850/80 transition-colors group min-h-[52px]"
@@ -360,10 +360,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onOpenLanguageMo
               </div>
               <div>
                 <h3 className="text-xs sm:text-sm font-semibold text-white group-hover:text-indigo-300 transition-colors">
-                  {t.settings.instagram}
+                  Instagram Oficial
                 </h3>
-                <p className="text-[11px] text-slate-400">
-                  {t.settings.instagramHandle}
+                <p className="text-[11px] text-slate-400 font-mono">
+                  @nexaw1
                 </p>
               </div>
             </div>
@@ -375,7 +375,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onOpenLanguageMo
 
           {/* 2.2 E-mail de Contato */}
           <a
-            href="mailto:contato@nexaweb.com.br"
+            href="mailto:nexaweeb@gmail.com"
             className="flex items-center justify-between p-4 hover:bg-slate-850/80 transition-colors group min-h-[52px]"
           >
             <div className="flex items-center gap-3">
@@ -384,10 +384,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onOpenLanguageMo
               </div>
               <div>
                 <h3 className="text-xs sm:text-sm font-semibold text-white group-hover:text-cyan-300 transition-colors">
-                  {t.settings.email}
+                  E-mail Oficial
                 </h3>
-                <p className="text-[11px] text-slate-400">
-                  {t.settings.emailAddress}
+                <p className="text-[11px] text-slate-400 font-mono">
+                  nexaweeb@gmail.com
                 </p>
               </div>
             </div>
