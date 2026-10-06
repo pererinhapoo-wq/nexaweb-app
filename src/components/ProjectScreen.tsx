@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ViewTab, WebsiteLanguage } from '../types';
+import { ViewTab, WebsiteLanguage, PortfolioProject } from '../types';
 import { getNexawebPlans } from '../data/servicesData';
 import { getPortfolioProjects } from '../data/portfolioData';
 import {
   OFFICIAL_EXTRA_FEATURES,
-  OFFICIAL_PLANS_COMMERCIAL,
   ExtraFeature,
+  SEGMENT_PRESETS,
 } from '../data/commercialRules';
 import {
   calculateBudget,
@@ -22,19 +22,27 @@ import {
   Copy,
   Layout,
   Store,
-  Lightbulb,
   Mail,
   Instagram,
   Globe,
-  Globe2,
-  DollarSign,
   AlertCircle,
   Plus,
   Zap,
   Send,
   CheckCircle2,
-  ChevronDown,
-  ChevronUp,
+  ChevronRight,
+  ChevronLeft,
+  ArrowLeft,
+  ArrowRight,
+  ShieldCheck,
+  Palette,
+  Users,
+  Layers,
+  FileText,
+  Clock,
+  Phone,
+  Edit2,
+  Lock,
 } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 
@@ -43,6 +51,8 @@ interface ProjectScreenProps {
   initialModel?: string;
   initialWebsiteLanguage?: WebsiteLanguage;
   onNavigate: (tab: ViewTab) => void;
+  onBack?: () => void;
+  onStepChange?: (step: number, canGoBackStep: boolean, goBackStep: () => void) => void;
 }
 
 export const ProjectScreen: React.FC<ProjectScreenProps> = ({
@@ -50,13 +60,15 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
   initialModel,
   initialWebsiteLanguage,
   onNavigate,
+  onBack,
+  onStepChange,
 }) => {
   const { language, t } = useTranslation();
 
   const plans = getNexawebPlans(language);
   const portfolioProjects = getPortfolioProjects(language);
 
-  // Mapeamento de modelo do portfólio para segmento correspondente
+  // Mapeamento de modelo para segmento
   const getSegmentByModelTitle = (modelTitle: string): string => {
     const proj = portfolioProjects.find((p) => p.titulo === modelTitle);
     if (!proj) return 'services';
@@ -69,31 +81,59 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     return 'services';
   };
 
-  const [startType, setStartType] = useState<'modelo' | 'segmento' | 'propria'>('modelo');
-  const [selectedModel, setSelectedModel] = useState<string>(initialModel || portfolioProjects[0]?.titulo || '');
+  // Etapa atual do Wizard Mobile: 1 = Plano/Apresentação | 2 = Personalização | 3 = Contato | 4 = Resumo
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
+
+  // --- ETAPA 1: Ponto de partida & Plano ---
+  const [selectedModel, setSelectedModel] = useState<string>(initialModel || '');
+  const [modelApproach, setModelApproach] = useState<'exact' | 'inspiration'>('exact');
+  const [startType, setStartType] = useState<'modelo' | 'propria' | 'plano'>(
+    initialModel ? 'modelo' : 'propria'
+  );
+  const [selectedPlan, setSelectedPlan] = useState<string>(initialPlan || 'profissional');
   const [selectedSegment, setSelectedSegment] = useState<string>(() => {
     if (initialModel) return getSegmentByModelTitle(initialModel);
     return 'services';
   });
-  const [selectedPlan, setSelectedPlan] = useState<string>(initialPlan || 'profissional');
+
+  // --- ETAPA 2: Personalização ---
+  const [businessName, setBusinessName] = useState('');
   const [siteLanguage, setSiteLanguage] = useState<WebsiteLanguage>(
     initialWebsiteLanguage || (language === 'pt-PT' ? 'pt-PT' : language === 'en' ? 'en' : language === 'es' ? 'es' : language === 'fr' ? 'fr' : 'pt-BR')
   );
 
-  // Recursos extras selecionados
+  // Essencial
+  const [essentialServices, setEssentialServices] = useState('');
+  const [essentialColorMode, setEssentialColorMode] = useState<'suggest' | 'custom'>('suggest');
+  const [essentialCustomColors, setEssentialCustomColors] = useState('');
+
+  // Personalizado
+  const [visualStyle, setVisualStyle] = useState<string>('minimalist');
   const [selectedFeatureIds, setSelectedFeatureIds] = useState<string[]>([]);
-  const [showAllFeatures, setShowAllFeatures] = useState(false);
+  const [customSections, setCustomSections] = useState<string[]>([
+    'Sobre Nós / História',
+    'Serviços / Especialidades',
+    'Contato / Localização',
+  ]);
+  const [customColorMode, setCustomColorMode] = useState<'suggest' | 'custom'>('suggest');
+  const [customColors, setCustomColors] = useState('');
+  const [referenceLink, setReferenceLink] = useState('');
+  const [freeVision, setFreeVision] = useState('');
 
-  // Informações do negócio & Contato
-  const [businessName, setBusinessName] = useState('');
-  const [description, setDescription] = useState('');
-  const [contactName, setContactName] = useState('');
-  const [contactPhone, setContactPhone] = useState('');
+  // Profissional / Premium (Perfis de Acesso & Módulos)
+  const [accessProfiles, setAccessProfiles] = useState<string[]>(['Cliente', 'Administrador']);
+  const [strategicVision, setStrategicVision] = useState('');
 
-  // Imagens anexadas (Regra: máx 6 imagens, máx 10 MB cada)
+  // Anexos (até 6 imagens, máx 10 MB)
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
 
-  // Estados de envio
+  // --- ETAPA 3: Contato ---
+  const [contactName, setContactName] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [specificNotes, setSpecificNotes] = useState('');
+
+  // --- ETAPA 4: Envio & Feedback ---
   const [copied, setCopied] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionSuccess, setSubmissionSuccess] = useState<{
@@ -103,114 +143,159 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
   } | null>(null);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
 
-  // Sincroniza props se alteradas externamente
+  // Sincroniza se vier de fora
   useEffect(() => {
     if (initialPlan) setSelectedPlan(initialPlan);
   }, [initialPlan]);
 
   useEffect(() => {
     if (initialModel) {
-      setStartType('modelo');
       setSelectedModel(initialModel);
+      setStartType('modelo');
       setSelectedSegment(getSegmentByModelTitle(initialModel));
     }
   }, [initialModel]);
 
+  // Notifica o gerenciador de navegação sobre a etapa atual para suporte unificado ao Voltar
   useEffect(() => {
-    if (initialWebsiteLanguage) {
-      setSiteLanguage(initialWebsiteLanguage);
+    if (onStepChange) {
+      onStepChange(
+        currentStep,
+        currentStep > 1,
+        () => setCurrentStep((prev) => (prev > 1 ? (prev - 1) as any : 1))
+      );
     }
-  }, [initialWebsiteLanguage]);
-
-  const segmentsOptions: { id: string; label: string }[] = [
-    { id: 'beauty', label: t.segments.beauty },
-    { id: 'barber', label: t.segments.barber },
-    { id: 'fitness', label: t.segments.fitness },
-    { id: 'realEstate', label: t.segments.realEstate },
-    { id: 'clinic', label: t.segments.clinic },
-    { id: 'food', label: t.segments.food },
-    { id: 'services', label: t.segments.services },
-    { id: 'retail', label: t.segments.retail },
-    { id: 'other', label: t.segments.other },
-  ];
+  }, [currentStep, onStepChange]);
 
   const planObj = plans.find((p) => p.id === selectedPlan) || plans[1];
-  const currentSegmentLabel = segmentsOptions.find((s) => s.id === selectedSegment)?.label || selectedSegment;
 
-  // Sugestões contextuais pelo segmento (Apenas recomendação, NÃO gratuitas)
-  const suggestedFeatures = useMemo(() => {
-    return getSuggestedFeaturesForSegment(selectedSegment);
-  }, [selectedSegment]);
+  const segmentsOptions: { id: string; label: string; icon: string }[] = [
+    { id: 'barber', label: 'Barbearia & Masculino', icon: '💈' },
+    { id: 'beauty', label: 'Beleza & Estética', icon: '💅' },
+    { id: 'fitness', label: 'Academia & Fitness', icon: '🏋️' },
+    { id: 'realEstate', label: 'Imobiliária & Construtora', icon: '🏢' },
+    { id: 'clinic', label: 'Clínica & Saúde', icon: '🩺' },
+    { id: 'food', label: 'Restaurante & Gastronomia', icon: '🍽️' },
+    { id: 'services', label: 'Prestador de Serviços', icon: '💼' },
+    { id: 'retail', label: 'Comércio & Varejo', icon: '🛍️' },
+    { id: 'other', label: 'Outro Segmento', icon: '🌐' },
+  ];
 
-  // Cálculo de orçamento oficial em tempo real
+  const currentSegmentLabel =
+    segmentsOptions.find((s) => s.id === selectedSegment)?.label || selectedSegment;
+
+  // Cálculo de orçamento oficial
   const budget = useMemo(() => {
     return calculateBudget(selectedPlan, selectedFeatureIds, selectedSegment);
   }, [selectedPlan, selectedFeatureIds, selectedSegment]);
 
-  // Handler para alternar seleção de recursos
-  const handleToggleFeature = (feature: ExtraFeature) => {
-    // Se for plano essencial (fechado)
-    if (selectedPlan === 'essencial') {
-      return;
-    }
+  const toggleFeature = (featId: string) => {
+    setSelectedFeatureIds((prev) =>
+      prev.includes(featId) ? prev.filter((id) => id !== featId) : [...prev, featId]
+    );
+  };
 
-    // Se for realtime e o plano não permitir (Profissional)
-    if (feature.isRealtime && selectedPlan === 'profissional') {
-      return;
-    }
+  const toggleProfile = (profile: string) => {
+    setAccessProfiles((prev) =>
+      prev.includes(profile) ? prev.filter((p) => p !== profile) : [...prev, profile]
+    );
+  };
 
-    setSelectedFeatureIds((prev) => {
-      if (prev.includes(feature.id)) {
-        return prev.filter((id) => id !== feature.id);
-      }
-      return [...prev, feature.id];
-    });
+  const toggleCustomSection = (sec: string) => {
+    setCustomSections((prev) =>
+      prev.includes(sec) ? prev.filter((s) => s !== sec) : [...prev, sec]
+    );
   };
 
   const getSiteLanguageLabel = (langCode: WebsiteLanguage): string => {
     switch (langCode) {
       case 'pt-BR':
-        return t.project.langPtBr;
+        return 'Português (Brasil)';
       case 'pt-PT':
-        return t.project.langPtPt;
+        return 'Português (Portugal)';
       case 'en':
-        return t.project.langEn;
+        return 'Inglês (English)';
       case 'es':
-        return t.project.langEs;
+        return 'Espanhol (Español)';
       case 'fr':
-        return t.project.langFr;
+        return 'Francês (Français)';
       case 'pt-en':
-        return t.project.langPtEn;
-      case 'other':
-        return t.project.langOther;
+        return 'Bilíngue (Português + Inglês)';
+      default:
+        return 'Outro idioma';
     }
   };
 
-  const getOriginText = (): string => {
-    if (startType === 'modelo') return `Baseado na demo: ${selectedModel}`;
-    if (startType === 'segmento') return `Segmento: ${currentSegmentLabel}`;
-    return 'Ideia própria / Projeto sob medida do zero';
-  };
-
-  // Mensagem pré-formatada para Área de Transferência e E-mail
+  // Gerador canônico do resumo em texto formatado
   const generateBriefingMessage = (): string => {
-    const origin = getOriginText();
-    const extrasList = budget.selectedFeatures.length > 0
-      ? budget.selectedFeatures.map((f) => `  • ${f.nome} (${f.formattedPreco})`).join('\n')
-      : '  • Nenhum recurso extra';
+    const lines: string[] = [];
+    lines.push('🌟 *BRIEFING OFICIAL — NEXAWEB*');
+    lines.push('━━━━━━━━━━━━━━━━━━━━');
+    lines.push(`💼 *Plano Escolhido:* Plano ${planObj.nome} (${planObj.preco} • ${planObj.tagline})`);
+    lines.push(`💰 *Investimento Estimado:* ${budget.formattedTotalPrice}`);
+    lines.push(`⏱️ *Prazo Previsto:* ${planObj.prazo}`);
 
-    return `Olá NexaWeb! Gostaria de solicitar uma proposta de site profissional:
-- *Empresa/Negócio:* ${businessName || 'Ainda a definir'}
-- *Responsável:* ${contactName || 'Não informado'}
-- *Telefone / Contato:* ${contactPhone || 'Não informado'}
-- *Ponto de Partida:* ${origin}
-- *Plano Escolhido:* Plano ${planObj.nome} (${planObj.preco} • ${planObj.tagline})
-- *Recursos Extras Selecionados:*
-${extrasList}
-- *Orçamento Estimado:* ${budget.formattedTotalPrice}
-- *Idioma do Futuro Site:* ${getSiteLanguageLabel(siteLanguage)}
-- *Imagens/Anexos:* ${attachedFiles.length} foto(s) anexada(s)
-- *O que preciso / Necessidades:* ${description || 'Quero mais informações e orientação da equipe NexaWeb'}`;
+    if (startType === 'modelo' && selectedModel) {
+      lines.push(`🎯 *Modelo de Referência:* ${selectedModel}`);
+      lines.push(
+        modelApproach === 'exact'
+          ? '📌 *Abordagem:* Quero exatamente este formato'
+          : '📌 *Abordagem:* Usar como inspiração para personalizar'
+      );
+    } else {
+      lines.push(`🎯 *Ponto de Partida:* ${startType === 'propria' ? 'Ideia própria sob medida' : 'Escolha direta de plano'}`);
+    }
+
+    lines.push(`🏢 *Nome do Negócio:* ${businessName || 'A definir'}`);
+    lines.push(`🏷️ *Segmento:* ${currentSegmentLabel}`);
+    lines.push(`🌐 *Idioma do Futuro Site:* ${getSiteLanguageLabel(siteLanguage)}`);
+    lines.push(`👤 *Responsável:* ${contactName || 'Não informado'}`);
+    lines.push(`📱 *Telefone / Contato:* ${contactPhone || 'Não informado'}`);
+    if (contactEmail) lines.push(`✉️ *E-mail:* ${contactEmail}`);
+
+    lines.push('');
+    if (selectedPlan === 'essencial') {
+      if (essentialServices) lines.push(`📋 *Serviços Principais:* ${essentialServices}`);
+      lines.push(
+        essentialColorMode === 'suggest'
+          ? '🎨 *Cores:* Sugerida pela NexaWeb (Harmonia visual)'
+          : `🎨 *Cores da Marca:* ${essentialCustomColors || 'Tons específicos indicados'}`
+      );
+    } else if (selectedPlan === 'personalizado') {
+      lines.push(`🎨 *Estilo Visual:* ${visualStyle}`);
+      if (customSections.length > 0) lines.push(`📑 *Seções:* ${customSections.join(', ')}`);
+      if (budget.selectedFeatures.length > 0) {
+        lines.push(`⚡ *Recursos Extras:* ${budget.selectedFeatures.map((f) => f.nome).join(', ')}`);
+      }
+      lines.push(
+        customColorMode === 'suggest'
+          ? '🎨 *Cores:* Sugerida pela NexaWeb'
+          : `🎨 *Cores Escolhidas:* ${customColors || 'Tons indicados'}`
+      );
+      if (referenceLink) lines.push(`🔗 *Inspiração Visual:* ${referenceLink}`);
+      if (freeVision) lines.push(`📝 *Visão Livre:* ${freeVision}`);
+    } else {
+      // Profissional & Premium
+      if (budget.selectedFeatures.length > 0) {
+        lines.push(`✨ *Módulos e Recursos Selecionados:* ${budget.selectedFeatures.map((f) => f.nome).join(', ')}`);
+      }
+      if (accessProfiles.length > 0) {
+        lines.push(`👥 *Níveis de Acesso:* ${accessProfiles.join(', ')}`);
+      }
+      if (referenceLink) lines.push(`🔗 *Inspiração Visual:* ${referenceLink}`);
+      if (strategicVision) lines.push(`📝 *Visão do Projeto / Diferenciais:* ${strategicVision}`);
+    }
+
+    if (attachedFiles.length > 0) {
+      lines.push(`📎 *Arquivos Selecionados:* ${attachedFiles.length} foto(s)/logo`);
+    }
+    if (specificNotes) {
+      lines.push(`💬 *Observações:* ${specificNotes}`);
+    }
+
+    lines.push('');
+    lines.push('Aguardando retorno da equipe NexaWeb!');
+    return lines.join('\n');
   };
 
   const handleCopyBriefing = async () => {
@@ -225,7 +310,7 @@ ${extrasList}
     }
   };
 
-  // Envio integrado ao backend oficial da NexaWeb
+  // Envio definitivo ao backend oficial
   const handleSubmitProject = async () => {
     setIsSubmitting(true);
     setSubmissionError(null);
@@ -238,27 +323,25 @@ ${extrasList}
       businessName: businessName.trim() || 'A definir',
       empresa: businessName.trim() || 'A definir',
       responsavel: contactName.trim() || 'Não informado',
-      clientEmail: '',
+      clientEmail: contactEmail.trim(),
       clientPhone: contactPhone.trim(),
       phone: contactPhone.trim(),
       segmento: currentSegmentLabel,
       plano: selectedPlan,
       plan: selectedPlan,
       idiomaSite: siteLanguage,
-      clientNotes: description.trim() || 'Proposta via NexaWeb App',
-      necessidades: description.trim() || 'Proposta via NexaWeb App',
+      clientNotes: specificNotes.trim() || freeVision.trim() || strategicVision.trim() || 'Proposta via NexaWeb App',
+      necessidades: specificNotes.trim() || freeVision.trim() || strategicVision.trim() || 'Proposta via NexaWeb App',
       recursosSelecionados: selectedFeatureIds,
       orcamentoEstimado: budget.formattedTotalPrice,
       valorNumerico: budget.totalPrice,
-      origem: getOriginText(),
+      origem: selectedModel ? `Baseado na demo: ${selectedModel}` : 'Ideia sob medida',
       briefingSummary: briefingText,
     };
 
     try {
-      // 1. Cria o briefing no backend
       const res = await createBriefing(payload);
       if (res.success && res.projectId) {
-        // 2. Se houver imagens anexadas, envia para o backend
         if (attachedFiles.length > 0) {
           await uploadBriefingImages(res.projectId, attachedFiles);
         }
@@ -275,7 +358,7 @@ ${extrasList}
       } else {
         setSubmissionError(res.error || 'Não foi possível concluir o envio automático. Entre em contato por e-mail ou Instagram.');
       }
-    } catch (err: any) {
+    } catch {
       setSubmissionError('Falha temporária de conexão com o servidor. Entre em contato por e-mail ou Instagram.');
     } finally {
       setIsSubmitting(false);
@@ -283,634 +366,902 @@ ${extrasList}
   };
 
   return (
-    <div className="space-y-6 pb-20 animate-in fade-in duration-200">
-      {/* Title */}
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          <h1 className="text-xl font-extrabold text-white tracking-tight">
-            {t.project.title}
-          </h1>
-          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-            Briefing & Orçamento
-          </span>
-        </div>
-        <p className="text-xs text-slate-400">
-          Personalize as preferências, selecione recursos oficiais e calcule o orçamento do seu site profissional.
-        </p>
-      </div>
-
-      {/* Step 1: Como prefere começar & Segmento */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3.5 shadow-sm">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 text-xs font-bold flex items-center justify-center border border-indigo-500/30">
-            1
-          </div>
-          <h2 className="text-sm font-bold text-white">
-            {t.project.step1Title}
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-3 gap-2">
-          {/* Opção Modelo */}
-          <button
-            type="button"
-            onClick={() => setStartType('modelo')}
-            className={`p-2.5 sm:p-3 rounded-xl border text-left flex flex-col justify-between transition-all ${
-              startType === 'modelo'
-                ? 'bg-indigo-950/40 border-indigo-500 text-white shadow-sm ring-1 ring-indigo-500/40'
-                : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
-            }`}
-          >
-            <Layout className={`w-4 h-4 mb-2 ${startType === 'modelo' ? 'text-cyan-400' : 'text-slate-500'}`} />
-            <div>
-              <span className="text-xs font-bold block leading-tight truncate">{t.project.optModelTitle}</span>
-              <span className="text-[10px] text-slate-400 block mt-0.5 truncate">{t.project.optModelSub}</span>
-            </div>
-          </button>
-
-          {/* Opção Segmento */}
-          <button
-            type="button"
-            onClick={() => setStartType('segmento')}
-            className={`p-2.5 sm:p-3 rounded-xl border text-left flex flex-col justify-between transition-all ${
-              startType === 'segmento'
-                ? 'bg-indigo-950/40 border-indigo-500 text-white shadow-sm ring-1 ring-indigo-500/40'
-                : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
-            }`}
-          >
-            <Store className={`w-4 h-4 mb-2 ${startType === 'segmento' ? 'text-amber-400' : 'text-slate-500'}`} />
-            <div>
-              <span className="text-xs font-bold block leading-tight truncate">{t.project.optSegmentTitle}</span>
-              <span className="text-[10px] text-slate-400 block mt-0.5 truncate">{t.project.optSegmentSub}</span>
-            </div>
-          </button>
-
-          {/* Opção Ideia Própria */}
-          <button
-            type="button"
-            onClick={() => setStartType('propria')}
-            className={`p-2.5 sm:p-3 rounded-xl border text-left flex flex-col justify-between transition-all ${
-              startType === 'propria'
-                ? 'bg-indigo-950/40 border-indigo-500 text-white shadow-sm ring-1 ring-indigo-500/40'
-                : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
-            }`}
-          >
-            <Lightbulb className={`w-4 h-4 mb-2 ${startType === 'propria' ? 'text-purple-400' : 'text-slate-500'}`} />
-            <div>
-              <span className="text-xs font-bold block leading-tight truncate">{t.project.optCustomTitle}</span>
-              <span className="text-[10px] text-slate-400 block mt-0.5 truncate">{t.project.optCustomSub}</span>
-            </div>
-          </button>
-        </div>
-
-        {/* Detalhes da escolha */}
-        {startType === 'modelo' && (
-          <div className="pt-2 border-t border-slate-800/80 space-y-2">
-            <label className="text-[11px] font-semibold text-slate-300 block mb-1">
-              {t.project.selectModelLabel}
-            </label>
-            <select
-              value={selectedModel}
-              onChange={(e) => {
-                setSelectedModel(e.target.value);
-                setSelectedSegment(getSegmentByModelTitle(e.target.value));
-              }}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
-            >
-              {portfolioProjects.map((p) => (
-                <option key={p.id} value={p.titulo}>
-                  {p.titulo} ({p.categoria})
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        <div className="pt-2 border-t border-slate-800/80">
-          <label className="text-[11px] font-semibold text-slate-300 block mb-1.5">
-            Segmento de Atuação da Empresa:
-          </label>
-          <select
-            value={selectedSegment}
-            onChange={(e) => setSelectedSegment(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
-          >
-            {segmentsOptions.map((seg) => (
-              <option key={seg.id} value={seg.id}>
-                {seg.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* Step 2: Escolha do Plano (Valores Oficiais) */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-sm">
+    <div className="space-y-4 pb-28 animate-in fade-in duration-150">
+      {/* 1. Indicador de Progresso do Wizard Mobile (01 a 04) */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 shadow-sm space-y-2.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 text-xs font-bold flex items-center justify-center border border-indigo-500/30">
-              2
-            </div>
-            <h2 className="text-sm font-bold text-white">
-              {t.project.step2Title}
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={() => onNavigate('services')}
-            className="text-[11px] text-cyan-400 hover:text-cyan-300 transition-colors"
-          >
-            {t.project.viewPlansLink}
-          </button>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {plans.map((plan) => {
-            const isSelected = selectedPlan === plan.id;
-            return (
-              <button
-                key={plan.id}
-                type="button"
-                onClick={() => setSelectedPlan(plan.id)}
-                className={`p-2.5 rounded-xl border text-center transition-all ${
-                  isSelected
-                    ? plan.corIdentidade === 'azul'
-                      ? 'bg-blue-950/40 border-blue-500 text-white ring-1 ring-blue-500/40'
-                      : plan.corIdentidade === 'roxo'
-                      ? 'bg-purple-950/40 border-purple-500 text-white ring-1 ring-purple-500/40'
-                      : 'bg-amber-950/40 border-amber-500 text-white ring-1 ring-amber-500/40'
-                    : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
-                }`}
-              >
-                <span className="text-xs font-bold block">{plan.nome}</span>
-                <span className="text-[10px] text-slate-400 block mt-0.5 truncate">{plan.preco}</span>
-                <span className="text-[9px] text-slate-500 font-mono block mt-0.5">{plan.prazo}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {selectedPlan === 'essencial' && (
-          <div className="p-2.5 rounded-xl bg-blue-950/30 border border-blue-500/30 text-[11px] text-blue-300 leading-relaxed">
-            💡 O plano <strong>Essencial (R$ 1.000)</strong> possui escopo fechado e enxuto. Caso deseje adicionar recursos extras, selecione o plano <strong>Profissional</strong> ou <strong>Personalizado</strong>.
-          </div>
-        )}
-      </div>
-
-      {/* Step 3: Recursos Extras e Recomendações do Segmento */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3.5 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 text-xs font-bold flex items-center justify-center border border-indigo-500/30">
-              3
-            </div>
-            <div>
-              <h2 className="text-sm font-bold text-white">
-                Recursos Extras & Recomendações
-              </h2>
-            </div>
-          </div>
-
-          <span className="text-[10px] font-mono text-cyan-400 font-bold">
-            {selectedFeatureIds.length} selecionado(s)
-          </span>
-        </div>
-
-        {/* 1. Sugestões de Recursos pelo Segmento Escolhido (Regra: apenas recomendação, seguem preço oficial) */}
-        {suggestedFeatures.length > 0 && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-300 uppercase tracking-wide">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <span>Sugeridos para {currentSegmentLabel}:</span>
-            </div>
-            <p className="text-[10px] text-slate-400">
-              Recursos recomendados para o seu nicho. Ao selecionar, o valor oficial do item é adicionado ao orçamento.
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-              {suggestedFeatures.map((feat) => {
-                const isSelected = selectedFeatureIds.includes(feat.id);
-                const isRealtimeBlocked = feat.isRealtime && !budget.allowExtras;
-
-                return (
-                  <button
-                    key={feat.id}
-                    type="button"
-                    disabled={selectedPlan === 'essencial'}
-                    onClick={() => handleToggleFeature(feat)}
-                    className={`p-2.5 rounded-xl border text-left transition-all flex items-start justify-between gap-2 ${
-                      isSelected
-                        ? 'bg-amber-950/40 border-amber-500 text-white shadow-sm ring-1 ring-amber-500/40'
-                        : selectedPlan === 'essencial'
-                        ? 'bg-slate-950/30 border-slate-800/50 text-slate-500 opacity-60 cursor-not-allowed'
-                        : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700'
-                    }`}
-                  >
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-bold truncate">{feat.nome}</span>
-                        {feat.isRealtime && (
-                          <span className="text-[9px] px-1 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 font-mono">
-                            Realtime
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">{feat.descricao}</p>
-                    </div>
-
-                    <div className="text-right shrink-0">
-                      <span className="text-xs font-bold font-mono text-cyan-400">
-                        + R$ {feat.preco}
-                      </span>
-                      <div className="mt-1 flex justify-end">
-                        <div
-                          className={`w-4 h-4 rounded-md border flex items-center justify-center transition-colors ${
-                            isSelected
-                              ? 'bg-amber-500 border-amber-400 text-slate-950'
-                              : 'border-slate-700 bg-slate-900'
-                          }`}
-                        >
-                          {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* 2. Catálogo Geral de Recursos Extras */}
-        <div className="pt-2 border-t border-slate-800/80">
-          <button
-            type="button"
-            onClick={() => setShowAllFeatures(!showAllFeatures)}
-            className="w-full flex items-center justify-between py-2 text-xs font-semibold text-slate-300 hover:text-white"
-          >
-            <span>Ver todos os recursos disponíveis (+R$150, +R$200, +R$300)</span>
-            {showAllFeatures ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-          </button>
-
-          {showAllFeatures && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
-              {OFFICIAL_EXTRA_FEATURES.map((feat) => {
-                const isSelected = selectedFeatureIds.includes(feat.id);
-                const isRealtime = feat.isRealtime;
-                const isRealtimeRestricted = isRealtime && (selectedPlan === 'essencial' || selectedPlan === 'profissional');
-
-                return (
-                  <button
-                    key={feat.id}
-                    type="button"
-                    disabled={selectedPlan === 'essencial' || isRealtimeRestricted}
-                    onClick={() => handleToggleFeature(feat)}
-                    className={`p-2.5 rounded-xl border text-left transition-all flex items-start justify-between gap-2 ${
-                      isSelected
-                        ? 'bg-indigo-950/40 border-indigo-500 text-white shadow-sm ring-1 ring-indigo-500/40'
-                        : isRealtimeRestricted || selectedPlan === 'essencial'
-                        ? 'bg-slate-950/30 border-slate-800/40 text-slate-500 opacity-60 cursor-not-allowed'
-                        : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700'
-                    }`}
-                  >
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-bold truncate">{feat.nome}</span>
-                        {isRealtime && (
-                          <span className="text-[9px] px-1 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 font-mono">
-                            Realtime
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">{feat.descricao}</p>
-                      {isRealtimeRestricted && (
-                        <span className="text-[9px] text-amber-400/90 block mt-0.5">
-                          Requer Personalizado ou Premium
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="text-right shrink-0">
-                      <span className="text-xs font-bold font-mono text-cyan-400">
-                        + R$ {feat.preco}
-                      </span>
-                      <div className="mt-1 flex justify-end">
-                        <div
-                          className={`w-4 h-4 rounded-md border flex items-center justify-center transition-colors ${
-                            isSelected
-                              ? 'bg-indigo-600 border-indigo-500 text-white'
-                              : 'border-slate-700 bg-slate-900'
-                          }`}
-                        >
-                          {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* 3. CARD DE ORÇAMENTO ESTIMADO EM TEMPO REAL */}
-        <div className="mt-3 p-3.5 rounded-xl bg-gradient-to-r from-indigo-950/60 via-slate-950 to-slate-950 border border-indigo-500/30 space-y-2">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-slate-400">Plano Base ({budget.planName}):</span>
-            <span className="font-mono font-bold text-white">{budget.formattedBasePrice}</span>
-          </div>
-
-          {budget.extrasTotal > 0 && (
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-400">Extras Selecionados ({budget.selectedFeatures.length}):</span>
-              <span className="font-mono font-bold text-cyan-400">{budget.formattedExtrasTotal}</span>
-            </div>
-          )}
-
-          <div className="pt-2 border-t border-slate-800 flex items-center justify-between">
-            <span className="text-xs font-bold text-white uppercase tracking-wider">
-              Orçamento Estimado:
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+              Etapa {currentStep} de 4
             </span>
-            <span className="text-base sm:text-lg font-black font-mono text-cyan-300">
-              {budget.formattedTotalPrice}
+            <span className="text-xs font-bold text-white">
+              {currentStep === 1 && 'Plano & Ponto de Partida'}
+              {currentStep === 2 && 'Personalização do Projeto'}
+              {currentStep === 3 && 'Informações de Contato'}
+              {currentStep === 4 && 'Revisão & Envio Oficial'}
             </span>
           </div>
 
-          {budget.warnings.length > 0 && (
-            <div className="pt-1 text-[10px] text-amber-400 space-y-0.5">
-              {budget.warnings.map((w, idx) => (
-                <div key={idx} className="flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3 shrink-0" />
-                  <span>{w}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Step 4: Idioma do Site (Separado do Idioma do App) */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 text-xs font-bold flex items-center justify-center border border-indigo-500/30">
-              4
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Globe2 className="w-4 h-4 text-cyan-400" />
-              <h2 className="text-sm font-bold text-white">
-                {t.project.step3Title}
-              </h2>
-            </div>
-          </div>
+          <span className="text-[11px] font-mono text-cyan-400 font-bold">
+            {budget.formattedTotalPrice}
+          </span>
         </div>
 
-        <p className="text-[11px] text-slate-400">
-          {t.project.langNote}
-        </p>
+        {/* Barra de Progresso Suave */}
+        <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800/80">
+          <div
+            className="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 transition-all duration-300 rounded-full"
+            style={{ width: `${(currentStep / 4) * 100}%` }}
+          />
+        </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        {/* Abas Superiores Interativas */}
+        <div className="grid grid-cols-4 gap-1.5 pt-1 text-center">
           {[
-            { id: 'pt-BR', label: t.project.langPtBr },
-            { id: 'pt-PT', label: t.project.langPtPt },
-            { id: 'en', label: t.project.langEn },
-            { id: 'es', label: t.project.langEs },
-            { id: 'fr', label: t.project.langFr },
-            { id: 'pt-en', label: t.project.langPtEn },
-            { id: 'other', label: t.project.langOther },
-          ].map((item) => {
-            const isSelected = siteLanguage === item.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setSiteLanguage(item.id as WebsiteLanguage)}
-                className={`py-2 px-2.5 rounded-xl border text-center text-xs font-semibold transition-all truncate ${
-                  isSelected
-                    ? 'bg-indigo-950/60 border-indigo-500 text-white shadow-sm'
-                    : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
-                }`}
-                title={item.label}
-              >
-                {item.label}
-              </button>
-            );
-          })}
+            { step: 1, label: '01 Plano' },
+            { step: 2, label: '02 Briefing' },
+            { step: 3, label: '03 Contato' },
+            { step: 4, label: '04 Resumo' },
+          ].map((item) => (
+            <button
+              key={item.step}
+              type="button"
+              onClick={() => setCurrentStep(item.step as any)}
+              className={`min-h-[38px] flex items-center justify-center py-1.5 px-1 rounded-xl text-[10.5px] font-bold transition-all active:scale-95 ${
+                currentStep === item.step
+                  ? 'bg-indigo-600/25 text-cyan-300 border border-indigo-500/40 shadow-sm'
+                  : currentStep > item.step
+                  ? 'text-emerald-400 hover:text-white bg-emerald-950/20 border border-emerald-900/30'
+                  : 'text-slate-500 hover:text-slate-300'
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Step 5: Informações do Negócio & Upload de Imagens */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-4 shadow-sm">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 text-xs font-bold flex items-center justify-center border border-indigo-500/30">
-            5
+      {/* ============================================================== */}
+      {/* ETAPA 1: PLANO / APRESENTAÇÃO & PONTO DE PARTIDA                */}
+      {/* ============================================================== */}
+      {currentStep === 1 && (
+        <div className="space-y-4 animate-in fade-in slide-in-from-right-2 duration-200">
+          {/* Se veio com modelo de referência */}
+          {selectedModel && (
+            <div className="p-3.5 rounded-2xl bg-indigo-950/40 border border-indigo-500/35 space-y-2">
+              <div className="flex items-center justify-between text-xs font-bold text-white">
+                <span className="flex items-center gap-1.5 text-cyan-300">
+                  <Layout className="w-4 h-4 text-cyan-400" />
+                  Modelo de Referência Selecionado
+                </span>
+                <span className="text-[10px] text-slate-400 font-mono">Destaque</span>
+              </div>
+              <p className="text-sm font-extrabold text-white">{selectedModel}</p>
+
+              {/* Escolha da abordagem correspondente do site */}
+              <div className="pt-2 border-t border-slate-800/80 space-y-1.5">
+                <label className="text-[11px] font-semibold text-slate-300 block">
+                  Como deseja utilizar este modelo?
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setModelApproach('exact')}
+                    className={`p-2.5 rounded-xl border text-left text-xs transition-all flex items-center justify-between ${
+                      modelApproach === 'exact'
+                        ? 'bg-cyan-950/40 border-cyan-500 text-white font-bold ring-1 ring-cyan-500/40'
+                        : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:border-slate-700'
+                    }`}
+                  >
+                    <span>Quero exatamente este formato</span>
+                    {modelApproach === 'exact' && <Check className="w-4 h-4 text-cyan-400 shrink-0" />}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setModelApproach('inspiration')}
+                    className={`p-2.5 rounded-xl border text-left text-xs transition-all flex items-center justify-between ${
+                      modelApproach === 'inspiration'
+                        ? 'bg-indigo-950/40 border-indigo-500 text-white font-bold ring-1 ring-indigo-500/40'
+                        : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:border-slate-700'
+                    }`}
+                  >
+                    <span>Usar como inspiração sob medida</span>
+                    {modelApproach === 'inspiration' && <Check className="w-4 h-4 text-indigo-400 shrink-0" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Seleção do Ponto de Partida se não veio com modelo */}
+          {!selectedModel && (
+            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-2.5">
+              <label className="text-xs font-bold text-white uppercase tracking-wider block">
+                Como você deseja começar?
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setStartType('propria')}
+                  className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all ${
+                    startType === 'propria'
+                      ? 'bg-indigo-950/40 border-indigo-500 text-white shadow-sm ring-1 ring-indigo-500/40'
+                      : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:border-slate-700'
+                  }`}
+                >
+                  <Sparkles className="w-4 h-4 text-cyan-400 mb-1.5" />
+                  <div>
+                    <span className="text-xs font-bold block">Ideia Própria</span>
+                    <span className="text-[10px] text-slate-500 block">Do zero sob medida</span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => onNavigate('portfolio')}
+                  className="p-3 rounded-xl border border-slate-800 bg-slate-950/70 text-slate-400 hover:border-slate-700 text-left flex flex-col justify-between transition-all"
+                >
+                  <Layout className="w-4 h-4 text-amber-400 mb-1.5" />
+                  <div>
+                    <span className="text-xs font-bold block text-slate-200">A Partir de Amostra</span>
+                    <span className="text-[10px] text-slate-500 block">Ver 22 demos no ar</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Comparativo Oficial dos 4 Planos */}
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between px-1">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                Selecione o Plano da NexaWeb:
+              </label>
+              <span className="text-[10px] text-slate-500">4 opções disponíveis</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {plans.map((p) => {
+                const isSelected = selectedPlan === p.id;
+                return (
+                  <div
+                    key={p.id}
+                    onClick={() => setSelectedPlan(p.id)}
+                    className={`p-3.5 rounded-2xl border text-left cursor-pointer transition-all active:scale-[0.985] flex flex-col justify-between ${
+                      isSelected
+                        ? 'bg-indigo-950/40 border-cyan-500 shadow-md ring-1 ring-cyan-500/40'
+                        : 'bg-slate-900 border-slate-800 hover:border-slate-700'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-extrabold uppercase tracking-wider text-white">
+                          Plano {p.nome}
+                        </span>
+                        <span className="text-xs font-bold text-cyan-400 font-mono">
+                          {p.preco}
+                        </span>
+                      </div>
+
+                      <p className="text-[11px] text-slate-300 leading-snug mb-2">
+                        {p.tagline}
+                      </p>
+
+                      <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium">
+                        <Clock className="w-3 h-3 text-cyan-400" />
+                        <span>Prazo: {p.prazo}</span>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 mt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px]">
+                      <span className="text-[10px] text-slate-500 line-clamp-1">{p.descricao}</span>
+                      <span
+                        className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ml-1 ${
+                          isSelected ? 'border-cyan-400 bg-cyan-400 text-slate-950' : 'border-slate-700'
+                        }`}
+                      >
+                        {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-          <h2 className="text-sm font-bold text-white">
-            {t.project.step4Title}
-          </h2>
         </div>
+      )}
 
-        <div className="space-y-3.5">
-          <div>
-            <label className="text-[11px] font-semibold text-slate-300 block mb-1">
-              {t.project.businessNameLabel}
-            </label>
-            <input
-              type="text"
-              value={businessName}
-              onChange={(e) => setBusinessName(e.target.value)}
-              placeholder={t.project.businessNamePlaceholder}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-indigo-500"
-            />
+      {/* ============================================================== */}
+      {/* ETAPA 2: PERSONALIZAÇÃO DINÂMICA (Conforme Plano e Segmento)   */}
+      {/* ============================================================== */}
+      {currentStep === 2 && (
+        <div className="space-y-4 animate-in fade-in slide-in-from-right-2 duration-200">
+          {/* Informações Básicas: Nome do Negócio & Idioma do Futuro Site */}
+          <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
+              <FileText className="w-3.5 h-3.5 text-cyan-400" />
+              Identificação do Futuro Site
+            </h3>
+
+            <div>
+              <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                Nome da Empresa, Negócio ou Projeto *
+              </label>
+              <input
+                type="text"
+                value={businessName}
+                onChange={(e) => setBusinessName(e.target.value)}
+                placeholder="Ex: Barbearia Imperial, Studio Bella, Lumina Estética..."
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500"
+              />
+            </div>
+
+            {/* Idioma do Futuro Site — Mapeado exatamente no Briefing */}
+            <div>
+              <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                Idioma do Futuro Site do Cliente:
+              </label>
+              <select
+                value={siteLanguage}
+                onChange={(e) => setSiteLanguage(e.target.value as WebsiteLanguage)}
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-500"
+              >
+                <option value="pt-BR">🇧🇷 Português (Brasil) - Padrão</option>
+                <option value="pt-PT">🇵🇹 Português (Portugal)</option>
+                <option value="en">🇺🇸 Inglês (English)</option>
+                <option value="es">🇪🇸 Espanhol (Español)</option>
+                <option value="fr">🇫🇷 Francês (Français)</option>
+                <option value="pt-en">🌎 Bilíngue (Português + English)</option>
+                <option value="other">🌐 Outro idioma</option>
+              </select>
+            </div>
           </div>
 
-          <div>
-            <label className="text-[11px] font-semibold text-slate-300 block mb-1">
-              {t.project.needsLabel}
-            </label>
-            <textarea
-              rows={3}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder={t.project.needsPlaceholder}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-indigo-500 resize-none"
-            />
-          </div>
+          {/* --- CASO 1: PLANO ESSENCIAL --- */}
+          {selectedPlan === 'essencial' && (
+            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3.5">
+              <span className="text-xs font-bold uppercase tracking-wider text-cyan-400 block">
+                Configurações do Plano Essencial
+              </span>
 
-          {/* Upload de Imagens Conforme Regras Comerciais (máx 6 imagens, máx 10 MB) */}
-          <div className="pt-2 border-t border-slate-800/80">
+              {/* Serviços Principais */}
+              <div>
+                <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                  Serviços ou Produtos Principais a Apresentar:
+                </label>
+                <textarea
+                  value={essentialServices}
+                  onChange={(e) => setEssentialServices(e.target.value)}
+                  rows={3}
+                  placeholder="Ex: Corte de cabelo, Barba terapia, Pacotes mensais, Horários..."
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 resize-none"
+                />
+              </div>
+
+              {/* Estrutura Essencial Inclusa */}
+              <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
+                <span className="text-[11px] font-bold text-white flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  Estrutura Essencial Inclusa no Site:
+                </span>
+                <div className="grid grid-cols-2 gap-1.5 text-[11px] text-slate-400">
+                  <div>• Início com Destaque</div>
+                  <div>• Sobre o Negócio / Equipe</div>
+                  <div>• Serviços e Valores</div>
+                  <div>• Contato & Canais Oficiais</div>
+                </div>
+              </div>
+
+              {/* Preferência de Cores */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-semibold text-slate-300 block">
+                  Preferência de Cores do Site:
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEssentialColorMode('suggest')}
+                    className={`p-2.5 rounded-xl border text-left text-xs transition-all ${
+                      essentialColorMode === 'suggest'
+                        ? 'bg-cyan-950/40 border-cyan-500 text-white font-bold ring-1 ring-cyan-500/40'
+                        : 'bg-slate-950/70 border-slate-800 text-slate-400'
+                    }`}
+                  >
+                    <span>Sugerida pela NexaWeb</span>
+                    <span className="block text-[10px] text-slate-500 mt-0.5">Harmonia visual recomendada</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setEssentialColorMode('custom')}
+                    className={`p-2.5 rounded-xl border text-left text-xs transition-all ${
+                      essentialColorMode === 'custom'
+                        ? 'bg-indigo-950/40 border-indigo-500 text-white font-bold ring-1 ring-indigo-500/40'
+                        : 'bg-slate-950/70 border-slate-800 text-slate-400'
+                    }`}
+                  >
+                    <span>Cores da minha marca</span>
+                    <span className="block text-[10px] text-slate-500 mt-0.5">Tons específicos</span>
+                  </button>
+                </div>
+
+                {essentialColorMode === 'custom' && (
+                  <input
+                    type="text"
+                    value={essentialCustomColors}
+                    onChange={(e) => setEssentialCustomColors(e.target.value)}
+                    placeholder="Ex: Preto e dourado, azul escuro e branco..."
+                    className="w-full mt-2 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500"
+                  />
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* --- CASO 2: PLANO PERSONALIZADO --- */}
+          {selectedPlan === 'personalizado' && (
+            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
+              <span className="text-xs font-bold uppercase tracking-wider text-amber-400 block">
+                Configurações do Projeto Sob Medida
+              </span>
+
+              {/* Segmento */}
+              <div>
+                <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                  1. Segmento de Atuação do Projeto:
+                </label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {segmentsOptions.map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => setSelectedSegment(s.id)}
+                      className={`p-2 rounded-xl border text-left transition-all ${
+                        selectedSegment === s.id
+                          ? 'bg-amber-950/40 border-amber-500 text-white font-bold'
+                          : 'bg-slate-950 border-slate-800 text-slate-400'
+                      }`}
+                    >
+                      <span className="text-[10px] block leading-tight">{s.icon} {s.label.split('&')[0].trim()}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Estilo Visual */}
+              <div>
+                <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                  2. Escolha o Estilo Visual do Site:
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { id: 'minimalist', label: 'Minimalista & Elegante' },
+                    { id: 'corporate', label: 'Corporativo Moderno' },
+                    { id: 'luxury', label: 'Sofisticado / Luxo' },
+                    { id: 'creative', label: 'Criativo & Vibrante' },
+                    { id: 'tech', label: 'Tecnológico / Dark Mode' },
+                  ].map((st) => (
+                    <button
+                      key={st.id}
+                      type="button"
+                      onClick={() => setVisualStyle(st.label)}
+                      className={`p-2.5 rounded-xl border text-left text-xs transition-all ${
+                        visualStyle === st.label
+                          ? 'bg-cyan-950/40 border-cyan-500 text-white font-bold ring-1 ring-cyan-500/40'
+                          : 'bg-slate-950 border-slate-800 text-slate-400'
+                      }`}
+                    >
+                      <span>{st.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Seções Desejadas */}
+              <div>
+                <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                  3. Seções Desejadas no Site:
+                </label>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {[
+                    'Sobre Nós / História',
+                    'Serviços / Especialidades',
+                    'Projetos / Portfólio',
+                    'Depoimentos de Clientes',
+                    'Perguntas Frequentes (FAQ)',
+                    'Contato / Localização',
+                    'Página Adicional (+R$ 150)',
+                  ].map((sec) => (
+                    <button
+                      key={sec}
+                      type="button"
+                      onClick={() => toggleCustomSection(sec)}
+                      className={`p-2 rounded-xl border text-left text-[11px] flex items-center justify-between ${
+                        customSections.includes(sec)
+                          ? 'bg-indigo-950/40 border-indigo-500 text-white font-semibold'
+                          : 'bg-slate-950 border-slate-800 text-slate-400'
+                      }`}
+                    >
+                      <span className="truncate">{sec}</span>
+                      {customSections.includes(sec) && <Check className="w-3.5 h-3.5 text-cyan-400 shrink-0" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Paleta de Cores */}
+              <div>
+                <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                  4. Paleta de Cores:
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCustomColorMode('suggest')}
+                    className={`p-2 rounded-xl border text-xs text-left ${
+                      customColorMode === 'suggest'
+                        ? 'bg-cyan-950/40 border-cyan-500 text-white font-bold'
+                        : 'bg-slate-950 border-slate-800 text-slate-400'
+                    }`}
+                  >
+                    NexaWeb sugere paleta ideal
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCustomColorMode('custom')}
+                    className={`p-2 rounded-xl border text-xs text-left ${
+                      customColorMode === 'custom'
+                        ? 'bg-indigo-950/40 border-indigo-500 text-white font-bold'
+                        : 'bg-slate-950 border-slate-800 text-slate-400'
+                    }`}
+                  >
+                    Quero indicar as cores
+                  </button>
+                </div>
+                {customColorMode === 'custom' && (
+                  <input
+                    type="text"
+                    value={customColors}
+                    onChange={(e) => setCustomColors(e.target.value)}
+                    placeholder="Ex: Preto, dourado e off-white..."
+                    className="w-full mt-2 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500"
+                  />
+                )}
+              </div>
+
+              {/* Visão Livre */}
+              <div>
+                <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                  Como você imagina seu site? (Visão livre)
+                </label>
+                <textarea
+                  value={freeVision}
+                  onChange={(e) => setFreeVision(e.target.value)}
+                  rows={3}
+                  placeholder="Conte livremente sobre a identidade que deseja transmitir, público-alvo e referências..."
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 resize-none"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* --- CASO 3: PLANOS PROFISSIONAL E PREMIUM --- */}
+          {(selectedPlan === 'profissional' || selectedPlan === 'premium') && (
+            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-cyan-400">
+                  Estrutura Avançada ({selectedPlan === 'premium' ? 'Plano Premium' : 'Plano Profissional'})
+                </span>
+                <span className="text-[10px] font-mono font-bold text-indigo-300 px-2 py-0.5 rounded bg-indigo-500/20">
+                  Modular
+                </span>
+              </div>
+
+              {/* Segmento */}
+              <div>
+                <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                  1. Selecione o Segmento de Atuação:
+                </label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {segmentsOptions.map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => setSelectedSegment(s.id)}
+                      className={`p-2 rounded-xl border text-left transition-all ${
+                        selectedSegment === s.id
+                          ? 'bg-indigo-950/40 border-cyan-500 text-white font-bold ring-1 ring-cyan-500/40'
+                          : 'bg-slate-950 border-slate-800 text-slate-400'
+                      }`}
+                    >
+                      <span className="text-[10px] block leading-tight">{s.icon} {s.label.split('&')[0].trim()}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Recursos Extras Oficiais da NexaWeb com Preço em Tempo Real */}
+              <div>
+                <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                  2. Recursos & Funcionalidades Extras (Opcional):
+                </label>
+                <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                  {OFFICIAL_EXTRA_FEATURES.filter(f => selectedPlan === 'premium' || !f.isRealtime).slice(0, 8).map((feat) => {
+                    const isSelected = selectedFeatureIds.includes(feat.id);
+                    return (
+                      <button
+                        key={feat.id}
+                        type="button"
+                        onClick={() => toggleFeature(feat.id)}
+                        className={`w-full p-2.5 rounded-xl border text-left text-xs flex items-center justify-between transition-all ${
+                          isSelected
+                            ? 'bg-indigo-950/50 border-indigo-500 text-white font-semibold'
+                            : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                        }`}
+                      >
+                        <div className="min-w-0 flex-1 pr-2">
+                          <span className="block truncate text-white">{feat.nome}</span>
+                          <span className="block text-[10px] text-slate-500 truncate">{feat.descricao}</span>
+                        </div>
+                        <span className="text-[11px] font-mono font-bold text-cyan-300 shrink-0">
+                          + R$ {feat.preco}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Perfis de Acesso e Contas Necessárias (RBAC) */}
+              <div className="space-y-2">
+                <label className="text-[11px] font-semibold text-slate-300 block">
+                  3. Níveis de Acesso e Contas Necessárias:
+                </label>
+                <p className="text-[10px] text-slate-500">
+                  Indique quais perfis farão login no sistema do seu projeto:
+                </p>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {[
+                    { id: 'Cliente', desc: 'Agendamentos e perfil' },
+                    { id: 'Administrador', desc: 'Gestão completa' },
+                    { id: 'Atendimento / Recepcionista', desc: 'Controle de agendas' },
+                    { id: 'Especialista / Profissional', desc: 'Prestador de serviço' },
+                  ].map((prof) => (
+                    <button
+                      key={prof.id}
+                      type="button"
+                      onClick={() => toggleProfile(prof.id)}
+                      className={`p-2.5 rounded-xl border text-left transition-all ${
+                        accessProfiles.includes(prof.id)
+                          ? 'bg-cyan-950/40 border-cyan-500 text-white font-bold ring-1 ring-cyan-500/40'
+                          : 'bg-slate-950 border-slate-800 text-slate-400'
+                      }`}
+                    >
+                      <span className="text-xs block text-white">{prof.id}</span>
+                      <span className="text-[10px] block text-slate-500 mt-0.5">{prof.desc}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Visão Estratégica do Projeto */}
+              <div>
+                <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                  Detalhes Estratégicos ou Visão do Projeto:
+                </label>
+                <textarea
+                  value={strategicVision}
+                  onChange={(e) => setStrategicVision(e.target.value)}
+                  rows={3}
+                  placeholder="Descreva particularidades do seu modelo de negócio, objetivos comerciais e diferenciais..."
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 resize-none"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Anexos: Fotos e Logotipo (Até 6 imagens, máx 10 MB) */}
+          <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-2.5">
+            <span className="text-xs font-bold uppercase tracking-wider text-white block">
+              Fotos do Espaço, Equipe ou Logotipo (Opcional):
+            </span>
             <ImageUploadField
               files={attachedFiles}
               onChange={setAttachedFiles}
-              disabled={isSubmitting}
             />
           </div>
+        </div>
+      )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 border-t border-slate-800/80">
+      {/* ============================================================== */}
+      {/* ETAPA 3: CONTATO DO RESPONSÁVEL                                */}
+      {/* ============================================================== */}
+      {currentStep === 3 && (
+        <div className="space-y-4 animate-in fade-in slide-in-from-right-2 duration-200">
+          <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3.5">
+            <div className="space-y-0.5">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-400">
+                Contato Oficial
+              </span>
+              <h3 className="text-sm font-bold text-white">
+                Informe seus dados para contato da NexaWeb
+              </h3>
+            </div>
+
             <div>
               <label className="text-[11px] font-semibold text-slate-300 block mb-1">
-                {t.project.yourNameLabel}
+                Seu Nome ou Nome do Responsável *
               </label>
               <input
                 type="text"
                 value={contactName}
                 onChange={(e) => setContactName(e.target.value)}
-                placeholder={t.project.yourNamePlaceholder}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-indigo-500"
+                placeholder="Ex: Carlos Silva, Juliana Mendes..."
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500"
               />
             </div>
+
             <div>
               <label className="text-[11px] font-semibold text-slate-300 block mb-1">
-                {t.project.phoneLabel}
+                Telefone / Celular de Contato com DDD *
               </label>
               <input
                 type="tel"
                 value={contactPhone}
                 onChange={(e) => setContactPhone(e.target.value)}
-                placeholder={t.project.phonePlaceholder}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-indigo-500"
+                placeholder="Ex: (11) 99999-9999"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500"
+              />
+            </div>
+
+            <div>
+              <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                E-mail de Contato (Opcional):
+              </label>
+              <input
+                type="email"
+                value={contactEmail}
+                onChange={(e) => setContactEmail(e.target.value)}
+                placeholder="Ex: contato@minhaempresa.com.br"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500"
+              />
+            </div>
+
+            <div>
+              <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                Observações ou Detalhes Específicos:
+              </label>
+              <textarea
+                value={specificNotes}
+                onChange={(e) => setSpecificNotes(e.target.value)}
+                rows={3}
+                placeholder="Ex: Gostaria de prazos curtos, integração com sistema legado, etc."
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 resize-none"
               />
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Step 6: Preview, Resumo e Envio */}
-      <div className="bg-gradient-to-br from-indigo-950/60 via-slate-900 to-slate-900 border border-indigo-500/30 rounded-2xl p-4 space-y-3.5 shadow-lg">
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-cyan-400" />
-          <h2 className="text-sm font-bold text-white">
-            {t.project.step5Title}
-          </h2>
-        </div>
-
-        <p className="text-xs text-slate-300 leading-relaxed">
-          {t.project.step5Desc}
-        </p>
-
-        {/* Resumo do Orçamento e Projeto */}
-        <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-3 text-[11px] font-mono text-slate-300 space-y-1">
-          <div className="text-cyan-400 font-semibold text-[10px] uppercase">{t.project.summaryTitle}</div>
-          <div>• Empresa: {businessName || 'A definir'}</div>
-          <div>• Segmento: {currentSegmentLabel}</div>
-          <div>• Ponto de Partida: {startType === 'modelo' ? selectedModel : startType === 'segmento' ? currentSegmentLabel : 'Ideia própria sob medida'}</div>
-          <div>• Plano: {planObj.nome} ({planObj.preco} • {planObj.prazo})</div>
-          <div>• Recursos Extras: {budget.selectedFeatures.length > 0 ? budget.selectedFeatures.map((f) => f.nome).join(', ') : 'Nenhum'}</div>
-          <div className="text-cyan-300 font-bold">• Orçamento Estimado: {budget.formattedTotalPrice}</div>
-          <div>• Idioma do Site: {getSiteLanguageLabel(siteLanguage)}</div>
-          <div>• Anexos: {attachedFiles.length} imagem(ns)</div>
-          <div>• Responsável: {contactName || 'Não informado'} {contactPhone ? `• ${contactPhone}` : ''}</div>
-        </div>
-
-        {/* Feedback de envio ou contingência offline */}
-        {submissionSuccess && (
-          <div
-            className={`p-3 rounded-xl border text-xs space-y-1 animate-in fade-in ${
-              submissionSuccess.isOfflineFallback
-                ? 'bg-amber-950/80 border-amber-500/50 text-amber-300'
-                : 'bg-emerald-950/80 border-emerald-500/50 text-emerald-300'
-            }`}
-          >
-            <div
-              className={`flex items-center gap-2 font-bold ${
-                submissionSuccess.isOfflineFallback ? 'text-amber-200' : 'text-emerald-200'
-              }`}
-            >
-              {submissionSuccess.isOfflineFallback ? (
-                <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
-              ) : (
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              )}
-              <span>{submissionSuccess.message}</span>
-            </div>
-            <p
-              className={`text-[11px] font-mono ${
-                submissionSuccess.isOfflineFallback ? 'text-amber-300/90' : 'text-emerald-300/90'
-              }`}
-            >
-              Código de Referência: <strong>{submissionSuccess.projectId}</strong>
-            </p>
-          </div>
-        )}
-
-        {/* Feedback de erro */}
-        {submissionError && (
-          <div className="p-3 rounded-xl bg-rose-950/80 border border-rose-500/50 text-rose-300 text-xs flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-            <span>{submissionError}</span>
-          </div>
-        )}
-
-        <div className="pt-2 flex flex-col gap-2.5">
-          {/* Botão de Envio Integrado ao Backend do NexaWeb Site */}
-          <button
-            type="button"
-            disabled={isSubmitting}
-            onClick={handleSubmitProject}
-            className="min-h-[48px] w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs shadow-lg shadow-indigo-950/40 transition-all active:scale-[0.98]"
-          >
-            <Send className="w-4 h-4" />
-            <span>{isSubmitting ? 'Registrando Projeto...' : 'Enviar Briefing para NexaWeb'}</span>
-          </button>
-
-          {/* Botão Copiar Resumo */}
-          <button
-            type="button"
-            onClick={handleCopyBriefing}
-            className={`min-h-[44px] w-full py-2.5 px-4 rounded-xl font-semibold text-xs border transition-all flex items-center justify-center gap-1.5 active:scale-[0.98] ${
-              copied
-                ? 'bg-cyan-950/50 border-cyan-500 text-cyan-300'
-                : 'bg-slate-800 hover:bg-slate-750 border-slate-700 text-slate-300'
-            }`}
-          >
-            {copied ? (
-              <>
-                <Check className="w-4 h-4 text-cyan-400" />
-                <span>{t.project.copiedBtn}</span>
-              </>
-            ) : (
-              <>
-                <Copy className="w-4 h-4" />
-                <span>{t.project.copySummaryBtn}</span>
-              </>
-            )}
-          </button>
-
-          {/* Contatos Oficiais NexaWeb */}
-          <div className="pt-2 border-t border-slate-800/80">
-            <span className="text-[11px] font-semibold text-slate-400 block mb-2">
-              Contatos Oficiais NexaWeb:
+          {/* Canais Oficiais de Atendimento NexaWeb (Sem WhatsApp) */}
+          <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
+            <span className="text-[11px] font-bold text-slate-400 block">
+              Canais Oficiais de Atendimento NexaWeb:
             </span>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-2 text-center text-xs">
               <a
                 href="mailto:nexaweeb@gmail.com"
-                className="min-h-[40px] flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-slate-950/80 hover:bg-slate-900 border border-slate-800 hover:border-indigo-500/50 text-slate-300 hover:text-white transition-all text-center"
+                className="p-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-300 hover:text-white flex items-center justify-center gap-1.5"
               >
-                <Mail className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-                <span className="text-xs font-semibold truncate">E-mail</span>
+                <Mail className="w-3.5 h-3.5 text-indigo-400" />
+                <span>E-mail</span>
               </a>
 
               <a
                 href="https://www.instagram.com/nexaw1/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="min-h-[40px] flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-slate-950/80 hover:bg-slate-900 border border-slate-800 hover:border-pink-500/50 text-slate-300 hover:text-white transition-all text-center"
+                className="p-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-300 hover:text-white flex items-center justify-center gap-1.5"
               >
-                <Instagram className="w-3.5 h-3.5 text-pink-400 shrink-0" />
-                <span className="text-xs font-semibold truncate">Instagram</span>
+                <Instagram className="w-3.5 h-3.5 text-pink-400" />
+                <span>Instagram</span>
               </a>
 
               <a
                 href="https://nexaweeb.vercel.app/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="min-h-[40px] flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-slate-950/80 hover:bg-slate-900 border border-slate-800 hover:border-cyan-500/50 text-slate-300 hover:text-white transition-all text-center"
+                className="p-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-300 hover:text-white flex items-center justify-center gap-1.5"
               >
-                <Globe className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                <span className="text-xs font-semibold truncate">Site</span>
+                <Globe className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Site Oficial</span>
               </a>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* ETAPA 4: RESUMO & ENVIO DEFINITIVO                             */}
+      {/* ============================================================== */}
+      {currentStep === 4 && (
+        <div className="space-y-4 animate-in fade-in slide-in-from-right-2 duration-200">
+          {/* Card Resumo Completo com Edição Rápida */}
+          <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3.5 shadow-md">
+            <div className="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
+              <span className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-cyan-400" />
+                Resumo da Proposta Oficial
+              </span>
+              <span className="text-xs font-mono font-extrabold text-white">
+                {budget.formattedTotalPrice}
+              </span>
+            </div>
+
+            <div className="space-y-2 text-xs text-slate-300 font-mono">
+              <div>• <strong>Plano:</strong> {planObj.nome} ({planObj.preco} · {planObj.prazo})</div>
+              <div>• <strong>Empresa / Projeto:</strong> {businessName || 'A definir'}</div>
+              <div>• <strong>Segmento:</strong> {currentSegmentLabel}</div>
+              <div>• <strong>Idioma do Site:</strong> {getSiteLanguageLabel(siteLanguage)}</div>
+
+              {selectedModel && (
+                <div>• <strong>Modelo de Referência:</strong> {selectedModel} ({modelApproach === 'exact' ? 'Formato exato' : 'Inspiração sob medida'})</div>
+              )}
+
+              {selectedPlan === 'personalizado' && (
+                <div>• <strong>Estilo:</strong> {visualStyle}</div>
+              )}
+
+              {budget.selectedFeatures.length > 0 && (
+                <div>• <strong>Recursos Selecionados:</strong> {budget.selectedFeatures.map((f) => f.nome).join(', ')}</div>
+              )}
+
+              {accessProfiles.length > 0 && (
+                <div>• <strong>Perfis de Acesso:</strong> {accessProfiles.join(', ')}</div>
+              )}
+
+              <div>• <strong>Responsável:</strong> {contactName || 'Não informado'}</div>
+              <div>• <strong>Contato:</strong> {contactPhone || 'Não informado'}</div>
+              {contactEmail && <div>• <strong>E-mail:</strong> {contactEmail}</div>}
+              <div>• <strong>Anexos:</strong> {attachedFiles.length} foto(s)/logo</div>
+              {specificNotes && <div>• <strong>Observações:</strong> {specificNotes}</div>}
+            </div>
+
+            {/* Ações de Edição Rápida de Etapas */}
+            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/80">
+              <button
+                type="button"
+                onClick={() => setCurrentStep(2)}
+                className="p-2 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-300 text-xs font-semibold flex items-center justify-center gap-1.5"
+              >
+                <Edit2 className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Editar Personalização</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setCurrentStep(3)}
+                className="p-2 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-300 text-xs font-semibold flex items-center justify-center gap-1.5"
+              >
+                <Edit2 className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Editar Contato</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Feedback de Sucesso Real ou Fallback Offline */}
+          {submissionSuccess && (
+            <div
+              className={`p-3.5 rounded-2xl border text-xs space-y-1.5 animate-in fade-in ${
+                submissionSuccess.isOfflineFallback
+                  ? 'bg-amber-950/80 border-amber-500/50 text-amber-200'
+                  : 'bg-emerald-950/80 border-emerald-500/50 text-emerald-200'
+              }`}
+            >
+              <div className="flex items-center gap-2 font-bold">
+                {submissionSuccess.isOfflineFallback ? (
+                  <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
+                ) : (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                )}
+                <span>{submissionSuccess.message}</span>
+              </div>
+              <p className="font-mono text-[11px]">
+                Código de Referência: <strong>{submissionSuccess.projectId}</strong>
+              </p>
+            </div>
+          )}
+
+          {/* Feedback de Erro */}
+          {submissionError && (
+            <div className="p-3.5 rounded-2xl bg-rose-950/80 border border-rose-500/50 text-rose-300 text-xs flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+              <span>{submissionError}</span>
+            </div>
+          )}
+
+          {/* Botões Finais de Ação */}
+          <div className="space-y-2">
+            <button
+              type="button"
+              disabled={isSubmitting}
+              onClick={handleSubmitProject}
+              className="min-h-[50px] w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-extrabold text-xs shadow-lg shadow-indigo-950/50 transition-all active:scale-[0.98]"
+            >
+              <Send className="w-4 h-4" />
+              <span>{isSubmitting ? 'Registrando Projeto...' : 'Enviar Briefing para NexaWeb'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleCopyBriefing}
+              className={`min-h-[44px] w-full py-2.5 px-4 rounded-xl font-semibold text-xs border transition-all flex items-center justify-center gap-1.5 active:scale-[0.98] ${
+                copied
+                  ? 'bg-cyan-950/50 border-cyan-500 text-cyan-300'
+                  : 'bg-slate-900 hover:bg-slate-800 border-slate-700 text-slate-300'
+              }`}
+            >
+              {copied ? (
+                <>
+                  <Check className="w-4 h-4 text-cyan-400" />
+                  <span>Resumo Copiado para a Área de Transferência!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4" />
+                  <span>Copiar Resumo em Texto</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* BARRA DE NAVEGAÇÃO ENTRE ETAPAS FIXA NO RODAPÉ MOBILE           */}
+      {/* ============================================================== */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 p-3 bg-slate-950/95 backdrop-blur-md border-t border-slate-800 shadow-xl">
+        <div className="max-w-3xl mx-auto flex items-center justify-between gap-2">
+          {/* Botão Voltar Etapa */}
+          <button
+            type="button"
+            onClick={() => {
+              if (currentStep > 1) {
+                setCurrentStep((prev) => (prev - 1) as any);
+              } else {
+                if (onBack) {
+                  onBack();
+                } else {
+                  onNavigate('home');
+                }
+              }
+            }}
+            className="min-h-[44px] px-3.5 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>Voltar</span>
+          </button>
+
+          {/* Botão Avançar Etapa ou Enviar */}
+          {currentStep < 4 ? (
+            <button
+              type="button"
+              onClick={() => setCurrentStep((prev) => (prev + 1) as any)}
+              className="min-h-[44px] flex-1 max-w-[200px] flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md shadow-indigo-950/50 transition-all active:scale-[0.98]"
+            >
+              <span>Avançar Etapa</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled={isSubmitting}
+              onClick={handleSubmitProject}
+              className="min-h-[44px] flex-1 max-w-[220px] flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs shadow-md shadow-indigo-950 transition-all active:scale-[0.98]"
+            >
+              <Send className="w-3.5 h-3.5" />
+              <span>{isSubmitting ? 'Enviando...' : 'Concluir & Enviar'}</span>
+            </button>
+          )}
         </div>
       </div>
     </div>

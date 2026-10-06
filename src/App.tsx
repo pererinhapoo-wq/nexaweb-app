@@ -4,6 +4,7 @@ import {
   OnboardingAnswers,
   ProjectRecommendation,
   WebsiteLanguage,
+  PortfolioProject,
 } from './types';
 import { Header } from './components/Header';
 import { BottomNav } from './components/BottomNav';
@@ -11,6 +12,7 @@ import { HomeScreen } from './components/HomeScreen';
 import { ServicesScreen } from './components/ServicesScreen';
 import { PortfolioScreen } from './components/PortfolioScreen';
 import { ProjectScreen } from './components/ProjectScreen';
+import { ProjectDetailScreen } from './components/ProjectDetailScreen';
 import { SettingsScreen } from './components/SettingsScreen';
 import { PortalScreen } from './components/PortalScreen';
 import { AdminScreen } from './components/AdminScreen';
@@ -48,6 +50,7 @@ function AppContent() {
   const [selectedPlanForProject, setSelectedPlanForProject] = useState<string>('profissional');
   const [selectedModelForProject, setSelectedModelForProject] = useState<string | undefined>(undefined);
   const [selectedWebsiteLanguageForProject, setSelectedWebsiteLanguageForProject] = useState<WebsiteLanguage | undefined>(undefined);
+  const [selectedProjectDetail, setSelectedProjectDetail] = useState<PortfolioProject | null>(null);
 
   // Estados dos Modais & Drawer
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
@@ -120,18 +123,25 @@ function AppContent() {
       return;
     }
 
-    // 2. Se o Menu lateral/drawer estiver aberto: fecha o menu
+    // 2. Se estiver vendo detalhes de um projeto, volta para a lista
+    if (selectedProjectDetail) {
+      setSelectedProjectDetail(null);
+      return;
+    }
+
+    // 3. Se o Menu lateral/drawer estiver aberto: fecha o menu
     if (isMenuOpen) {
       setIsMenuOpen(false);
       return;
     }
 
-    // 3. Se estiver em tela interna (Portal, Admin, Configurações, etc.): volta para Início
+    // 4. Se estiver em tela interna (Portal, Admin, Configurações, etc.): volta para Início
     if (currentTab !== 'home') {
       setCurrentTab('home');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [
+    selectedProjectDetail,
     currentTab,
     isMenuOpen,
     isContactOpen,
@@ -150,6 +160,39 @@ function AppContent() {
       document.removeEventListener('backbutton', handleBackButtonEvent);
     };
   }, [handleAndroidBack]);
+
+  // Gesto nativo de swipe da esquerda para a direita para abrir o menu lateral
+  useEffect(() => {
+    let startX = 0;
+    let startY = 0;
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length !== 1) return;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      if (e.changedTouches.length !== 1) return;
+      const endX = e.changedTouches[0].clientX;
+      const endY = e.changedTouches[0].clientY;
+      const deltaX = endX - startX;
+      const deltaY = endY - startY;
+
+      // Inicia nos primeiros 50px da borda esquerda e desliza mais de 45px para a direita horizontalmente
+      if (startX <= 50 && deltaX > 45 && Math.abs(deltaX) > Math.abs(deltaY) * 1.1) {
+        setIsMenuOpen(true);
+      }
+    };
+
+    window.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchend', onTouchEnd, { passive: true });
+
+    return () => {
+      window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchend', onTouchEnd);
+    };
+  }, []);
 
   // Handlers de Onboarding e Recomendação
   const handleOnboardingComplete = async (answers: OnboardingAnswers) => {
@@ -224,65 +267,96 @@ function AppContent() {
       {/* Intro splash suave e não intrusiva */}
       {showIntro && <IntroSplash onFinish={() => setShowIntro(false)} />}
 
-      {/* Header oficial da NexaWeb com seletor discreto de idioma, botão personalizar e menu hambúrguer */}
+      {/* Header oficial da NexaWeb */}
       <Header
         currentTab={currentTab}
-        onNavigate={handleNavigate}
-        onOpenOnboarding={() => setIsOnboardingOpen(true)}
+        onNavigate={(tab) => {
+          setSelectedProjectDetail(null);
+          handleNavigate(tab);
+        }}
         onOpenMenu={() => setIsMenuOpen(true)}
+        title={selectedProjectDetail ? selectedProjectDetail.titulo : undefined}
+        onBack={selectedProjectDetail ? () => setSelectedProjectDetail(null) : undefined}
       />
 
-      {/* Área de conteúdo principal */}
+      {/* Área de conteúdo principal com transição suave entre telas */}
       <main className="flex-1 max-w-3xl w-full mx-auto px-4 py-4 sm:py-6">
-        {currentTab === 'home' && (
-          <HomeScreen
-            onNavigate={handleNavigate}
-            recommendation={recommendation}
-            onOpenRecommendation={() => setIsRecommendationOpen(true)}
-            onOpenOnboarding={() => setIsOnboardingOpen(true)}
-            onSelectProjectForBriefing={handleSelectProjectForBriefing}
-            onSelectPlan={handleSelectPlan}
-          />
-        )}
+        <div
+          key={selectedProjectDetail ? `detail-${selectedProjectDetail.id}` : currentTab}
+          className="animate-in fade-in slide-in-from-bottom-2 duration-200"
+        >
+          {selectedProjectDetail ? (
+            <ProjectDetailScreen
+              project={selectedProjectDetail}
+              onBack={() => setSelectedProjectDetail(null)}
+              onStartBriefing={(proj) => {
+                setSelectedProjectDetail(null);
+                setSelectedModelForProject(proj.titulo);
+                if (proj.planoId) {
+                  setSelectedPlanForProject(proj.planoId);
+                }
+                setCurrentTab('project');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            />
+          ) : (
+            <>
+              {currentTab === 'home' && (
+                <HomeScreen
+                  onNavigate={handleNavigate}
+                  recommendation={recommendation}
+                  onOpenRecommendation={() => setIsRecommendationOpen(true)}
+                  onSelectProject={(project) => setSelectedProjectDetail(project)}
+                  onSelectPlan={handleSelectPlan}
+                  onOpenContact={() => setIsContactOpen(true)}
+                />
+              )}
 
-        {currentTab === 'services' && (
-          <ServicesScreen
-            onSelectPlan={handleSelectPlan}
-            onNavigate={handleNavigate}
-            onSelectProjectForBriefing={handleSelectProjectForBriefing}
-          />
-        )}
+              {currentTab === 'services' && (
+                <ServicesScreen
+                  onSelectPlan={handleSelectPlan}
+                  onNavigate={handleNavigate}
+                  onSelectProjectForBriefing={handleSelectProjectForBriefing}
+                />
+              )}
 
-        {currentTab === 'portfolio' && (
-          <PortfolioScreen
-            onSelectProjectForBriefing={handleSelectProjectForBriefing}
-          />
-        )}
+              {currentTab === 'portfolio' && (
+                <PortfolioScreen
+                  onSelectProject={(project) => setSelectedProjectDetail(project)}
+                  onSelectProjectForBriefing={handleSelectProjectForBriefing}
+                />
+              )}
 
-        {currentTab === 'project' && (
-          <ProjectScreen
-            initialPlan={selectedPlanForProject}
-            initialModel={selectedModelForProject}
-            initialWebsiteLanguage={selectedWebsiteLanguageForProject}
-            onNavigate={handleNavigate}
-          />
-        )}
+              {currentTab === 'project' && (
+                <ProjectScreen
+                  initialPlan={selectedPlanForProject}
+                  initialModel={selectedModelForProject}
+                  initialWebsiteLanguage={selectedWebsiteLanguageForProject}
+                  onNavigate={handleNavigate}
+                />
+              )}
 
-        {currentTab === 'portal' && <PortalScreen />}
+              {currentTab === 'portal' && <PortalScreen />}
 
-        {currentTab === 'admin' && <AdminScreen />}
+              {currentTab === 'admin' && <AdminScreen />}
 
-        {currentTab === 'settings' && (
-          <SettingsScreen
-            onOpenLanguageModal={() => setIsLanguageModalOpen(true)}
-          />
-        )}
+              {currentTab === 'settings' && (
+                <SettingsScreen
+                  onOpenLanguageModal={() => setIsLanguageModalOpen(true)}
+                />
+              )}
+            </>
+          )}
+        </div>
       </main>
 
       {/* Navegação inferior estritamente simples (Início, Serviços, Portfólio, Projeto) */}
       <BottomNav
         currentTab={currentTab}
-        onNavigate={handleNavigate}
+        onNavigate={(tab) => {
+          setSelectedProjectDetail(null);
+          handleNavigate(tab);
+        }}
       />
 
       {/* Menu Drawer lateral/sheet com todas as áreas */}

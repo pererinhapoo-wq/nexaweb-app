@@ -32,6 +32,11 @@ export const ProjectCardImage: React.FC<ProjectCardImageProps> = ({
     <div
       className={`relative w-full overflow-hidden bg-slate-900 border-b border-slate-800/80 ${aspectClass} ${className}`}
     >
+      {/* 0. Skeleton Shimmer de carregamento */}
+      {!imageLoaded && !imageError && (
+        <div className="absolute inset-0 bg-slate-800/60 animate-pulse pointer-events-none z-0" />
+      )}
+
       {/* 1. Camada de Imagem Real / Automática */}
       {!imageError && (
         <img

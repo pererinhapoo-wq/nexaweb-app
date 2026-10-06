@@ -58,18 +58,41 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
     onNavigate(tab);
   };
 
+  const touchStartXRef = React.useRef<number | null>(null);
+  const touchStartYRef = React.useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartXRef.current = e.touches[0].clientX;
+    touchStartYRef.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartXRef.current === null || touchStartYRef.current === null) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartXRef.current;
+    const deltaY = e.changedTouches[0].clientY - touchStartYRef.current;
+    
+    // Se arrastou para a esquerda mais de 45px e o movimento foi predominantemente horizontal, fecha
+    if (deltaX < -45 && Math.abs(deltaX) > Math.abs(deltaY)) {
+      onClose();
+    }
+    touchStartXRef.current = null;
+    touchStartYRef.current = null;
+  };
+
   return (
     <div
       role="dialog"
       aria-modal="true"
       aria-label="Menu de Navegação"
-      className="fixed inset-0 z-50 flex justify-end bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex justify-start bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
-        className="w-full max-w-xs sm:max-w-sm h-full bg-slate-900 border-l border-slate-800 shadow-2xl flex flex-col justify-between overflow-y-auto no-scrollbar animate-in slide-in-from-right duration-200"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        className="w-full max-w-[280px] sm:max-w-xs h-full bg-slate-900 border-r border-slate-800 shadow-2xl flex flex-col justify-between overflow-y-auto no-scrollbar animate-in slide-in-from-left duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Drawer Header */}

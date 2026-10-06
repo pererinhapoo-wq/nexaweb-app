@@ -19,10 +19,12 @@ import { useTranslation } from '../contexts/LanguageContext';
 import { getFavoriteProjects, toggleFavoriteProject } from '../utils/storage';
 
 interface PortfolioScreenProps {
+  onSelectProject?: (project: PortfolioProject) => void;
   onSelectProjectForBriefing?: (projectTitle: string) => void;
 }
 
 export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
+  onSelectProject,
   onSelectProjectForBriefing
 }) => {
   const { language, t } = useTranslation();
@@ -336,7 +338,13 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
 
                     <button
                       type="button"
-                      onClick={() => setActiveDemo(project)}
+                      onClick={() => {
+                        if (onSelectProject) {
+                          onSelectProject(project);
+                        } else {
+                          setActiveDemo(project);
+                        }
+                      }}
                       className="min-h-[44px] flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-white font-semibold text-xs border border-slate-700 transition-all active:scale-[0.98]"
                     >
                       <Eye className="w-3.5 h-3.5 text-indigo-400" />
