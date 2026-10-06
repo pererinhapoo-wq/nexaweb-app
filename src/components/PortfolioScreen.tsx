@@ -20,7 +20,8 @@ type PlanFilter = 'todas' | 'essencial' | 'profissional' | 'premium';
 const PortfolioProjectCard = React.memo<{
   project: PortfolioProject;
   onSelectProject?: (project: PortfolioProject) => void;
-}>(({ project, onSelectProject }) => {
+  priority?: boolean;
+}>(({ project, onSelectProject, priority }) => {
   const planBadge = project.planoId ? project.planoId.toUpperCase() : 'PROFISSIONAL';
 
   return (
@@ -34,6 +35,7 @@ const PortfolioProjectCard = React.memo<{
           project={project}
           aspectRatio="card"
           badge={planBadge}
+          priority={priority}
         />
 
         {/* Informações Visuais Compactas do Projeto */}
@@ -75,6 +77,16 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
   const [selectedSegment, setSelectedSegment] = useState<string>('todos');
   const [searchQuery, setSearchQuery] = useState<string>(initialSearchQuery);
   const [isSegmentFilterModalOpen, setIsSegmentFilterModalOpen] = useState<boolean>(false);
+
+  // Fecha modal de filtros com tecla Escape
+  React.useEffect(() => {
+    if (!isSegmentFilterModalOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsSegmentFilterModalOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isSegmentFilterModalOpen]);
 
   // Lista oficial de demonstrações
   const allProjects = useMemo(() => getPortfolioProjects(language), [language]);
@@ -145,7 +157,7 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
       {/* 1. Cabeçalho Compacto */}
       <section className="pt-0.5">
         <h1 className="text-base sm:text-lg font-bold text-white tracking-tight">
-          Portfólio NexaWeb
+          Portfólio
         </h1>
         <p className="text-xs text-slate-400 mt-0.5">
           Explore nossos projetos e encontre o estilo ideal para o seu negócio.
@@ -290,11 +302,12 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {filteredProjects.map((project) => (
+            {filteredProjects.map((project, idx) => (
               <PortfolioProjectCard
                 key={project.id}
                 project={project}
                 onSelectProject={onSelectProject}
+                priority={idx < 2}
               />
             ))}
           </div>
@@ -319,10 +332,10 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
               <button
                 type="button"
                 onClick={() => setIsSegmentFilterModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors -mr-1"
                 aria-label="Fechar filtros"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 

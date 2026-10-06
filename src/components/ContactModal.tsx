@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { X, Instagram, Mail, Globe, ExternalLink, Sparkles, ShieldCheck } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 
@@ -9,6 +9,36 @@ interface ContactModalProps {
 
 export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
   const { t } = useTranslation();
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    let isPoppingDueToBack = false;
+    const handlePopState = () => {
+      isPoppingDueToBack = true;
+      onClose();
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+
+    window.history.pushState({ contactOpen: true }, '');
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('keydown', handleKeyDown);
+      if (!isPoppingDueToBack && window.history.state?.contactOpen) {
+        window.history.back();
+      }
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -39,7 +69,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors -mr-1"
             aria-label="Fechar"
           >
             <X className="w-5 h-5" />

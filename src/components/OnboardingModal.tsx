@@ -75,12 +75,27 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
       });
     };
 
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setStep((prev) => {
+          if (prev > 1) {
+            setDirection('backward');
+            return prev - 1;
+          }
+          onClose();
+          return 1;
+        });
+      }
+    };
+
     window.history.pushState({ onboardingOpen: true }, '');
     window.addEventListener('popstate', handlePopState);
+    window.addEventListener('keydown', handleKeyDown);
 
     return () => {
       document.body.style.overflow = originalOverflow;
       window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen, onClose]);
 
@@ -457,15 +472,16 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
         {/* Footer com Botões por Etapa */}
         <div className="p-4 border-t border-slate-800/80 bg-slate-900/95 flex items-center justify-between gap-3 shrink-0">
-          {/* Botão "Voltar": Só aparece a partir da etapa 2 */}
+          {/* Botão de retorno: Só aparece a partir da etapa 2 */}
           {step > 1 ? (
             <button
               type="button"
               onClick={handleBack}
-              className="min-h-[48px] px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-850 hover:bg-slate-800 active:scale-[0.98] text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-all"
+              className="min-h-[48px] min-w-[48px] px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-850 hover:bg-slate-800 active:scale-[0.98] text-slate-300 flex items-center justify-center transition-all"
+              aria-label="Voltar"
+              title="Voltar"
             >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Voltar</span>
+              <ArrowLeft className="w-5 h-5 text-slate-300" />
             </button>
           ) : (
             <div />

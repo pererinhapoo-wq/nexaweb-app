@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ViewTab } from '../types';
+import { ViewTab, PortfolioProject } from '../types';
 import { getNexawebPlans } from '../data/servicesData';
 import { getPortfolioProjects } from '../data/portfolioData';
 import {
@@ -9,7 +9,6 @@ import {
   Shield,
   Clock,
   ExternalLink,
-  ArrowLeft,
   ChevronDown,
 } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
@@ -19,12 +18,14 @@ interface ServicesScreenProps {
   onNavigate: (tab: ViewTab) => void;
   onBack?: () => void;
   onSelectProjectForBriefing?: (projectTitle: string) => void;
+  onSelectProject?: (project: PortfolioProject) => void;
 }
 
 export const ServicesScreen: React.FC<ServicesScreenProps> = ({
   onSelectPlan,
   onNavigate,
   onBack,
+  onSelectProject,
 }) => {
   const { language } = useTranslation();
   const plans = getNexawebPlans(language);
@@ -39,14 +40,6 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
       ...prev,
       [planId]: !prev[planId],
     }));
-  };
-
-  const handleBack = () => {
-    if (onBack) {
-      onBack();
-    } else {
-      onNavigate('home');
-    }
   };
 
   const getThemeStyles = (planId: string) => {
@@ -89,24 +82,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
 
   return (
     <div className="space-y-4 pb-24 animate-in fade-in duration-150 overflow-x-hidden">
-      {/* 1. Barra Contextual com Botão Voltar */}
-      <div className="flex items-center justify-between pb-1 border-b border-slate-800/80">
-        <button
-          type="button"
-          onClick={handleBack}
-          className="min-h-[44px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors text-xs font-semibold active:scale-95"
-          aria-label="Voltar para a tela anterior"
-        >
-          <ArrowLeft className="w-4 h-4 text-cyan-400" />
-          <span>Voltar</span>
-        </button>
-
-        <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
-          Oficiais NexaWeb
-        </span>
-      </div>
-
-      {/* 2. Header Compacto */}
+      {/* Header Compacto */}
       <section className="pt-0.5">
         <h1 className="text-base sm:text-lg font-bold text-white tracking-tight">
           Serviços & Planos
@@ -228,8 +204,11 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
                         key={relProj!.id}
                         className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-1"
                       >
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-xs font-bold text-white truncate">
+                        <div
+                          className="flex items-center justify-between gap-2 cursor-pointer hover:opacity-90 active:scale-[0.99] transition-all"
+                          onClick={() => onSelectProject && onSelectProject(relProj!)}
+                        >
+                          <p className="text-xs font-bold text-white truncate hover:text-cyan-300 transition-colors">
                             {relProj!.titulo}
                           </p>
                           <span className="text-[10px] text-cyan-400 font-semibold truncate shrink-0">

@@ -16,6 +16,7 @@ interface ProjectCardImageProps {
   className?: string;
   badge?: string;
   enableSwipe?: boolean;
+  priority?: boolean;
 }
 
 export const ProjectCardImage: React.FC<ProjectCardImageProps> = React.memo(({
@@ -24,6 +25,7 @@ export const ProjectCardImage: React.FC<ProjectCardImageProps> = React.memo(({
   className = '',
   badge,
   enableSwipe = true,
+  priority = false,
 }) => {
   // Lista de imagens do projeto com imagens do segmento
   const images = useMemo(() => {
@@ -64,8 +66,14 @@ export const ProjectCardImage: React.FC<ProjectCardImageProps> = React.memo(({
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
   const touchDeltaX = useRef<number>(0);
+  const isHorizontalIntent = useRef<boolean | null>(null);
   const hasSwiped = useRef<boolean>(false);
   const swipeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Mouse drag refs para preview desktop
+  const isMouseDown = useRef<boolean>(false);
+  const mouseStartX = useRef<number>(0);
+  const mouseDeltaX = useRef<number>(0);
 
   useEffect(() => {
     return () => {
@@ -92,12 +100,13 @@ export const ProjectCardImage: React.FC<ProjectCardImageProps> = React.memo(({
     return getSegmentConfig(project.categoria || project.segmentoAlvo);
   }, [project.categoria, project.segmentoAlvo]);
 
-  // Handlers para swipe lateral sem bloquear scroll vertical
+  // Handlers para swipe lateral seguro diferenciando intenção horizontal de vertical
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!enableSwipe || images.length <= 1) return;
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
     touchDeltaX.current = 0;
+    isHorizontalIntent.current = null;
     hasSwiped.current = false;
   };
 
@@ -108,10 +117,17 @@ export const ProjectCardImage: React.FC<ProjectCardImageProps> = React.memo(({
     const deltaX = currentX - touchStartX.current;
     const deltaY = currentY - (touchStartY.current || 0);
 
-    // Se o movimento for predominantemente horizontal
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 12) {
+    // Trava a intenção após os primeiros 8px de movimento
+    if (isHorizontalIntent.current === null && (Math.abs(deltaX) > 8 || Math.abs(deltaY) > 8)) {
+      // Se horizontal for dominante, trava como swipe do carrossel
+      isHorizontalIntent.current = Math.abs(deltaX) > Math.abs(deltaY) * 1.3;
+    }
+
+    if (isHorizontalIntent.current === true) {
       touchDeltaX.current = deltaX;
-      hasSwiped.current = true;
+      if (Math.abs(deltaX) > 14) {
+        hasSwiped.current = true;
+      }
     }
   };
 
@@ -119,7 +135,7 @@ export const ProjectCardImage: React.FC<ProjectCardImageProps> = React.memo(({
     if (!enableSwipe || images.length <= 1 || touchStartX.current === null) return;
     const deltaX = touchDeltaX.current;
 
-    if (Math.abs(deltaX) > 30) {
+    if (isHorizontalIntent.current === true && Math.abs(deltaX) > 32) {
       e.stopPropagation(); // Evita acionar clique de navegação do card pai
       if (deltaX < 0) {
         // Próxima imagem
@@ -133,12 +149,47 @@ export const ProjectCardImage: React.FC<ProjectCardImageProps> = React.memo(({
     touchStartX.current = null;
     touchStartY.current = null;
     touchDeltaX.current = 0;
+    isHorizontalIntent.current = null;
 
-    // Mantém a flag de swipe ativa por 120ms para impedir cliques acidentais
+    // Mantém a flag de swipe ativa brevemente para impedir cliques acidentais
     if (swipeTimer.current) clearTimeout(swipeTimer.current);
     swipeTimer.current = setTimeout(() => {
       hasSwiped.current = false;
-    }, 120);
+    }, 140);
+  };
+
+  // Suporte a mouse drag suave para preview
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!enableSwipe || images.length <= 1) return;
+    isMouseDown.current = true;
+    mouseStartX.current = e.clientX;
+    mouseDeltaX.current = 0;
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isMouseDown.current) return;
+    const deltaX = e.clientX - mouseStartX.current;
+    mouseDeltaX.current = deltaX;
+    if (Math.abs(deltaX) > 12) {
+      hasSwiped.current = true;
+    }
+  };
+
+  const handleMouseUp = (e: React.MouseEvent) => {
+    if (!isMouseDown.current) return;
+    isMouseDown.current = false;
+    if (Math.abs(mouseDeltaX.current) > 32) {
+      e.stopPropagation();
+      if (mouseDeltaX.current < 0) {
+        setActiveIdx((prev) => (prev + 1) % images.length);
+      } else {
+        setActiveIdx((prev) => (prev - 1 + images.length) % images.length);
+      }
+    }
+    if (swipeTimer.current) clearTimeout(swipeTimer.current);
+    swipeTimer.current = setTimeout(() => {
+      hasSwiped.current = false;
+    }, 140);
   };
 
   // Trata erro de carregamento progredindo na cadeia de fallback
@@ -165,6 +216,10 @@ export const ProjectCardImage: React.FC<ProjectCardImageProps> = React.memo(({
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
       onClickCapture={(e) => {
         if (hasSwiped.current) {
           e.stopPropagation();
@@ -182,11 +237,11 @@ export const ProjectCardImage: React.FC<ProjectCardImageProps> = React.memo(({
           key={activeUrl}
           src={activeUrl}
           alt={`Segmento ${segmentConfig.label} - ${project.titulo}`}
-          loading="lazy"
+          loading={priority ? 'eager' : 'lazy'}
           decoding="async"
           onLoad={handleImageLoad}
           onError={handleImageError}
-          className={`w-full h-full object-cover object-center transition-opacity duration-200 ease-out will-change-[opacity] ${
+          className={`w-full h-full object-cover object-center transition-opacity duration-200 ease-out will-change-[opacity] select-none ${
             imageLoaded ? 'opacity-100' : 'opacity-0'
           }`}
         />
@@ -237,18 +292,35 @@ export const ProjectCardImage: React.FC<ProjectCardImageProps> = React.memo(({
         </div>
       )}
 
-      {/* 4. Indicadores pequenos e discretos (bolinhas) se houver múltiplas fotos - SEM SETAS */}
+      {/* 4. Indicadores discretos e funcionais (bolinhas) se houver múltiplas fotos - SEM SETAS */}
       {images.length > 1 && !hasFatalError && (
-        <div className="absolute bottom-2 left-0 right-0 z-10 flex items-center justify-center gap-1 pointer-events-none">
+        <div
+          role="tablist"
+          aria-label={`Galeria de imagens de ${project.titulo}`}
+          className="absolute bottom-1.5 left-0 right-0 z-10 flex items-center justify-center gap-0.5 pointer-events-none"
+        >
           {images.map((_, i) => (
-            <span
+            <button
               key={i}
-              className={`h-1 rounded-full transition-all duration-200 ${
-                i === activeIdx
-                  ? 'w-3.5 bg-cyan-400 shadow-sm'
-                  : 'w-1 bg-white/50'
-              }`}
-            />
+              type="button"
+              role="tab"
+              aria-selected={i === activeIdx}
+              aria-label={`Ver imagem ${i + 1} de ${images.length}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                setActiveIdx(i);
+              }}
+              className="pointer-events-auto min-h-[28px] min-w-[20px] flex items-center justify-center p-1 focus:outline-none"
+            >
+              <span
+                className={`h-1.5 rounded-full transition-all duration-200 ${
+                  i === activeIdx
+                    ? 'w-3.5 bg-cyan-400 shadow-sm'
+                    : 'w-1.5 bg-white/45 hover:bg-white/70'
+                }`}
+              />
+            </button>
           ))}
         </div>
       )}

@@ -141,11 +141,14 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
   }, [isInteracting]);
 
   // Handlers de toque para swipe natural no mobile (sem travar a página)
+  const isHorizontalIntentRef = useRef<boolean | null>(null);
+
   const handleTouchStart = (e: React.TouchEvent) => {
     setIsInteracting(true);
     touchStartXRef.current = e.touches[0].clientX;
     touchStartYRef.current = e.touches[0].clientY;
     touchDeltaXRef.current = 0;
+    isHorizontalIntentRef.current = null;
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
@@ -153,8 +156,12 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
     const deltaX = e.touches[0].clientX - touchStartXRef.current;
     const deltaY = e.touches[0].clientY - (touchStartYRef.current || 0);
 
-    // Prioriza movimento horizontal
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+    // Identifica intenção horizontal vs vertical após os primeiros 8px
+    if (isHorizontalIntentRef.current === null && (Math.abs(deltaX) > 8 || Math.abs(deltaY) > 8)) {
+      isHorizontalIntentRef.current = Math.abs(deltaX) > Math.abs(deltaY) * 1.3;
+    }
+
+    if (isHorizontalIntentRef.current === true) {
       touchDeltaXRef.current = deltaX;
     }
   };
@@ -162,14 +169,40 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
   const handleTouchEnd = () => {
     if (touchStartXRef.current === null) return;
     const delta = touchDeltaXRef.current;
-    if (delta < -40) {
-      handleNextImage();
-    } else if (delta > 40) {
-      handlePrevImage();
+    if (isHorizontalIntentRef.current === true && Math.abs(delta) > 35) {
+      if (delta < 0) {
+        handleNextImage();
+      } else {
+        handlePrevImage();
+      }
     }
     touchStartXRef.current = null;
     touchStartYRef.current = null;
     touchDeltaXRef.current = 0;
+    isHorizontalIntentRef.current = null;
+  };
+
+  // Gesto seguro de retorno por deslize da borda esquerda (sem conflitar com o carrossel interno)
+  const edgeStartXRef = useRef<number | null>(null);
+
+  const handleContainerTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length !== 1) return;
+    const clientX = e.touches[0].clientX;
+    if (clientX < 32) {
+      edgeStartXRef.current = clientX;
+    } else {
+      edgeStartXRef.current = null;
+    }
+  };
+
+  const handleContainerTouchEnd = (e: React.TouchEvent) => {
+    if (edgeStartXRef.current !== null && e.changedTouches.length === 1) {
+      const deltaX = e.changedTouches[0].clientX - edgeStartXRef.current;
+      if (deltaX > 50) {
+        onBack();
+      }
+    }
+    edgeStartXRef.current = null;
   };
 
   const handleStart = () => {
@@ -177,17 +210,21 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
   };
 
   return (
-    <div className="space-y-4 pb-28 animate-in fade-in duration-200">
+    <div
+      onTouchStart={handleContainerTouchStart}
+      onTouchEnd={handleContainerTouchEnd}
+      className="space-y-4 pb-28 animate-in fade-in duration-200"
+    >
       {/* 1. Barra de Acesso e Voltar Contextual */}
       <div className="flex items-center justify-between gap-2 pb-1 border-b border-slate-800/80">
         <button
           type="button"
           onClick={onBack}
-          className="min-h-[44px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors text-xs font-semibold active:scale-95"
-          aria-label="Voltar para a tela anterior"
+          className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors active:scale-95"
+          title="Voltar"
+          aria-label="Voltar"
         >
-          <ArrowLeft className="w-4 h-4 text-cyan-400" />
-          <span>Voltar</span>
+          <ArrowLeft className="w-5 h-5 text-cyan-400" />
         </button>
 
         <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
@@ -289,22 +326,34 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
 
           {/* Indicadores pequenos (bolinhas) - SEM SETAS */}
           {hasMultipleImages && (
-            <div className="absolute bottom-2.5 left-0 right-0 z-20 flex items-center justify-center gap-1.5 pointer-events-none">
+            <div
+              role="tablist"
+              aria-label={`Galeria de imagens de ${project.titulo}`}
+              className="absolute bottom-2 left-0 right-0 z-20 flex items-center justify-center gap-0.5 pointer-events-none"
+            >
               {imageList.map((_, idx) => (
                 <button
                   key={idx}
                   type="button"
-                  onClick={() => {
+                  role="tab"
+                  aria-selected={idx === currentImageIndex}
+                  aria-label={`Ver imagem ${idx + 1} de ${imageList.length}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
                     setIsInteracting(true);
                     setCurrentImageIndex(idx);
                   }}
-                  className={`pointer-events-auto h-1.5 transition-all rounded-full ${
-                    idx === currentImageIndex
-                      ? 'w-4 bg-cyan-400 shadow-sm'
-                      : 'w-1.5 bg-white/40 hover:bg-white/70'
-                  }`}
-                  aria-label={`Ir para a imagem ${idx + 1}`}
-                />
+                  className="pointer-events-auto min-h-[32px] min-w-[22px] flex items-center justify-center p-1 focus:outline-none"
+                >
+                  <span
+                    className={`h-1.5 rounded-full transition-all duration-200 ${
+                      idx === currentImageIndex
+                        ? 'w-4 bg-cyan-400 shadow-sm'
+                        : 'w-1.5 bg-white/40 hover:bg-white/70'
+                    }`}
+                  />
+                </button>
               ))}
             </div>
           )}
@@ -489,7 +538,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
       </div>
 
       {/* 9. Barra de Ação Fixa no Rodapé Mobile (Apenas ação principal de solicitar briefing, SEM botão Ver Site) */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 p-3 sm:p-4 bg-slate-950/95 backdrop-blur-md border-t border-slate-800 shadow-2xl">
+      <div className="fixed bottom-0 left-0 right-0 z-40 p-3 sm:p-4 bg-slate-950/95 backdrop-blur-md border-t border-slate-800 shadow-2xl safe-area-pb">
         <div className="max-w-3xl mx-auto">
           <button
             type="button"

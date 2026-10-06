@@ -226,6 +226,11 @@ function AppContent() {
         return [...prev, nextEntry];
       });
 
+      // Registra histórico no navegador para suporte ao botão voltar físico e gestual do Android
+      try {
+        window.history.pushState({ appTab: tab }, '');
+      } catch {}
+
       window.scrollTo({ top: 0, behavior: 'smooth' });
     },
     []
@@ -299,11 +304,30 @@ function AppContent() {
       handleAndroidBack();
     };
 
+    const handlePopStateEvent = () => {
+      // Modais e drawer controlam seus próprios eventos de popstate isoladamente.
+      // Se nenhum modal ou drawer estiver aberto, o popstate executa a navegação de retorno.
+      if (isContactOpen || isLanguageModalOpen || isOnboardingOpen || isRecommendationOpen || isMenuOpen) {
+        return;
+      }
+      handleGoBack();
+    };
+
     document.addEventListener('backbutton', handleBackButtonEvent);
+    window.addEventListener('popstate', handlePopStateEvent);
     return () => {
       document.removeEventListener('backbutton', handleBackButtonEvent);
+      window.removeEventListener('popstate', handlePopStateEvent);
     };
-  }, [handleAndroidBack]);
+  }, [
+    handleAndroidBack,
+    handleGoBack,
+    isContactOpen,
+    isLanguageModalOpen,
+    isOnboardingOpen,
+    isRecommendationOpen,
+    isMenuOpen,
+  ]);
 
   // Handlers de Onboarding e Recomendação
   const handleOnboardingComplete = async (answers: OnboardingAnswers) => {
@@ -366,13 +390,17 @@ function AppContent() {
   };
 
   const handleNavigate = (tab: ViewTab) => {
+    if (tab === currentTab) {
+      // 1. Rola suavemente para o topo da tela atual
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // 2. Se houver um detalhe aberto (ex: detalhe de projeto), reseta para a raiz da aba
+      if (selectedProjectDetail) {
+        setHistory((prev) => prev.filter((e) => !e.projectDetail));
+      }
+      return;
+    }
     navigateTo(tab);
   };
-
-  const canGoBack =
-    history.length > 1 ||
-    selectedProjectDetail !== null ||
-    currentTab !== 'home';
 
   return (
     <div
@@ -383,18 +411,11 @@ function AppContent() {
       {/* Intro splash suave e não intrusiva */}
       {showIntro && <IntroSplash onFinish={() => setShowIntro(false)} />}
 
-      {/* Header oficial da NexaWeb */}
-      <Header
-        currentTab={currentTab}
-        onNavigate={handleNavigate}
-        onOpenMenu={() => setIsMenuOpen(true)}
-        title={selectedProjectDetail ? selectedProjectDetail.titulo : undefined}
-        onBack={handleGoBack}
-        canGoBack={canGoBack}
-      />
+      {/* Header oficial Nexa */}
+      <Header onOpenMenu={() => setIsMenuOpen(true)} />
 
       {/* Área de conteúdo principal com transição suave entre telas */}
-      <main className="flex-1 max-w-3xl w-full mx-auto px-4 py-4 sm:py-6">
+      <main className="flex-1 max-w-3xl w-full mx-auto px-4 pt-4 pb-24 sm:pt-6 sm:pb-28">
         <div
           key={selectedProjectDetail ? `detail-${selectedProjectDetail.id}` : currentTab}
           className="animate-in fade-in slide-in-from-bottom-1 duration-150 ease-out will-change-transform"
@@ -430,6 +451,7 @@ function AppContent() {
                   onSelectPlan={handleSelectPlan}
                   onNavigate={handleNavigate}
                   onBack={handleGoBack}
+                  onSelectProject={handleSelectProject}
                   onSelectProjectForBriefing={handleSelectProjectForBriefing}
                 />
               )}
@@ -476,10 +498,12 @@ function AppContent() {
       </main>
 
       {/* Navegação inferior estritamente simples (Início, Serviços, Portfólio, Projeto) */}
-      <BottomNav
-        currentTab={currentTab}
-        onNavigate={handleNavigate}
-      />
+      {!selectedProjectDetail && (
+        <BottomNav
+          currentTab={currentTab}
+          onNavigate={handleNavigate}
+        />
+      )}
 
       {/* Menu Drawer lateral/sheet ancorado estritamente na esquerda com gesto de borda */}
       <AppDrawer

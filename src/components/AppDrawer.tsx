@@ -75,6 +75,33 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
     };
   }, [isOpen]);
 
+  // Suporte a tecla Escape e histórico/botão Voltar do Android (popstate)
+  useEffect(() => {
+    if (!isOpen) return;
+
+    let isPoppingDueToBack = false;
+    const handlePopState = () => {
+      isPoppingDueToBack = true;
+      onClose();
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+
+    window.history.pushState({ drawerOpen: true }, '');
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('keydown', handleKeyDown);
+      if (!isPoppingDueToBack && window.history.state?.drawerOpen) {
+        window.history.back();
+      }
+    };
+  }, [isOpen, onClose]);
+
   // Sincroniza posição visual com a prop isOpen quando não estiver arrastando
   useEffect(() => {
     if (isDraggingRef.current) return;
@@ -445,14 +472,12 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
           {/* Header do Menu */}
           <div className="p-4 sm:p-5 border-b border-slate-800/80 flex items-center justify-between shrink-0 bg-slate-900">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 p-0.5 shadow-md shadow-indigo-500/20 shrink-0">
-                <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                  <Sparkles className="w-4 h-4 text-cyan-400" />
-                </div>
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-400 p-0.5 shadow-md shadow-indigo-500/20 shrink-0 flex items-center justify-center">
+                <span className="font-mono font-black text-xs text-slate-950">N</span>
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <span className="font-extrabold text-sm sm:text-base tracking-tight text-white">NexaWeb</span>
+                  <span className="font-extrabold text-sm sm:text-base tracking-tight text-white">Nexa</span>
                   <span className="text-[10px] px-1.5 py-0.2 rounded font-mono font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
                     Menu
                   </span>

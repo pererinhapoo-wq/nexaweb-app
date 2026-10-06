@@ -37,7 +37,7 @@ interface BannerSlide {
 const BANNER_SLIDES: BannerSlide[] = [
   {
     id: 'banner-geral',
-    segmento: 'NexaWeb Sites',
+    segmento: 'Sites Profissionais',
     titulo: 'Seu negócio merece um site profissional',
     subtitulo: 'Projetos modernos, rápidos e pensados para sua marca.',
     imagemUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80',
@@ -114,6 +114,7 @@ const MainHeroBanner = React.memo<{
   const touchStartX = useRef<number>(0);
   const touchStartY = useRef<number>(0);
   const touchDeltaX = useRef<number>(0);
+  const isHorizontalIntent = useRef<boolean | null>(null);
   const isSwiping = useRef<boolean>(false);
   const pauseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -153,11 +154,12 @@ const MainHeroBanner = React.memo<{
     };
   }, []);
 
-  // Handlers para gestos de toque no celular (Swipe horizontal suave)
+  // Handlers para gestos de toque no celular diferenciando intenção horizontal de vertical
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
     touchDeltaX.current = 0;
+    isHorizontalIntent.current = null;
     isSwiping.current = false;
     pauseTemporarily();
   };
@@ -168,15 +170,21 @@ const MainHeroBanner = React.memo<{
     const deltaX = currentX - touchStartX.current;
     const deltaY = currentY - touchStartY.current;
 
-    // Detecta intenção de deslize horizontal
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+    // Trava intenção após 8px de movimento
+    if (isHorizontalIntent.current === null && (Math.abs(deltaX) > 8 || Math.abs(deltaY) > 8)) {
+      isHorizontalIntent.current = Math.abs(deltaX) > Math.abs(deltaY) * 1.3;
+    }
+
+    if (isHorizontalIntent.current === true) {
       touchDeltaX.current = deltaX;
-      isSwiping.current = true;
+      if (Math.abs(deltaX) > 12) {
+        isSwiping.current = true;
+      }
     }
   };
 
   const handleTouchEnd = () => {
-    if (isSwiping.current) {
+    if (isHorizontalIntent.current === true && isSwiping.current) {
       if (touchDeltaX.current < -35) {
         // Deslizar para a esquerda -> próximo
         setCurrentIndex((prev) => (prev + 1) % BANNER_SLIDES.length);
@@ -185,6 +193,7 @@ const MainHeroBanner = React.memo<{
         setCurrentIndex((prev) => (prev - 1 + BANNER_SLIDES.length) % BANNER_SLIDES.length);
       }
     }
+    isHorizontalIntent.current = null;
     setTimeout(() => {
       isSwiping.current = false;
     }, 60);
@@ -299,24 +308,35 @@ const MainHeroBanner = React.memo<{
           })}
         </div>
 
-        {/* Indicadores discretos (bolinhas) no canto inferior direito */}
-        <div className="absolute bottom-2.5 right-3.5 flex items-center gap-1.5 z-20 pointer-events-auto">
+        {/* Indicadores discretos (bolinhas) no canto inferior direito com área de toque confortável */}
+        <div
+          role="tablist"
+          aria-label="Navegação dos banners principais"
+          className="absolute bottom-2 right-2 flex items-center z-20 pointer-events-auto"
+        >
           {BANNER_SLIDES.map((_, idx) => (
             <button
               key={idx}
               type="button"
-              aria-label={`Ir para banner ${idx + 1}`}
+              role="tab"
+              aria-selected={idx === currentIndex}
+              aria-label={`Ir para banner ${idx + 1} de ${BANNER_SLIDES.length}`}
               onClick={(e) => {
                 e.stopPropagation();
+                e.preventDefault();
                 setCurrentIndex(idx);
                 pauseTemporarily();
               }}
-              className={`h-1.5 rounded-full transition-all duration-300 ${
-                idx === currentIndex
-                  ? 'bg-cyan-400 w-3.5 shadow-sm'
-                  : 'bg-white/40 hover:bg-white/70 w-1.5'
-              }`}
-            />
+              className="min-h-[32px] min-w-[20px] flex items-center justify-center p-1"
+            >
+              <span
+                className={`h-1.5 rounded-full transition-all duration-300 ${
+                  idx === currentIndex
+                    ? 'bg-cyan-400 w-3.5 shadow-sm'
+                    : 'bg-white/40 hover:bg-white/70 w-1.5'
+                }`}
+              />
+            </button>
           ))}
         </div>
       </div>
@@ -330,7 +350,8 @@ MainHeroBanner.displayName = 'MainHeroBanner';
 const FeaturedProjectCard = React.memo<{
   project: PortfolioProject;
   onSelectProject: (project: PortfolioProject) => void;
-}>(({ project, onSelectProject }) => {
+  priority?: boolean;
+}>(({ project, onSelectProject, priority }) => {
   const planBadge = project.planoId ? project.planoId.toUpperCase() : 'PROFISSIONAL';
 
   return (
@@ -343,6 +364,7 @@ const FeaturedProjectCard = React.memo<{
           project={project}
           aspectRatio="compact"
           badge={planBadge}
+          priority={priority}
         />
 
         <div className="p-2.5 space-y-0.5">
@@ -605,11 +627,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
         {/* Grid de 2 colunas compacto com 6 projetos */}
         <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-          {featuredProjects.map((project) => (
+          {featuredProjects.map((project, idx) => (
             <FeaturedProjectCard
               key={project.id}
               project={project}
               onSelectProject={onSelectProject}
+              priority={idx < 2}
             />
           ))}
         </div>

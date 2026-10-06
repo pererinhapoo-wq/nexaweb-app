@@ -59,6 +59,29 @@ export const AdminScreen: React.FC = () => {
     };
   }, []);
 
+  // Lock de scroll e tecla Escape para os modais de administração
+  useEffect(() => {
+    const isAnyModalOpen = Boolean(editingProject || replyingRequest);
+    if (!isAnyModalOpen) return;
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setEditingProject(null);
+        setReplyingRequest(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [editingProject, replyingRequest]);
+
   useEffect(() => {
     async function checkAuth() {
       const auth = await isAdminAuthenticated();
@@ -470,7 +493,8 @@ export const AdminScreen: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setEditingProject(null)}
-                className="p-1 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors -mr-1"
+                aria-label="Fechar"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -584,7 +608,8 @@ export const AdminScreen: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setReplyingRequest(null)}
-                className="p-1 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors -mr-1"
+                aria-label="Fechar"
               >
                 <X className="w-5 h-5" />
               </button>

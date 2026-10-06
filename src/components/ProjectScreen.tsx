@@ -1076,10 +1076,11 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
             <button
               type="button"
               onClick={handlePrevStep}
-              className="min-h-[48px] px-4 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-850 text-slate-300 text-xs font-semibold flex items-center gap-2 transition-colors active:scale-95"
+              className="min-h-[48px] min-w-[48px] px-4 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-850 text-slate-300 flex items-center justify-center transition-colors active:scale-95"
+              aria-label="Voltar"
+              title="Voltar"
             >
-              <ArrowLeft className="w-4 h-4 text-slate-400" />
-              <span>Voltar</span>
+              <ArrowLeft className="w-5 h-5 text-slate-300" />
             </button>
 
             <button
@@ -1386,10 +1387,11 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
             <button
               type="button"
               onClick={handlePrevStep}
-              className="min-h-[48px] px-4 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-850 text-slate-300 text-xs font-semibold flex items-center gap-2 transition-colors active:scale-95"
+              className="min-h-[48px] min-w-[48px] px-4 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-850 text-slate-300 flex items-center justify-center transition-colors active:scale-95"
+              aria-label="Voltar"
+              title="Voltar"
             >
-              <ArrowLeft className="w-4 h-4 text-slate-400" />
-              <span>Voltar</span>
+              <ArrowLeft className="w-5 h-5 text-slate-300" />
             </button>
 
             <button
@@ -1425,6 +1427,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
               </label>
               <input
                 type="text"
+                autoComplete="name"
                 value={contactName}
                 onChange={(e) => {
                   setContactName(e.target.value);
@@ -1441,6 +1444,8 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
               </label>
               <input
                 type="tel"
+                inputMode="tel"
+                autoComplete="tel"
                 value={contactPhone}
                 onChange={(e) => {
                   setContactPhone(e.target.value);
@@ -1457,6 +1462,8 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
               </label>
               <input
                 type="email"
+                inputMode="email"
+                autoComplete="email"
                 value={contactEmail}
                 onChange={(e) => setContactEmail(e.target.value)}
                 placeholder="Ex: contato@suaempresa.com.br"
@@ -1483,10 +1490,11 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
             <button
               type="button"
               onClick={handlePrevStep}
-              className="min-h-[48px] px-4 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-850 text-slate-300 text-xs font-semibold flex items-center gap-2 transition-colors active:scale-95"
+              className="min-h-[48px] min-w-[48px] px-4 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-850 text-slate-300 flex items-center justify-center transition-colors active:scale-95"
+              aria-label="Voltar"
+              title="Voltar"
             >
-              <ArrowLeft className="w-4 h-4 text-slate-400" />
-              <span>Voltar</span>
+              <ArrowLeft className="w-5 h-5 text-slate-300" />
             </button>
 
             <button
@@ -1767,7 +1775,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
                   className="min-h-[44px] w-full py-2 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 active:scale-95 border border-slate-700"
                 >
                   <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                  <span>Voltar ao Início do Aplicativo</span>
+                  <span>Ir para a Página Inicial</span>
                 </button>
               </div>
             )}
@@ -1800,7 +1808,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
               className="min-h-[44px] w-full py-2 px-4 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-white text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Voltar para Edição</span>
+              <span>Editar Resumo</span>
             </button>
           </div>
         </div>

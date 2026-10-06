@@ -75,6 +75,24 @@ export const PortalScreen: React.FC = () => {
     };
   }, []);
 
+  // Lock de scroll e tecla Escape para o modal de solicitação
+  useEffect(() => {
+    if (!isRequestModalOpen) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsRequestModalOpen(false);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isRequestModalOpen]);
+
   // Carrega sessão salva
   useEffect(() => {
     async function loadSession() {
@@ -211,14 +229,14 @@ export const PortalScreen: React.FC = () => {
           <div className="rounded-2xl p-5 sm:p-6 bg-gradient-to-br from-indigo-950/80 via-slate-900 to-slate-950 border border-indigo-500/20 shadow-xl">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-semibold mb-3">
               <UserCheck className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Área do Cliente NexaWeb</span>
+              <span>Área do Cliente</span>
             </div>
 
             <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
               Acompanhe seu Projeto
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-md leading-relaxed">
-              Área privada para acompanhar as etapas da NexaWeb, consultar o percentual de evolução, acessar links de homologação e abrir novas solicitações.
+              Área privada para acompanhar cada etapa, consultar o percentual de evolução, acessar links de homologação e abrir solicitações.
             </p>
 
             <form onSubmit={handleLogin} className="mt-5 space-y-3.5">
@@ -230,6 +248,9 @@ export const PortalScreen: React.FC = () => {
                   <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
+                    autoComplete="off"
+                    autoCapitalize="characters"
+                    spellCheck={false}
                     value={accessKey}
                     onChange={(e) => setAccessKey(e.target.value.toUpperCase())}
                     placeholder="Ex: DEMO-2026 ou sua chave"

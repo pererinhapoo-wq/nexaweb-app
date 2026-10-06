@@ -47,12 +47,18 @@ export const RecommendationModal: React.FC<RecommendationModalProps> = ({
       onClose();
     };
 
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+
     window.history.pushState({ recommendationOpen: true }, '');
     window.addEventListener('popstate', handlePopState);
+    window.addEventListener('keydown', handleKeyDown);
 
     return () => {
       document.body.style.overflow = originalOverflow;
       window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen, onClose]);
 
@@ -91,7 +97,7 @@ export const RecommendationModal: React.FC<RecommendationModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors -mr-1"
             aria-label={t.portfolio.close}
           >
             <X className="w-5 h-5" />
