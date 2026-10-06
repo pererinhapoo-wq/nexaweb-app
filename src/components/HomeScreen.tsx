@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ViewTab, PortfolioProject, ProjectRecommendation } from '../types';
 import { getPortfolioProjects } from '../data/portfolioData';
 import { ProjectCardImage } from './ProjectCardImage';
@@ -15,6 +15,25 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
+
+// Mini-banner rotativo suave e compacto (estático a nível de módulo para 0 alocações por render)
+const HIGHLIGHTS = [
+  {
+    icon: Zap,
+    text: 'Sites de alta conversão otimizados para WhatsApp',
+    color: 'text-amber-400',
+  },
+  {
+    icon: Smartphone,
+    text: 'Design responsivo e veloz para qualquer celular',
+    color: 'text-cyan-400',
+  },
+  {
+    icon: ShieldCheck,
+    text: 'Projetos profissionais entregues em até 7 dias',
+    color: 'text-emerald-400',
+  },
+];
 
 interface HomeScreenProps {
   onNavigate: (tab: ViewTab) => void;
@@ -37,40 +56,23 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 }) => {
   const { language } = useTranslation();
 
-  // Carrega apenas os 4 projetos em destaque para máxima performance
-  const featuredProjects = getPortfolioProjects(language)
-    .filter((p) => p.destaqueHome)
-    .slice(0, 4);
-
-  // Mini-banner rotativo suave e compacto
-  const highlights = [
-    {
-      icon: Zap,
-      text: 'Sites de alta conversão otimizados para WhatsApp',
-      color: 'text-amber-400',
-    },
-    {
-      icon: Smartphone,
-      text: 'Design responsivo e veloz para qualquer celular',
-      color: 'text-cyan-400',
-    },
-    {
-      icon: ShieldCheck,
-      text: 'Projetos profissionais entregues em até 7 dias',
-      color: 'text-emerald-400',
-    },
-  ];
+  // Carrega apenas os 4 projetos em destaque com useMemo estável
+  const featuredProjects = useMemo(() => {
+    return getPortfolioProjects(language)
+      .filter((p) => p.destaqueHome)
+      .slice(0, 4);
+  }, [language]);
 
   const [currentHighlightIndex, setCurrentHighlightIndex] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentHighlightIndex((prev) => (prev + 1) % highlights.length);
+      setCurrentHighlightIndex((prev) => (prev + 1) % HIGHLIGHTS.length);
     }, 4500);
     return () => clearInterval(interval);
-  }, [highlights.length]);
+  }, []);
 
-  const activeHighlight = highlights[currentHighlightIndex];
+  const activeHighlight = HIGHLIGHTS[currentHighlightIndex];
   const HighlightIcon = activeHighlight.icon;
 
   return (

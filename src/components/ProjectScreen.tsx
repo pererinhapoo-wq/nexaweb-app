@@ -171,6 +171,20 @@ const getDynamicPremiumPages = (seg: string): { title: string; note: string }[] 
   ];
 };
 
+// Segmentos gerais estáticos a nível de módulo (0 alocações por render)
+const GENERAL_SEGMENT_OPTIONS: { id: string; label: string; icon: string }[] = [
+  { id: 'barber', label: 'Barbearia & Masculino', icon: '💈' },
+  { id: 'beauty', label: 'Beleza & Estética', icon: '💅' },
+  { id: 'fitness', label: 'Academia & Fitness', icon: '🏋️' },
+  { id: 'realEstate', label: 'Imobiliária & Construtora', icon: '🏢' },
+  { id: 'clinic', label: 'Clínica & Saúde', icon: '🩺' },
+  { id: 'food', label: 'Restaurante & Gastronomia', icon: '🍽️' },
+  { id: 'services', label: 'Prestador de Serviços', icon: '💼' },
+  { id: 'retail', label: 'Comércio & Varejo', icon: '🛍️' },
+  { id: 'creator', label: 'Criador de Conteúdo / Influenciador', icon: '📱' },
+  { id: 'other', label: 'Outro Segmento', icon: '🌐' },
+];
+
 interface ProjectScreenProps {
   initialPlan?: string;
   initialModel?: string;
@@ -522,31 +536,9 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     return 'Concluir & Enviar';
   };
 
-  // Notifica o gerenciador de navegação sobre a etapa atual para suporte unificado ao Voltar
-  useEffect(() => {
-    if (onStepChange) {
-      onStepChange(
-        currentStep,
-        currentStep > 1,
-        () => setCurrentStep((prev) => (prev > 1 ? (prev - 1) as any : 1))
-      );
-    }
-  }, [currentStep, onStepChange]);
-
   const planObj = plans.find((p) => p.id === selectedPlan) || plans[1];
 
-  const segmentsOptions: { id: string; label: string; icon: string }[] = [
-    { id: 'barber', label: 'Barbearia & Masculino', icon: '💈' },
-    { id: 'beauty', label: 'Beleza & Estética', icon: '💅' },
-    { id: 'fitness', label: 'Academia & Fitness', icon: '🏋️' },
-    { id: 'realEstate', label: 'Imobiliária & Construtora', icon: '🏢' },
-    { id: 'clinic', label: 'Clínica & Saúde', icon: '🩺' },
-    { id: 'food', label: 'Restaurante & Gastronomia', icon: '🍽️' },
-    { id: 'services', label: 'Prestador de Serviços', icon: '💼' },
-    { id: 'retail', label: 'Comércio & Varejo', icon: '🛍️' },
-    { id: 'creator', label: 'Criador de Conteúdo / Influenciador', icon: '📱' },
-    { id: 'other', label: 'Outro Segmento', icon: '🌐' },
-  ];
+  const segmentsOptions = GENERAL_SEGMENT_OPTIONS;
 
   const currentSegmentLabel = useMemo(() => {
     if (selectedPlan === 'premium') {
@@ -554,11 +546,11 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
       if (found) return found.label;
     }
     return (
-      segmentsOptions.find((s) => s.id === selectedSegment)?.label ||
+      GENERAL_SEGMENT_OPTIONS.find((s) => s.id === selectedSegment)?.label ||
       PREMIUM_SEGMENTS.find((s) => s.id === selectedSegment)?.label ||
       selectedSegment
     );
-  }, [selectedPlan, selectedSegment, segmentsOptions]);
+  }, [selectedPlan, selectedSegment]);
 
   // Cálculo de orçamento oficial
   const budget = useMemo(() => {

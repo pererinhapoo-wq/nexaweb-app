@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { PortfolioProject } from '../types';
 import {
   ArrowLeft,
@@ -29,15 +29,16 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  // 1. Lista de Imagens Reais (Suporte a imagem única ou múltiplas perspectivas)
-  const defaultCaptureUrl =
-    project.imagemUrl ||
-    `https://image.thum.io/get/width/900/crop/550/noanimate/${project.linkDemo}`;
+  // 1. Lista de Imagens Reais estável com useMemo (Suporte a imagem única ou múltiplas perspectivas)
+  const imageList = useMemo(() => {
+    const defaultCaptureUrl =
+      project.imagemUrl ||
+      `https://image.thum.io/get/width/900/crop/550/noanimate/${project.linkDemo}`;
 
-  const imageList =
-    project.imagens && project.imagens.length > 0
+    return project.imagens && project.imagens.length > 0
       ? project.imagens
       : [defaultCaptureUrl];
+  }, [project.imagemUrl, project.linkDemo, project.imagens]);
 
   const hasMultipleImages = imageList.length > 1;
 

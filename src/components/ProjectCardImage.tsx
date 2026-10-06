@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { PortfolioProject } from '../types';
 import { Globe } from 'lucide-react';
 
@@ -9,7 +9,7 @@ interface ProjectCardImageProps {
   badge?: string;
 }
 
-export const ProjectCardImage: React.FC<ProjectCardImageProps> = ({
+export const ProjectCardImage: React.FC<ProjectCardImageProps> = React.memo(({
   project,
   aspectRatio = 'card',
   className = '',
@@ -19,9 +19,12 @@ export const ProjectCardImage: React.FC<ProjectCardImageProps> = ({
   const [imageLoaded, setImageLoaded] = useState(false);
 
   // Captura proporcional do site real (800x500 = 16:10, ideal para mobile e desktop)
-  const autoCaptureUrl =
-    project.imagemUrl ||
-    `https://image.thum.io/get/width/800/crop/500/noanimate/${project.linkDemo}`;
+  const autoCaptureUrl = useMemo(() => {
+    return (
+      project.imagemUrl ||
+      `https://image.thum.io/get/width/800/crop/500/noanimate/${project.linkDemo}`
+    );
+  }, [project.imagemUrl, project.linkDemo]);
 
   const aspectClass =
     aspectRatio === 'compact'
@@ -29,6 +32,15 @@ export const ProjectCardImage: React.FC<ProjectCardImageProps> = ({
       : aspectRatio === 'video'
       ? 'aspect-[16/9]'
       : 'aspect-[16/10]';
+
+  // Parsing seguro do hostname para evitar exceções em caso de string inesperada
+  const demoHostname = useMemo(() => {
+    try {
+      return new URL(project.linkDemo).hostname;
+    } catch {
+      return 'nexaweb.app';
+    }
+  }, [project.linkDemo]);
 
   return (
     <div
@@ -69,7 +81,7 @@ export const ProjectCardImage: React.FC<ProjectCardImageProps> = ({
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
               <span className="text-[9.5px] font-mono text-white/90 ml-0.5 truncate max-w-[130px]">
-                {new URL(project.linkDemo).hostname}
+                {demoHostname}
               </span>
             </div>
 
@@ -103,4 +115,6 @@ export const ProjectCardImage: React.FC<ProjectCardImageProps> = ({
       )}
     </div>
   );
-};
+});
+
+ProjectCardImage.displayName = 'ProjectCardImage';
