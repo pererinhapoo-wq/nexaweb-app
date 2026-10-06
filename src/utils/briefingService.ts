@@ -1,6 +1,9 @@
+import { Capacitor, CapacitorHttp } from '@capacitor/core';
 import { UPLOAD_RULES } from '../data/commercialRules';
 
 export interface CreateBriefingPayload {
+  clientName?: string;
+  businessName?: string;
   empresa: string;
   segmento: string;
   plano: string;
@@ -29,65 +32,110 @@ export interface UploadResponse {
   error?: string;
 }
 
+// URL canônica do backend oficial NexaWeb
+const OFFICIAL_BACKEND_URL = 'https://nexaweeb.vercel.app';
+
 // Resolução de endpoint seguro (funciona tanto no dev com proxy quanto no build/Capacitor)
 function getApiEndpoint(path: string): string {
   // Se estiver em ambiente nativo Capacitor ou hostname relativo sem backend direto
   if (
-    typeof window !== 'undefined' &&
-    (window.location.protocol === 'capacitor:' ||
-     window.location.protocol === 'file:' ||
-     (window.location.hostname === 'localhost' && !window.location.port))
+    Capacitor.isNativePlatform() ||
+    (typeof window !== 'undefined' &&
+      (window.location.protocol === 'capacitor:' ||
+        window.location.protocol === 'file:' ||
+        (window.location.hostname === 'localhost' && !window.location.port)))
   ) {
-    return `https://nexaweeb.vercel.app${path}`;
+    return `${OFFICIAL_BACKEND_URL}${path}`;
   }
   return path;
 }
 
 export async function createBriefing(payload: CreateBriefingPayload): Promise<BriefingResponse> {
-  const primaryUrl = getApiEndpoint('/api/create-briefing');
+  const isNative = Capacitor.isNativePlatform();
+  const directUrl = `${OFFICIAL_BACKEND_URL}/api/create-briefing`;
+  const primaryUrl = isNative ? directUrl : getApiEndpoint('/api/create-briefing');
+
+  // Payload formatado conforme o contrato do endpoint:
+  // clientName e businessName são obrigatórios no backend
+  const apiPayload = {
+    clientName: (payload.clientName || payload.responsavel || '').trim() || 'Cliente NexaWeb',
+    businessName: (payload.businessName || payload.empresa || '').trim() || 'Empresa',
+    whatsapp: payload.whatsapp || '',
+    segmento: payload.segmento || '',
+    plano: payload.plano || '',
+    idiomaSite: payload.idiomaSite || '',
+    necessidades: payload.necessidades || '',
+    recursosSelecionados: payload.recursosSelecionados || [],
+    orcamentoEstimado: payload.orcamentoEstimado || '',
+    valorNumerico: payload.valorNumerico,
+    origem: payload.origem || 'NexaWeb App',
+    // Preserva compatibilidade com chaves em português
+    responsavel: payload.responsavel || '',
+    empresa: payload.empresa || '',
+  };
 
   try {
-    const res = await fetch(primaryUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
+    if (isNative) {
+      console.log('[NexaWeb Diagnostic] Transporte: CapacitorHttp (Android nativo)');
+      console.log('[NexaWeb Diagnostic] URL:', directUrl);
+      console.log('[NexaWeb Diagnostic] Payload:', JSON.stringify(apiPayload));
 
-    if (res.ok) {
-      const data = await res.json();
-      return {
-        success: true,
-        projectId: data.projectId || data.id || data.project?.id || `NX-${Date.now().toString(36).toUpperCase()}`,
-        message: data.message || 'Briefing recebido com sucesso!',
-        isOfflineFallback: false,
-      };
-    }
-  } catch {
-    // Se a chamada relativa falhar por rede ou CORS, tenta diretamente a URL oficial do site
-    try {
-      const directUrl = `https://nexaweeb.vercel.app/api/create-briefing`;
-      const directRes = await fetch(directUrl, {
+      // No Android nativo, usa CapacitorHttp para evitar que o fetch do WebView seja bloqueado pelo preflight CORS
+      const nativeRes = await CapacitorHttp.post({
+        url: directUrl,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        data: apiPayload,
+      });
+
+      console.log('[NexaWeb Diagnostic] Status HTTP:', nativeRes.status);
+      console.log('[NexaWeb Diagnostic] Resposta do servidor:', nativeRes.data);
+
+      if (nativeRes.status >= 200 && nativeRes.status < 300) {
+        const data = typeof nativeRes.data === 'string' ? JSON.parse(nativeRes.data) : nativeRes.data;
+        const projectId = data?.projectId || data?.id || data?.project?.id || `NX-${Date.now().toString(36).toUpperCase()}`;
+        return {
+          success: true,
+          projectId,
+          message: data?.message || 'Briefing recebido com sucesso!',
+          isOfflineFallback: false,
+        };
+      } else {
+        console.warn(`[NexaWeb Diagnostic] Servidor respondeu com código de erro ${nativeRes.status}:`, nativeRes.data);
+      }
+    } else {
+      console.log('[NexaWeb Diagnostic] Transporte: fetch (Web/Dev)');
+      console.log('[NexaWeb Diagnostic] URL:', primaryUrl);
+
+      // No navegador web ou dev server com proxy
+      const res = await fetch(primaryUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(apiPayload),
       });
 
-      if (directRes.ok) {
-        const data = await directRes.json();
+      console.log('[NexaWeb Diagnostic] Status HTTP:', res.status);
+
+      if (res.ok) {
+        const data = await res.json();
+        console.log('[NexaWeb Diagnostic] Resposta do servidor:', data);
+        const projectId = data?.projectId || data?.id || data?.project?.id || `NX-${Date.now().toString(36).toUpperCase()}`;
         return {
           success: true,
-          projectId: data.projectId || data.id || data.project?.id || `NX-${Date.now().toString(36).toUpperCase()}`,
-          message: data.message || 'Briefing recebido com sucesso!',
+          projectId,
+          message: data?.message || 'Briefing recebido com sucesso!',
           isOfflineFallback: false,
         };
+      } else {
+        const errText = await res.text();
+        console.warn(`[NexaWeb Diagnostic] Servidor respondeu com código ${res.status}:`, errText);
       }
-    } catch {
-      // Falha de rede / offline no dispositivo
     }
+  } catch (err: any) {
+    console.error('[NexaWeb Diagnostic] Erro/Exceção na chamada de rede:', err?.message || err);
   }
 
   // Fallback seguro: gera código de referência único para que o usuário nunca perca o briefing
@@ -95,7 +143,7 @@ export async function createBriefing(payload: CreateBriefingPayload): Promise<Br
   return {
     success: true,
     projectId: fallbackProjectId,
-    message: 'Código de referência gerado (modo offline). Para concluir, envie o resumo pelo WhatsApp abaixo.',
+    message: 'Código de referência gerado (modo offline). Para concluir, entre em contato com a NexaWeb pelo e-mail ou Instagram abaixo.',
     isOfflineFallback: true,
   };
 }
@@ -132,7 +180,9 @@ export async function uploadBriefingImages(
   }
 
   const cleanProjectId = encodeURIComponent(projectId.trim());
-  const primaryUrl = getApiEndpoint(`/api/upload-briefing?projectId=${cleanProjectId}`);
+  const isNative = Capacitor.isNativePlatform();
+  const directUrl = `${OFFICIAL_BACKEND_URL}/api/upload-briefing?projectId=${cleanProjectId}`;
+  const targetUrl = isNative ? directUrl : getApiEndpoint(`/api/upload-briefing?projectId=${cleanProjectId}`);
 
   const formData = new FormData();
   files.forEach((file) => {
@@ -141,7 +191,7 @@ export async function uploadBriefingImages(
   });
 
   try {
-    const res = await fetch(primaryUrl, {
+    const res = await fetch(targetUrl, {
       method: 'POST',
       body: formData,
     });
@@ -155,10 +205,10 @@ export async function uploadBriefingImages(
       };
     }
   } catch {
-    // Tenta fallback com URL absoluta direta do site
+    // Tenta fallback com URL absoluta direta do site se estiver em dev/web
     try {
-      const directUrl = `https://nexaweeb.vercel.app/api/upload-briefing?projectId=${cleanProjectId}`;
-      const directRes = await fetch(directUrl, {
+      const fallbackUrl = `${OFFICIAL_BACKEND_URL}/api/upload-briefing?projectId=${cleanProjectId}`;
+      const directRes = await fetch(fallbackUrl, {
         method: 'POST',
         body: formData,
       });

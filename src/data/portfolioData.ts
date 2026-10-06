@@ -51,12 +51,12 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
         planoId: 'profissional',
         destaqueHome: true,
         descricaoCurta: 'Refined visual layout showcasing aesthetic procedures with instant appointment booking.',
-        descricaoCompleta: 'Built for high-end beauty studios and salons. Displays the treatment catalog, hair services, transformation gallery, and direct WhatsApp booking integration.',
+        descricaoCompleta: 'Built for high-end beauty studios and salons. Displays the treatment catalog, hair services, transformation gallery, and direct booking integration.',
         segmentoAlvo: 'Beauty salons, aesthetic studios, makeup artists and luxury spas',
         tags: ['Sophisticated Design', 'Easy Booking', 'Service Showcase', 'Mobile First'],
         recursos: [
           'Elegant visual display of services and treatments',
-          'Direct booking buttons with pre-filled WhatsApp messages',
+          'Direct booking buttons with instant appointment confirmation',
           'Clean, luxurious layout built to convey trust and authority',
           'Lightning-fast load time across any mobile network'
         ],
@@ -532,7 +532,7 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
       tags: ['Design Sofisticado', 'Agendamento Fácil', 'Galeria de Serviços', 'Mobile First'],
       recursos: [
         'Exibição visual elegante dos tratamentos e serviços',
-        'Botões de agendamento direto com mensagem pronta no WhatsApp',
+        'Botões de agendamento direto com confirmação rápida',
         'Design clean com foco em transmitir luxo e confiança',
         'Carregamento ultra veloz em qualquer conexão móvel'
       ],
@@ -609,7 +609,7 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
       recursos: [
         'Apresentação humanizada dos profissionais de saúde',
         'Lista de especialidades e procedimentos realizados',
-        'Canal de triagem e agendamento de consultas pelo WhatsApp',
+        'Canal de triagem e agendamento de consultas',
         'Endereço com mapa interativo e informações de acesso'
       ],
       corDestaque: 'from-indigo-600 via-sky-600 to-blue-900',

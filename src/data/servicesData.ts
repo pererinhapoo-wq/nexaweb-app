@@ -14,7 +14,7 @@ export const getNexawebPlans = (lang: Language = 'pt-BR'): ServicePlan[] => {
         recursos: [
           'Professional presentation',
           'Essential structure & sections',
-          'WhatsApp direct button',
+          'Direct contact integration',
           'Social media links',
           '100% mobile responsiveness',
           'Basic Google SEO',
@@ -39,7 +39,7 @@ export const getNexawebPlans = (lang: Language = 'pt-BR'): ServicePlan[] => {
           'Optimized CTAs & triggers',
           'Interactive highlights & catalog',
           'Core Web Vitals high performance',
-          'WhatsApp & Business Email',
+          'Social links & Business Email',
           'Advanced lead capture forms',
           'Full smartphone responsiveness',
           'Client milestone approval'
@@ -100,7 +100,7 @@ export const getNexawebPlans = (lang: Language = 'pt-BR'): ServicePlan[] => {
         recursos: [
           'Presentación profesional',
           'Estructura esencial de alta conversión',
-          'Botón directo a WhatsApp',
+          'Integración de contacto directo',
           'Integración de redes sociales',
           'Diseño 100% responsivo para móviles',
           'SEO básico para Google',
@@ -125,7 +125,7 @@ export const getNexawebPlans = (lang: Language = 'pt-BR'): ServicePlan[] => {
           'Llamadas a la acción (CTAs) de impacto',
           'Destaques interactivos de productos/servicios',
           'Optimización Core Web Vitals de alta velocidad',
-          'WhatsApp y Correo corporativo',
+          'Enlaces sociales y Correo corporativo',
           'Formularios avanzados de contacto',
           'Responsividad impecable en teléfonos',
           'Aprobación guiada con el cliente'
@@ -186,7 +186,7 @@ export const getNexawebPlans = (lang: Language = 'pt-BR'): ServicePlan[] => {
         recursos: [
           'Présentation professionnelle',
           'Structure essentielle claire',
-          'Bouton d’action direct WhatsApp',
+          'Intégration de contact direct',
           'Réseaux sociaux connectés',
           'Design 100% adapté aux mobiles',
           'Référencement naturel (SEO) de base',
@@ -211,7 +211,7 @@ export const getNexawebPlans = (lang: Language = 'pt-BR'): ServicePlan[] => {
           'Appels à l’action (CTA) ciblés',
           'Mise en valeur interactive des services',
           'Optimisation Core Web Vitals ultra-rapide',
-          'WhatsApp et Email professionnel',
+          'Réseaux sociaux et Email professionnel',
           'Formulaires avancés de contact',
           'Ergonomie fluide sur smartphones',
           'Validation par étapes'
@@ -272,7 +272,7 @@ export const getNexawebPlans = (lang: Language = 'pt-BR'): ServicePlan[] => {
         recursos: [
           'Apresentação profissional',
           'Estrutura essencial focada',
-          'WhatsApp de contacto direto',
+          'Integração de contacto direto',
           'Redes sociais integradas',
           'Responsividade total para telemóveis',
           'SEO básico para motores de busca',
@@ -297,7 +297,7 @@ export const getNexawebPlans = (lang: Language = 'pt-BR'): ServicePlan[] => {
           'Chamadas para ação (CTAs) eficientes',
           'Destaques interativos de catálogo',
           'Otimização Core Web Vitals de alta velocidade',
-          'WhatsApp e correio eletrónico',
+          'Redes sociais e correio eletrónico',
           'Formulários avançados',
           'Responsividade refinada',
           'Aprovação em etapas com o cliente'
@@ -358,7 +358,7 @@ export const getNexawebPlans = (lang: Language = 'pt-BR'): ServicePlan[] => {
       recursos: [
         'Apresentação profissional',
         'Estrutura essencial',
-        'WhatsApp direto',
+        'Botões de contato direto',
         'Redes sociais integradas',
         'Responsividade 100% mobile',
         'SEO básico para Google',
@@ -383,7 +383,7 @@ export const getNexawebPlans = (lang: Language = 'pt-BR'): ServicePlan[] => {
         'CTAs otimizados',
         'Destaques interativos',
         'Core Web Vitals de alta velocidade',
-        'WhatsApp e e-mail corporativo',
+        'Redes sociais e e-mail corporativo',
         'Formulários avançados de contato',
         'Responsividade refinada para celular',
         'Aprovação de projeto'

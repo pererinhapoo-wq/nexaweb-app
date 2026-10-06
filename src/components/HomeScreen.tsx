@@ -294,7 +294,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           <span>Qualidade & Padrão NexaWeb</span>
         </div>
         <p className="text-xs text-slate-400 leading-relaxed">
-          Cada projeto é estruturado para proporcionar velocidade máxima de carregamento, navegação limpa em smartphones e direcionamento estratégico para o WhatsApp comercial da sua empresa.
+          Cada projeto é estruturado para proporcionar velocidade máxima de carregamento, navegação limpa em smartphones e direcionamento estratégico para o seu negócio.
         </p>
         <div className="pt-1 flex items-center justify-between">
           <a

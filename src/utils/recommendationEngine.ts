@@ -163,7 +163,7 @@ export function calculateRecommendation(
   if (lang === 'en') {
     if (recommendedPlanId === 'essencial') {
       reasonsList.push('Ultra-fast single-page structure engineered for high conversion.');
-      reasonsList.push('Optimized call-to-actions pointing directly to your commercial WhatsApp.');
+      reasonsList.push('Optimized call-to-actions pointing directly to your business contact channels.');
       reasonsList.push('Excellent cost-benefit ratio for immediate digital market presence.');
     } else if (recommendedPlanId === 'personalizado') {
       reasonsList.push('100% tailor-made architecture built around your unique workflow.');
@@ -177,7 +177,7 @@ export function calculateRecommendation(
   } else if (lang === 'es') {
     if (recommendedPlanId === 'essencial') {
       reasonsList.push('Estructura de página única ultra rápida enfocada en captar clientes.');
-      reasonsList.push('Llamadas a la acción directas hacia su WhatsApp de atención comercial.');
+      reasonsList.push('Llamadas a la acción directas hacia los canales de contacto de su empresa.');
       reasonsList.push('Excelente relación calidad-precio para ganar presencia digital inmediata.');
     } else if (recommendedPlanId === 'personalizado') {
       reasonsList.push('Arquitectura 100% exclusiva ajustada a los procesos de su negocio.');
@@ -191,7 +191,7 @@ export function calculateRecommendation(
   } else if (lang === 'fr') {
     if (recommendedPlanId === 'essencial') {
       reasonsList.push('Structure d’une page ultra rapide conçue pour une conversion maximale.');
-      reasonsList.push('Appels à l’action stratégiques orientés directement vers votre WhatsApp commercial.');
+      reasonsList.push('Appels à l’action stratégiques orientés directement vers vos canaux de contact.');
       reasonsList.push('Meilleur rapport qualité-prix pour s’imposer immédiatement sur le web.');
     } else if (recommendedPlanId === 'personalizado') {
       reasonsList.push('Architecture 100% sur mesure conçue selon vos objectifs exclusifs.');
@@ -205,7 +205,7 @@ export function calculateRecommendation(
   } else if (lang === 'pt-PT') {
     if (recommendedPlanId === 'essencial') {
       reasonsList.push('Estrutura de página única ultra veloz focada em conversão ágil.');
-      reasonsList.push('Botões diretos para o WhatsApp comercial da sua empresa.');
+      reasonsList.push('Botões diretos para os canais de contacto da sua empresa.');
       reasonsList.push('Excelente relação qualidade-preço para iniciar presença digital com autoridade.');
     } else if (recommendedPlanId === 'personalizado') {
       reasonsList.push('Arquitetura 100% exclusiva desenhada para os processos da sua empresa.');
@@ -220,7 +220,7 @@ export function calculateRecommendation(
     // pt-BR
     if (recommendedPlanId === 'essencial') {
       reasonsList.push('Estrutura de página única ultra rápida com foco em conversão imediata.');
-      reasonsList.push('Botões diretos para o WhatsApp comercial da sua empresa.');
+      reasonsList.push('Botões diretos para os canais de contato da sua empresa.');
       reasonsList.push('Excelente custo-benefício para estabelecer presença profissional imediata.');
     } else if (recommendedPlanId === 'personalizado') {
       reasonsList.push('Arquitetura 100% exclusiva desenhada para as necessidades da sua empresa.');

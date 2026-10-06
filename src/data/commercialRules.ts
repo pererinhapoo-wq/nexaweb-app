@@ -60,7 +60,7 @@ export const OFFICIAL_EXTRA_FEATURES: ExtraFeature[] = [
   {
     id: 'formulario_personalizado',
     nome: 'Formulário Personalizado',
-    descricao: 'Campos específicos e direcionamento direto para WhatsApp ou e-mail',
+    descricao: 'Campos específicos e direcionamento direto para contato ou e-mail',
     preco: 200,
     categoria: 'interatividade',
   },
@@ -167,7 +167,7 @@ export const OFFICIAL_EXTRA_FEATURES: ExtraFeature[] = [
   {
     id: 'pedido_online',
     nome: 'Pedido Online',
-    descricao: 'Carrinho de compras simplificado com fechamento no WhatsApp',
+    descricao: 'Carrinho de compras simplificado com finalização de pedido',
     preco: 300,
     categoria: 'gestao',
   },

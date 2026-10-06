@@ -23,7 +23,9 @@ import {
   Layout,
   Store,
   Lightbulb,
-  MessageSquare,
+  Mail,
+  Instagram,
+  Globe,
   Globe2,
   DollarSign,
   AlertCircle,
@@ -86,7 +88,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
   const [businessName, setBusinessName] = useState('');
   const [description, setDescription] = useState('');
   const [contactName, setContactName] = useState('');
-  const [contactWhatsapp, setContactWhatsapp] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
 
   // Imagens anexadas (Regra: máx 6 imagens, máx 10 MB cada)
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
@@ -190,7 +192,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     return 'Ideia própria / Projeto sob medida do zero';
   };
 
-  // Mensagem pré-formatada para WhatsApp e Área de Transferência
+  // Mensagem pré-formatada para Área de Transferência e E-mail
   const generateBriefingMessage = (): string => {
     const origin = getOriginText();
     const extrasList = budget.selectedFeatures.length > 0
@@ -200,7 +202,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     return `Olá NexaWeb! Gostaria de solicitar uma proposta de site profissional:
 - *Empresa/Negócio:* ${businessName || 'Ainda a definir'}
 - *Responsável:* ${contactName || 'Não informado'}
-- *WhatsApp de Contato:* ${contactWhatsapp || 'Não informado'}
+- *Telefone / Contato:* ${contactPhone || 'Não informado'}
 - *Ponto de Partida:* ${origin}
 - *Plano Escolhido:* Plano ${planObj.nome} (${planObj.preco} • ${planObj.tagline})
 - *Recursos Extras Selecionados:*
@@ -223,12 +225,6 @@ ${extrasList}
     }
   };
 
-  const handleSendWhatsapp = () => {
-    const text = encodeURIComponent(generateBriefingMessage());
-    const whatsappUrl = `https://wa.me/?text=${text}`;
-    window.open(whatsappUrl, '_blank');
-  };
-
   // Envio integrado ao backend oficial da NexaWeb
   const handleSubmitProject = async () => {
     setIsSubmitting(true);
@@ -236,12 +232,14 @@ ${extrasList}
     setSubmissionSuccess(null);
 
     const payload = {
+      clientName: contactName || 'Não informado',
+      businessName: businessName || 'A definir',
       empresa: businessName || 'A definir',
+      responsavel: contactName || 'Não informado',
       segmento: currentSegmentLabel,
       plano: selectedPlan,
       idiomaSite: siteLanguage,
-      responsavel: contactName || 'Não informado',
-      whatsapp: contactWhatsapp || 'Não informado',
+      whatsapp: contactPhone || 'Não informado',
       necessidades: description || 'Proposta via NexaWeb App',
       recursosSelecionados: selectedFeatureIds,
       orcamentoEstimado: budget.formattedTotalPrice,
@@ -259,7 +257,7 @@ ${extrasList}
         }
 
         const message = res.isOfflineFallback
-          ? 'Código de referência gerado (modo offline). Para concluir, envie o resumo pelo WhatsApp abaixo.'
+          ? 'Código de referência gerado (modo offline). Para concluir, entre em contato com a NexaWeb pelo e-mail ou Instagram abaixo.'
           : 'Seu projeto foi enviado com sucesso para a equipe NexaWeb!';
 
         setSubmissionSuccess({
@@ -268,10 +266,10 @@ ${extrasList}
           isOfflineFallback: Boolean(res.isOfflineFallback),
         });
       } else {
-        setSubmissionError(res.error || 'Não foi possível concluir o envio automático. Você pode enviar pelo WhatsApp.');
+        setSubmissionError(res.error || 'Não foi possível concluir o envio automático. Entre em contato por e-mail ou Instagram.');
       }
     } catch (err: any) {
-      setSubmissionError('Falha temporária de conexão com o servidor. Envie pelo WhatsApp para atendimento imediato.');
+      setSubmissionError('Falha temporária de conexão com o servidor. Entre em contato por e-mail ou Instagram.');
     } finally {
       setIsSubmitting(false);
     }
@@ -760,8 +758,8 @@ ${extrasList}
               </label>
               <input
                 type="tel"
-                value={contactWhatsapp}
-                onChange={(e) => setContactWhatsapp(e.target.value)}
+                value={contactPhone}
+                onChange={(e) => setContactPhone(e.target.value)}
                 placeholder={t.project.whatsappPlaceholder}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-indigo-500"
               />
@@ -794,7 +792,7 @@ ${extrasList}
           <div className="text-cyan-300 font-bold">• Orçamento Estimado: {budget.formattedTotalPrice}</div>
           <div>• Idioma do Site: {getSiteLanguageLabel(siteLanguage)}</div>
           <div>• Anexos: {attachedFiles.length} imagem(ns)</div>
-          <div>• Responsável: {contactName || 'Não informado'} {contactWhatsapp ? `• ${contactWhatsapp}` : ''}</div>
+          <div>• Responsável: {contactName || 'Não informado'} {contactPhone ? `• ${contactPhone}` : ''}</div>
         </div>
 
         {/* Feedback de envio ou contingência offline */}
@@ -848,40 +846,64 @@ ${extrasList}
             <span>{isSubmitting ? 'Registrando Projeto...' : 'Enviar Briefing para NexaWeb'}</span>
           </button>
 
-          {/* Botões de Ação Auxiliares: WhatsApp e Copiar Resumo */}
-          <div className="flex flex-col sm:flex-row gap-2">
-            <button
-              type="button"
-              onClick={handleSendWhatsapp}
-              className="min-h-[44px] flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-950/40 transition-all active:scale-[0.98]"
-            >
-              <MessageSquare className="w-4 h-4 fill-current" />
-              <span>Enviar pelo WhatsApp</span>
-            </button>
+          {/* Botão Copiar Resumo */}
+          <button
+            type="button"
+            onClick={handleCopyBriefing}
+            className={`min-h-[44px] w-full py-2.5 px-4 rounded-xl font-semibold text-xs border transition-all flex items-center justify-center gap-1.5 active:scale-[0.98] ${
+              copied
+                ? 'bg-cyan-950/50 border-cyan-500 text-cyan-300'
+                : 'bg-slate-800 hover:bg-slate-750 border-slate-700 text-slate-300'
+            }`}
+          >
+            {copied ? (
+              <>
+                <Check className="w-4 h-4 text-cyan-400" />
+                <span>{t.project.copiedBtn}</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-4 h-4" />
+                <span>{t.project.copySummaryBtn}</span>
+              </>
+            )}
+          </button>
 
-            <button
-              type="button"
-              onClick={handleCopyBriefing}
-              className={`min-h-[44px] py-2.5 px-4 rounded-xl font-semibold text-xs border transition-all flex items-center justify-center gap-1.5 active:scale-[0.98] ${
-                copied
-                  ? 'bg-cyan-950/50 border-cyan-500 text-cyan-300'
-                  : 'bg-slate-800 hover:bg-slate-750 border-slate-700 text-slate-300'
-              }`}
-            >
-              {copied ? (
-                <>
-                  <Check className="w-4 h-4 text-cyan-400" />
-                  <span>{t.project.copiedBtn}</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-4 h-4" />
-                  <span>{t.project.copySummaryBtn}</span>
-                </>
-              )}
-            </button>
+          {/* Contatos Oficiais NexaWeb */}
+          <div className="pt-2 border-t border-slate-800/80">
+            <span className="text-[11px] font-semibold text-slate-400 block mb-2">
+              Contatos Oficiais NexaWeb:
+            </span>
+            <div className="grid grid-cols-3 gap-2">
+              <a
+                href="mailto:nexaweeb@gmail.com"
+                className="min-h-[40px] flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-slate-950/80 hover:bg-slate-900 border border-slate-800 hover:border-indigo-500/50 text-slate-300 hover:text-white transition-all text-center"
+              >
+                <Mail className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                <span className="text-xs font-semibold truncate">E-mail</span>
+              </a>
+
+              <a
+                href="https://www.instagram.com/nexaw1/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="min-h-[40px] flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-slate-950/80 hover:bg-slate-900 border border-slate-800 hover:border-pink-500/50 text-slate-300 hover:text-white transition-all text-center"
+              >
+                <Instagram className="w-3.5 h-3.5 text-pink-400 shrink-0" />
+                <span className="text-xs font-semibold truncate">Instagram</span>
+              </a>
+
+              <a
+                href="https://nexaweeb.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="min-h-[40px] flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-slate-950/80 hover:bg-slate-900 border border-slate-800 hover:border-cyan-500/50 text-slate-300 hover:text-white transition-all text-center"
+              >
+                <Globe className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                <span className="text-xs font-semibold truncate">Site</span>
+              </a>
+            </div>
           </div>
-        </div>
       </div>
     </div>
   );
