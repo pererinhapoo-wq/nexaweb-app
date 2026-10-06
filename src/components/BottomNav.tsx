@@ -1,6 +1,6 @@
 import React from 'react';
 import { ViewTab } from '../types';
-import { Home, Layers, Briefcase, Sparkles } from 'lucide-react';
+import { Home, Layers, Briefcase, UserCheck } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 
 interface BottomNavProps {
@@ -31,9 +31,9 @@ export const BottomNav: React.FC<BottomNavProps> = React.memo(({
       icon: <Briefcase className="w-5 h-5" />,
     },
     {
-      tab: 'project',
-      label: t.nav.project,
-      icon: <Sparkles className="w-5 h-5" />,
+      tab: 'portal',
+      label: t.nav.client,
+      icon: <UserCheck className="w-5 h-5" />,
     },
   ];
 

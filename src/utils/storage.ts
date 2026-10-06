@@ -198,8 +198,8 @@ export async function toggleFavoriteProject(projectId: string): Promise<string[]
 
 export async function getSavedTheme(): Promise<ThemeMode> {
   const val = await getStorageItem(KEYS.THEME);
-  if (val === 'light' || val === 'auto') return val;
-  return 'dark'; // Dark é o padrão oficial
+  if (val === 'light' || val === 'auto' || val === 'dark' || val === 'official') return val;
+  return 'official'; // Padrão Oficial
 }
 
 export async function saveTheme(theme: ThemeMode): Promise<void> {

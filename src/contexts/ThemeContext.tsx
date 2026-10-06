@@ -19,7 +19,7 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [themeMode, setThemeModeState] = useState<ThemeMode>('dark');
+  const [themeMode, setThemeModeState] = useState<ThemeMode>('official');
   const [systemDark, setSystemDark] = useState<boolean>(() => {
     if (typeof window !== 'undefined' && window.matchMedia) {
       return window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -30,7 +30,9 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   // Determina o tema resolvido
   const resolvedTheme: 'dark' | 'light' =
-    themeMode === 'auto' ? (systemDark ? 'dark' : 'light') : themeMode;
+    themeMode === 'auto'
+      ? (systemDark ? 'dark' : 'light')
+      : (themeMode === 'light' ? 'light' : 'dark');
 
   // Carrega preferências salvas na inicialização
   useEffect(() => {
@@ -73,6 +75,16 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     } else {
       root.classList.add('light');
       root.classList.remove('dark');
+    }
+
+    if (themeMode === 'dark') {
+      root.classList.add('theme-pitch-black');
+      root.classList.remove('theme-official');
+    } else if (themeMode === 'official') {
+      root.classList.add('theme-official');
+      root.classList.remove('theme-pitch-black');
+    } else {
+      root.classList.remove('theme-pitch-black', 'theme-official');
     }
 
     // Aplica status bar nativa

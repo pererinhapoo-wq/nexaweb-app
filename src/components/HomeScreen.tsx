@@ -3,6 +3,10 @@ import { ViewTab, PortfolioProject, ProjectRecommendation } from '../types';
 import { getPortfolioProjects } from '../data/portfolioData';
 import { ProjectCardImage } from './ProjectCardImage';
 import {
+  getSegmentConfig,
+  GLOBAL_SAFE_FALLBACK_IMAGE,
+} from '../utils/imageService';
+import {
   Sparkles,
   Layers,
   Users,
@@ -105,6 +109,7 @@ const MainHeroBanner = React.memo<{
 }>(({ allProjects, onSelectProject, onNavigate }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [imageOverrides, setImageOverrides] = useState<Record<string, string>>({});
 
   const touchStartX = useRef<number>(0);
   const touchStartY = useRef<number>(0);
@@ -230,7 +235,7 @@ const MainHeroBanner = React.memo<{
     <section className="relative w-full overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-md">
       {/* Contêiner de slides em carrossel */}
       <div
-        className="relative w-full aspect-[16/9] sm:aspect-[21/9] max-h-56 overflow-hidden cursor-grab active:cursor-grabbing select-none"
+        className="relative w-full aspect-[16/9] sm:aspect-[21/9] max-h-56 overflow-hidden cursor-grab active:cursor-grabbing select-none touch-pan-y"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -243,42 +248,55 @@ const MainHeroBanner = React.memo<{
           className="flex w-full h-full transition-transform duration-700 ease-out will-change-transform"
           style={{ transform: `translate3d(-${currentIndex * 100}%, 0, 0)` }}
         >
-          {BANNER_SLIDES.map((slide, idx) => (
-            <div
-              key={slide.id}
-              className="w-full h-full flex-shrink-0 relative overflow-hidden"
-              onClick={() => handleSlideClick(slide)}
-              title="Toque para ver detalhes deste segmento"
-            >
-              {/* Imagem do segmento */}
-              <img
-                src={slide.imagemUrl}
-                alt={slide.titulo}
-                loading={idx === 0 ? 'eager' : 'lazy'}
-                decoding="async"
-                className="w-full h-full object-cover select-none pointer-events-none transform scale-[1.02] transition-transform duration-1000"
-              />
+          {BANNER_SLIDES.map((slide, idx) => {
+            const currentImg = imageOverrides[slide.id] || slide.imagemUrl;
+            return (
+              <div
+                key={slide.id}
+                className="w-full h-full flex-shrink-0 relative overflow-hidden"
+                onClick={() => handleSlideClick(slide)}
+                title="Toque para ver detalhes deste segmento"
+              >
+                {/* Imagem do segmento com fallback automático */}
+                <img
+                  src={currentImg}
+                  alt={slide.titulo}
+                  loading={idx === 0 ? 'eager' : 'lazy'}
+                  decoding="async"
+                  onError={() => {
+                    setImageOverrides((prev) => {
+                      const active = prev[slide.id] || slide.imagemUrl;
+                      const segmentFallback = getSegmentConfig(slide.segmento).primaryImage;
+                      if (active !== segmentFallback) {
+                        return { ...prev, [slide.id]: segmentFallback };
+                      }
+                      return { ...prev, [slide.id]: GLOBAL_SAFE_FALLBACK_IMAGE };
+                    });
+                  }}
+                  className="w-full h-full object-cover select-none pointer-events-none transform scale-[1.02] transition-transform duration-1000"
+                />
 
-              {/* Overlays em gradiente para máxima legibilidade do texto */}
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/50 to-slate-950/20 pointer-events-none" />
-              <div className="absolute inset-0 bg-gradient-to-r from-slate-950/70 via-transparent to-transparent pointer-events-none" />
+                {/* Overlays em gradiente para máxima legibilidade do texto */}
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/50 to-slate-950/20 pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-r from-slate-950/70 via-transparent to-transparent pointer-events-none" />
 
-              {/* Textos sobrepostos sobre a imagem */}
-              <div className="absolute inset-x-0 bottom-0 p-3.5 sm:p-4.5 flex flex-col justify-end pointer-events-none z-10">
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9.5px] font-bold uppercase tracking-wider bg-white/20 backdrop-blur-md text-cyan-300 border border-white/20 w-fit mb-1.5 shadow-sm">
-                  {slide.segmento}
-                </span>
+                {/* Textos sobrepostos sobre a imagem */}
+                <div className="absolute inset-x-0 bottom-0 p-3.5 sm:p-4.5 flex flex-col justify-end pointer-events-none z-10">
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9.5px] font-bold uppercase tracking-wider bg-white/20 backdrop-blur-md text-cyan-300 border border-white/20 w-fit mb-1.5 shadow-sm">
+                    {slide.segmento}
+                  </span>
 
-                <h2 className="text-sm sm:text-base font-extrabold text-white leading-tight line-clamp-1 drop-shadow-md">
-                  {slide.titulo}
-                </h2>
+                  <h2 className="text-sm sm:text-base font-extrabold text-white leading-tight line-clamp-1 drop-shadow-md">
+                    {slide.titulo}
+                  </h2>
 
-                <p className="text-[11px] sm:text-xs text-slate-200 line-clamp-1 mt-0.5 leading-normal drop-shadow-sm">
-                  {slide.subtitulo}
-                </p>
+                  <p className="text-[11px] sm:text-xs text-slate-200 line-clamp-1 mt-0.5 leading-normal drop-shadow-sm">
+                    {slide.subtitulo}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Indicadores discretos (bolinhas) no canto inferior direito */}
@@ -384,7 +402,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   }, [allProjects]);
 
   return (
-    <div className="space-y-4 pb-20 animate-in fade-in duration-150">
+    <div className="space-y-4 pb-24 animate-in fade-in duration-150 overflow-x-hidden">
       {/* 1. CABEÇALHO COMPACTO & AMIGÁVEL */}
       <section className="pt-0.5 flex items-center justify-between">
         <div>

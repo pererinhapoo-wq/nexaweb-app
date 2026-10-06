@@ -114,6 +114,21 @@ html.reduced-motion *::after {
 }
 
 /* ==================================================
+   TEMA ESCURO AMOLED (PITCH BLACK)
+   ================================================== */
+html.theme-pitch-black body,
+html[data-theme="dark"].theme-pitch-black body {
+  background-color: #000000 !important;
+}
+html.theme-pitch-black .min-h-screen.bg-slate-950,
+html[data-theme="dark"].theme-pitch-black .min-h-screen.bg-slate-950 {
+  background-color: #000000 !important;
+}
+html.theme-pitch-black .bg-slate-950 {
+  background-color: #000000 !important;
+}
+
+/* ==================================================
    SISTEMA DE TEMA CLARO ROBUSTO & SEGURO (HIGH CONTRAST)
    ================================================== */
 

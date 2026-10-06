@@ -165,7 +165,7 @@ export const AdminScreen: React.FC = () => {
   }, [projects]);
 
   return (
-    <div className="space-y-5 pb-20 animate-in fade-in duration-200">
+    <div className="space-y-5 pb-28 animate-in fade-in duration-200 overflow-x-hidden">
       {/* 1. SE NÃO FOR AUTENTICADO COMO ADMIN */}
       {!isAdmin ? (
         <div className="space-y-4">
@@ -394,7 +394,12 @@ export const AdminScreen: React.FC = () => {
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          {req.categoria && (
+                            <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+                              {req.categoria}
+                            </span>
+                          )}
                           <span
                             className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
                               req.status === 'respondido'

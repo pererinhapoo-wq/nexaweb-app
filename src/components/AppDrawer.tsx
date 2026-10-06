@@ -4,7 +4,6 @@ import {
   Home,
   Sparkles,
   Briefcase,
-  FolderKanban,
   Layers,
   Users,
   UserCheck,
@@ -25,7 +24,7 @@ interface AppDrawerProps {
   onOpenContact: () => void;
 }
 
-const DRAWER_WIDTH = 290; // largura de referência do drawer em px
+const DRAWER_WIDTH = 280; // largura confortável de referência do drawer em px
 
 export const AppDrawer: React.FC<AppDrawerProps> = ({
   isOpen,
@@ -40,6 +39,9 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
   const drawerRef = useRef<HTMLDivElement>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
 
+  // Guarda posição de scroll para garantir que a tela nunca pule para o topo ao fechar o menu
+  const scrollPosRef = useRef<number>(0);
+
   // Estado interno para visibilidade no DOM durante animações
   const [isRendered, setIsRendered] = useState<boolean>(isOpen);
 
@@ -51,25 +53,25 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
   const currentTranslateRef = useRef<number>(-DRAWER_WIDTH);
   const isHorizontalGestureRef = useRef<boolean | null>(null);
 
-  // Trava de scroll no body sem causar salto de layout ou scroll
+  // Preserva scroll e controla renderização sem causar salto de layout ou scroll
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | null = null;
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
+      scrollPosRef.current = window.scrollY;
       setIsRendered(true);
     } else {
-      document.body.style.overflow = '';
       timer = setTimeout(() => {
         if (!isOpen && !isDraggingRef.current) {
           setIsRendered(false);
         }
       }, 250);
+      // Restaura de forma instantânea a posição de rolagem caso o navegador tenha alterado
+      if (scrollPosRef.current > 0) {
+        window.scrollTo({ top: scrollPosRef.current, behavior: 'instant' as ScrollBehavior });
+      }
     }
     return () => {
       if (timer) clearTimeout(timer);
-      if (isOpen) {
-        document.body.style.overflow = '';
-      }
     };
   }, [isOpen]);
 
@@ -106,9 +108,12 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
   const handleSelectTab = useCallback(
     (tab: ViewTab) => {
       onClose();
-      onNavigate(tab);
+      // Não aciona navegação se já estiver na mesma aba para não disparar scroll(0) ou reload
+      if (tab !== currentTab) {
+        onNavigate(tab);
+      }
     },
-    [onClose, onNavigate]
+    [currentTab, onClose, onNavigate]
   );
 
   // =========================================================================
@@ -339,18 +344,18 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
       isActive: currentTab === 'portfolio',
     },
     {
-      id: 'projects',
-      label: 'Projetos',
-      icon: FolderKanban,
-      action: () => handleSelectTab('portal'),
-      isActive: currentTab === 'portal',
-    },
-    {
       id: 'services',
-      label: 'Encontrar clientes',
+      label: 'Serviços & Planos',
       icon: Layers,
       action: () => handleSelectTab('services'),
       isActive: currentTab === 'services',
+    },
+    {
+      id: 'portal',
+      label: 'Área do Cliente',
+      icon: UserCheck,
+      action: () => handleSelectTab('portal'),
+      isActive: currentTab === 'portal',
     },
     {
       id: 'leads',
@@ -358,13 +363,6 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
       icon: Users,
       action: () => handleSelectTab('admin'),
       isActive: currentTab === 'admin',
-    },
-    {
-      id: 'client_area',
-      label: 'Área do Cliente',
-      icon: UserCheck,
-      action: () => handleSelectTab('portal'),
-      isActive: false, // subitem direto para o Portal
     },
     {
       id: 'feedback',
@@ -409,9 +407,9 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
         />
       )}
 
-      {/* 2. Container do Drawer e Backdrop (visível durante arrasto ou quando aberto) */}
+      {/* 2. Container do Drawer e Backdrop (com overflow-hidden sem permitir scroll horizontal) */}
       <div
-        className={`fixed inset-0 z-50 transition-opacity ${
+        className={`fixed inset-0 z-50 overflow-hidden transition-opacity ${
           isRendered || isOpen ? 'visible' : 'invisible pointer-events-none'
         }`}
       >
@@ -437,7 +435,7 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
           role="dialog"
           aria-modal="true"
           aria-label="Menu Principal"
-          className="absolute top-0 bottom-0 left-0 w-[285px] sm:w-[310px] max-w-[85vw] h-full bg-slate-900 border-r border-slate-800 shadow-2xl flex flex-col justify-between overflow-y-auto no-scrollbar z-10"
+          className="absolute top-0 bottom-0 left-0 w-[280px] max-w-[80vw] sm:w-[300px] h-full bg-slate-900 border-r border-slate-800 shadow-2xl flex flex-col justify-between overflow-y-auto no-scrollbar z-10 overscroll-contain"
           style={{
             transform: isOpen ? 'translate3d(0, 0, 0)' : 'translate3d(-100%, 0, 0)',
             willChange: 'transform',

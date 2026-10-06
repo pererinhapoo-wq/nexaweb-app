@@ -55,6 +55,7 @@ const DEFAULT_INITIAL_PROJECT: ClientProject = {
     {
       id: 'req-1',
       projectId: 'proj-001',
+      categoria: 'Troca de Conteúdo',
       assunto: 'Ajuste no horário de funcionamento',
       mensagem: 'Por favor, alterar nosso horário no rodapé para seg a sábado das 9h às 20h.',
       dataEnvio: '04/10/2026',
@@ -65,12 +66,24 @@ const DEFAULT_INITIAL_PROJECT: ClientProject = {
     {
       id: 'req-2',
       projectId: 'proj-001',
+      categoria: 'Ajuste de Design',
       assunto: 'Inserir botão para o Instagram',
       mensagem: 'Gostaria de incluir o link @barbeariaimperial ao lado do botão de agendamento.',
       dataEnvio: '05/10/2026',
       status: 'respondido',
       respostaAdmin: 'Link do Instagram integrado com sucesso e já ativo no cabeçalho e rodapé!',
       dataResposta: '05/10/2026',
+    },
+    {
+      id: 'req-briefing',
+      projectId: 'proj-001',
+      categoria: 'Briefing',
+      assunto: 'Briefing Inicial Homologado',
+      mensagem: 'Segmento Barbearia, Plano Profissional, identidade visual moderna com foco em agendamento.',
+      dataEnvio: '01/10/2026',
+      status: 'respondido',
+      respostaAdmin: 'Briefing inicial validado pela equipe e inserido no ciclo de desenvolvimento.',
+      dataResposta: '01/10/2026',
     },
   ],
 };
@@ -109,12 +122,24 @@ const SECOND_PROJECT: ClientProject = {
     {
       id: 'req-201',
       projectId: 'proj-002',
+      categoria: 'Troca de Conteúdo',
       assunto: 'Fotos dos procedimentos',
       mensagem: 'Enviei fotos em alta resolução pelo e-mail, conseguem incluir na galeria?',
       dataEnvio: '05/10/2026',
       status: 'em_analise',
       respostaAdmin: 'Fotos recebidas! Estamos otimizando o peso das imagens em formato WebP para não impactar a velocidade.',
       dataResposta: '05/10/2026',
+    },
+    {
+      id: 'req-briefing-2',
+      projectId: 'proj-002',
+      categoria: 'Briefing',
+      assunto: 'Briefing de Identidade Visual & Luxo',
+      mensagem: 'Segmento Estética & Beleza, Plano Premium, foco em sofisticação e conversão mobile.',
+      dataEnvio: '03/10/2026',
+      status: 'respondido',
+      respostaAdmin: 'Briefing homologado e direção de arte iniciada.',
+      dataResposta: '03/10/2026',
     },
   ],
 };
@@ -227,6 +252,63 @@ export async function getSavedClientSession(): Promise<ClientProject | null> {
   return null;
 }
 
+export async function registerClientProjectFromBriefing(
+  projectId: string,
+  clientName: string,
+  businessName: string,
+  planId: string,
+  notes?: string
+): Promise<ClientProject> {
+  const projects = await getAllProjects();
+  const cleanKey = projectId.trim().toUpperCase();
+  const newProject: ClientProject = {
+    id: cleanKey,
+    chaveAcesso: cleanKey,
+    nomeCliente: clientName.trim() || 'Cliente NexaWeb',
+    nomeProjeto: businessName.trim() || 'Meu Site Profissional',
+    planoId: planId,
+    status: 'planejamento',
+    etapaAtual: 'Briefing Recebido',
+    progresso: 15,
+    mensagemStatus: 'Seu briefing foi registrado com sucesso. Nossa equipe iniciará a análise técnica e o alinhamento da estrutura do seu site.',
+    dataInicio: new Date().toLocaleDateString('pt-BR'),
+    previsaoEntrega: '7 a 10 dias úteis',
+    historico: [
+      {
+        id: `hist-brief-${Date.now()}`,
+        data: 'Hoje',
+        titulo: 'Briefing Oficial Recebido',
+        descricao: 'Briefing e especificações do projeto registrados no aplicativo.',
+        status: 'concluido',
+      },
+    ],
+    solicitacoes: notes
+      ? [
+          {
+            id: `req-init-${Date.now()}`,
+            projectId: cleanKey,
+            categoria: 'Briefing',
+            assunto: 'Envio de Briefing Inicial',
+            mensagem: notes,
+            dataEnvio: new Date().toLocaleDateString('pt-BR'),
+            status: 'pendente',
+          },
+        ]
+      : [],
+  };
+
+  const existingIdx = projects.findIndex((p) => p.chaveAcesso.toUpperCase() === cleanKey);
+  if (existingIdx !== -1) {
+    projects[existingIdx] = newProject;
+  } else {
+    projects.push(newProject);
+  }
+
+  saveAllProjects(projects);
+  await saveClientSession(cleanKey, newProject);
+  return newProject;
+}
+
 export async function saveClientSession(token: string, project: ClientProject): Promise<void> {
   const json = JSON.stringify(project);
   try {
@@ -253,14 +335,15 @@ export async function logoutClientPortal(): Promise<void> {
 export async function submitClientRequest(
   projectId: string,
   assunto: string,
-  mensagem: string
+  mensagem: string,
+  categoria: string = 'Outro'
 ): Promise<ClientRequest> {
   // 1. Tentar chamada à API remota
   try {
     const res = await fetch('/api/portal-request', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ projectId, assunto, mensagem }),
+      body: JSON.stringify({ projectId, assunto, mensagem, categoria }),
     });
     if (res.ok) {
       const data = await res.json();
@@ -273,6 +356,7 @@ export async function submitClientRequest(
   const newReq: ClientRequest = {
     id: `req-${Date.now()}`,
     projectId,
+    categoria,
     assunto: assunto.trim(),
     mensagem: mensagem.trim(),
     dataEnvio: new Date().toLocaleDateString('pt-BR'),

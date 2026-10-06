@@ -20,7 +20,7 @@ export type WebsiteLanguage =
 
 export type ViewTab = 'home' | 'services' | 'portfolio' | 'project' | 'portal' | 'admin' | 'settings';
 
-export type ThemeMode = 'dark' | 'light' | 'auto';
+export type ThemeMode = 'dark' | 'official' | 'light' | 'auto';
 
 export type AnimationMode = 'enabled' | 'reduced';
 
@@ -68,9 +68,18 @@ export interface ProjectUpdate {
   status: 'concluido' | 'em_progresso' | 'planejado';
 }
 
+export type RequestCategory =
+  | 'Ajuste de Design'
+  | 'Troca de Conteúdo'
+  | 'Dúvida'
+  | 'Correção'
+  | 'Outro'
+  | 'Briefing';
+
 export interface ClientRequest {
   id: string;
   projectId: string;
+  categoria?: RequestCategory | string;
   assunto: string;
   mensagem: string;
   dataEnvio: string;

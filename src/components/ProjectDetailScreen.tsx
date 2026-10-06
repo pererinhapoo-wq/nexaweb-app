@@ -13,6 +13,13 @@ import {
   Check,
 } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
+import {
+  getSegmentConfig,
+  buildImageFallbackChain,
+  isImageCachedLoaded,
+  cacheImageLoaded,
+  cacheImageFailed,
+} from '../utils/imageService';
 
 interface ProjectDetailScreenProps {
   project: PortfolioProject;
@@ -42,6 +49,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
 
   // Estado do Carrossel
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [imageOverrides, setImageOverrides] = useState<Record<number, string>>({});
   const [loadedImages, setLoadedImages] = useState<Record<number, boolean>>({});
   const [failedImages, setFailedImages] = useState<Record<number, boolean>>({});
   const [isInteracting, setIsInteracting] = useState(false);
@@ -190,7 +198,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
       {/* 2. Carrossel / Imagem Principal (Swipe com Toque, Sem Setas) */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-lg">
         <div
-          className="relative w-full aspect-[16/10] bg-slate-950 overflow-hidden select-none"
+          className="relative w-full aspect-[16/10] bg-slate-950 overflow-hidden select-none touch-pan-y"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
@@ -201,20 +209,40 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
             <div className="absolute inset-0 bg-slate-800/60 animate-pulse pointer-events-none z-0" />
           )}
 
-          {/* Imagem Real do Segmento */}
+          {/* Imagem Real do Segmento com Fallback em 3 Níveis */}
           {!failedImages[currentImageIndex] ? (
             <img
-              key={`img-${currentImageIndex}`}
-              src={imageList[currentImageIndex]}
+              key={`img-${currentImageIndex}-${imageOverrides[currentImageIndex] || imageList[currentImageIndex]}`}
+              src={imageOverrides[currentImageIndex] || imageList[currentImageIndex]}
               alt={`Demonstração ${project.titulo} - Imagem ${currentImageIndex + 1}`}
               loading={currentImageIndex === 0 ? 'eager' : 'lazy'}
               decoding="async"
-              onLoad={() =>
-                setLoadedImages((prev) => ({ ...prev, [currentImageIndex]: true }))
-              }
-              onError={() =>
-                setFailedImages((prev) => ({ ...prev, [currentImageIndex]: true }))
-              }
+              onLoad={() => {
+                const url = imageOverrides[currentImageIndex] || imageList[currentImageIndex];
+                cacheImageLoaded(url);
+                setLoadedImages((prev) => ({ ...prev, [currentImageIndex]: true }));
+              }}
+              onError={() => {
+                const originalUrl = imageList[currentImageIndex];
+                const activeUrl = imageOverrides[currentImageIndex] || originalUrl;
+                cacheImageFailed(activeUrl);
+
+                const chain = buildImageFallbackChain(
+                  originalUrl,
+                  project.categoria || project.segmentoAlvo
+                );
+
+                if (activeUrl !== chain[1] && chain[1]) {
+                  // Nível 2: Imagem alternativa do segmento
+                  setImageOverrides((prev) => ({ ...prev, [currentImageIndex]: chain[1] }));
+                } else if (activeUrl !== chain[2] && chain[2]) {
+                  // Nível 3: Imagem global segura
+                  setImageOverrides((prev) => ({ ...prev, [currentImageIndex]: chain[2] }));
+                } else {
+                  // Fallback visual com gradiente do projeto
+                  setFailedImages((prev) => ({ ...prev, [currentImageIndex]: true }));
+                }
+              }}
               className={`w-full h-full object-cover object-center transition-opacity duration-300 ${
                 loadedImages[currentImageIndex] ? 'opacity-100' : 'opacity-0'
               }`}
