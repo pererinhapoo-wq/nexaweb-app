@@ -407,7 +407,7 @@ function AppContent() {
       <main className="flex-1 max-w-3xl w-full mx-auto px-4 py-4 sm:py-6">
         <div
           key={selectedProjectDetail ? `detail-${selectedProjectDetail.id}` : currentTab}
-          className="animate-in fade-in slide-in-from-bottom-2 duration-200"
+          className="animate-in fade-in slide-in-from-bottom-1 duration-150 ease-out will-change-transform"
         >
           {selectedProjectDetail ? (
             <ProjectDetailScreen

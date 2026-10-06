@@ -156,12 +156,20 @@ export async function createBriefing(payload: CreateBriefingPayload): Promise<Br
     console.error('[NexaWeb Diagnostic] Erro/Exceção na chamada de rede:', err?.message || err);
   }
 
-  // Fallback seguro offline: gera código de referência único caso não haja resposta do servidor
+  // Se a requisição de rede falhar, retorna erro claro para permitir retry conforme especificação técnica
+  return {
+    success: false,
+    error: 'Não foi possível enviar o briefing. Verifique sua conexão e tente novamente.',
+  };
+}
+
+// Fallback explícito para modo offline quando solicitado pelo usuário ou após conexão indisponível
+export function generateOfflineBriefingProtocol(): BriefingResponse {
   const fallbackProjectId = `NX-${Date.now().toString(36).toUpperCase()}`;
   return {
     success: true,
     projectId: fallbackProjectId,
-    message: 'Código de referência gerado (modo offline). Para concluir, entre em contato com a NexaWeb pelo e-mail ou Instagram abaixo.',
+    message: 'Código de referência gerado (modo offline). Para concluir, entre em contato com a NexaWeb pelo e-mail ou Instagram oficial.',
     isOfflineFallback: true,
   };
 }

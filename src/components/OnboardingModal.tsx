@@ -262,8 +262,8 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
               key="step-1"
               className={`space-y-4 ${
                 direction === 'forward'
-                  ? 'animate-in fade-in slide-in-from-right-4 duration-200'
-                  : 'animate-in fade-in slide-in-from-left-4 duration-200'
+                  ? 'animate-in fade-in slide-in-from-right-2 duration-150'
+                  : 'animate-in fade-in slide-in-from-left-2 duration-150'
               }`}
             >
               <div className="space-y-1">
@@ -335,8 +335,8 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
               key="step-2"
               className={`space-y-4 ${
                 direction === 'forward'
-                  ? 'animate-in fade-in slide-in-from-right-4 duration-200'
-                  : 'animate-in fade-in slide-in-from-left-4 duration-200'
+                  ? 'animate-in fade-in slide-in-from-right-2 duration-150'
+                  : 'animate-in fade-in slide-in-from-left-2 duration-150'
               }`}
             >
               <div className="space-y-1">
@@ -389,8 +389,8 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
               key="step-3"
               className={`space-y-4 ${
                 direction === 'forward'
-                  ? 'animate-in fade-in slide-in-from-right-4 duration-200'
-                  : 'animate-in fade-in slide-in-from-left-4 duration-200'
+                  ? 'animate-in fade-in slide-in-from-right-2 duration-150'
+                  : 'animate-in fade-in slide-in-from-left-2 duration-150'
               }`}
             >
               <div className="space-y-1">

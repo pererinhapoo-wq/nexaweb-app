@@ -54,6 +54,44 @@ button, a {
   -webkit-touch-callout: none;
 }
 
+/* Acessibilidade de foco: visível via teclado/acessibilidade */
+:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 2px;
+}
+
+button:disabled,
+button[disabled] {
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Microinterações nativas fluidas e leves (GPU accelerated, Galaxy A20 friendly: 100-140ms) */
+.press-scale {
+  transition: transform 120ms ease-out, opacity 120ms ease-out;
+  will-change: transform;
+}
+.press-scale:active {
+  transform: scale(0.97);
+  opacity: 0.92;
+}
+
+.press-card {
+  transition: transform 120ms ease-out, border-color 120ms ease-out;
+  will-change: transform;
+}
+.press-card:active {
+  transform: scale(0.985);
+}
+
+.press-tap {
+  transition: transform 120ms ease-out;
+  will-change: transform;
+}
+.press-tap:active {
+  transform: scale(0.98);
+}
+
 /* Suporte rigoroso a prefers-reduced-motion e à preferência do usuário no app */
 @media (prefers-reduced-motion: reduce) {
   *,

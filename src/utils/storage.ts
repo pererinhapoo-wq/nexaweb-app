@@ -9,7 +9,98 @@ const KEYS = {
   FAVORITES: 'nexaweb_portfolio_favorites',
   THEME: 'nexaweb_app_theme',
   ANIMATIONS: 'nexaweb_animations',
+  BRIEFING_DRAFT_PREFIX: 'nexaweb_briefing_draft_',
 };
+
+export interface BriefingDraftData {
+  step?: 1 | 2 | 3 | 4;
+  selectedPlan: string;
+  selectedSegment?: string;
+  selectedModel?: string;
+  modelApproach?: 'exact' | 'inspiration';
+  startType?: 'modelo' | 'propria' | 'plano';
+  businessName?: string;
+  siteLanguage?: WebsiteLanguage;
+  contactName?: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  specificNotes?: string;
+  // Essencial
+  essentialServices?: string;
+  essentialColorMode?: 'suggest' | 'brand' | 'custom';
+  essentialCustomColors?: string;
+  // Personalizado
+  visualStyle?: string;
+  customSections?: string[];
+  customColorMode?: 'suggest' | 'custom';
+  customColors?: string;
+  freeVision?: string;
+  // Profissional / Premium
+  selectedFeatureIds?: string[];
+  accessProfiles?: string[];
+  referenceLink?: string;
+  strategicVision?: string;
+  // Premium
+  premiumColorMode?: 'suggest' | 'brand' | 'custom';
+  premiumCustomColors?: string;
+  updatedAt?: number;
+}
+
+export function getBriefingDraftKey(planId: string): string {
+  return `${KEYS.BRIEFING_DRAFT_PREFIX}${planId}`;
+}
+
+export function getBriefingDraftSync(planId: string): BriefingDraftData | null {
+  const key = getBriefingDraftKey(planId);
+  try {
+    const raw = sessionStorage.getItem(key) || localStorage.getItem(key);
+    if (raw) return JSON.parse(raw);
+  } catch {
+    // Ignora erro de JSON
+  }
+  return null;
+}
+
+export async function getBriefingDraft(planId: string): Promise<BriefingDraftData | null> {
+  const sync = getBriefingDraftSync(planId);
+  if (sync) return sync;
+  const key = getBriefingDraftKey(planId);
+  try {
+    const val = await getStorageItem(key);
+    if (val) return JSON.parse(val);
+  } catch {
+    // Ignora erro
+  }
+  return null;
+}
+
+export async function saveBriefingDraft(planId: string, draft: BriefingDraftData): Promise<void> {
+  const key = getBriefingDraftKey(planId);
+  const dataToSave = { ...draft, updatedAt: Date.now() };
+  try {
+    const str = JSON.stringify(dataToSave);
+    sessionStorage.setItem(key, str);
+    localStorage.setItem(key, str);
+    await setStorageItem(key, str);
+  } catch {
+    // Ignora possíveis erros de quota
+  }
+}
+
+export async function clearBriefingDraft(planId: string): Promise<void> {
+  const key = getBriefingDraftKey(planId);
+  try {
+    sessionStorage.removeItem(key);
+    localStorage.removeItem(key);
+  } catch {
+    // Ignora
+  }
+  try {
+    await Preferences.remove({ key });
+  } catch {
+    // Ignora
+  }
+}
 
 export async function getStorageItem(key: string): Promise<string | null> {
   try {

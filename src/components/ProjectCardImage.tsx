@@ -34,9 +34,9 @@ export const ProjectCardImage: React.FC<ProjectCardImageProps> = ({
     <div
       className={`relative w-full overflow-hidden bg-slate-950 border-b border-slate-800/80 ${aspectClass} ${className}`}
     >
-      {/* 0. Skeleton Shimmer de carregamento enquanto a imagem baixa */}
+      {/* 0. Placeholder leve de carregamento enquanto a imagem baixa */}
       {!imageLoaded && !imageError && (
-        <div className="absolute inset-0 bg-slate-800/60 animate-pulse pointer-events-none z-0" />
+        <div className="absolute inset-0 bg-slate-800/40 pointer-events-none z-0" />
       )}
 
       {/* 1. Imagem Real com Lazy Loading e enquadramento inteligente */}
@@ -48,7 +48,7 @@ export const ProjectCardImage: React.FC<ProjectCardImageProps> = ({
           decoding="async"
           onLoad={() => setImageLoaded(true)}
           onError={() => setImageError(true)}
-          className={`w-full h-full object-cover object-top transition-opacity duration-300 ${
+          className={`w-full h-full object-cover object-top transition-opacity duration-200 ease-out will-change-[opacity] ${
             imageLoaded ? 'opacity-100' : 'opacity-0'
           }`}
         />

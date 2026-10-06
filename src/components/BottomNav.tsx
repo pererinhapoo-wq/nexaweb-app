@@ -38,7 +38,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-lg border-t border-slate-800/80 px-2 py-1.5 safe-area-pb transition-colors duration-200 shadow-lg">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-slate-900/98 backdrop-blur-sm border-t border-slate-800/80 px-2 py-1.5 safe-area-pb transition-colors duration-150 shadow-lg">
       <div className="max-w-md mx-auto grid grid-cols-4 gap-1">
         {navItems.map((item) => {
           const isActive = currentTab === item.tab;
@@ -46,7 +46,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
             <button
               key={item.tab}
               onClick={() => onNavigate(item.tab)}
-              className={`min-h-[48px] relative flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all duration-150 active:scale-[0.92] ${
+              className={`min-h-[48px] relative flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all duration-100 ease-out active:scale-[0.92] ${
                 isActive
                   ? 'text-indigo-400 font-semibold'
                   : 'text-slate-400 hover:text-slate-200'
@@ -56,12 +56,14 @@ export const BottomNav: React.FC<BottomNavProps> = ({
               <div className="relative">
                 {item.icon}
               </div>
-              <span className={`text-[10.5px] mt-1 truncate max-w-full leading-none ${isActive ? 'text-indigo-300 font-semibold' : 'text-slate-400'}`}>
+              <span className={`text-[10.5px] mt-1 truncate max-w-full leading-none transition-colors duration-100 ${isActive ? 'text-indigo-300 font-semibold' : 'text-slate-400'}`}>
                 {item.label}
               </span>
-              {isActive && (
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 mt-1 shadow-sm shadow-indigo-400" />
-              )}
+              <div className="h-2 flex items-center justify-center">
+                {isActive && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 shadow-sm shadow-indigo-400 animate-in zoom-in-75 duration-100" />
+                )}
+              </div>
             </button>
           );
         })}

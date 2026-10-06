@@ -6,12 +6,22 @@ interface ImageUploadFieldProps {
   files: File[];
   onChange: (files: File[]) => void;
   disabled?: boolean;
+  label?: string;
+  maxFiles?: number;
+  showShortCounter?: boolean;
+  helperText?: string;
+  formatsHint?: string;
 }
 
 export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
   files,
   onChange,
   disabled = false,
+  label,
+  maxFiles = UPLOAD_RULES.maxFiles,
+  showShortCounter = false,
+  helperText,
+  formatsHint,
 }) => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -24,8 +34,8 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
     const combined = [...files, ...newFiles];
 
     // 1. Limite de quantidade
-    if (combined.length > UPLOAD_RULES.maxFiles) {
-      setErrorMessage(`Limite máximo de ${UPLOAD_RULES.maxFiles} imagens atingido. Remova algumas para adicionar novas.`);
+    if (combined.length > maxFiles) {
+      setErrorMessage(`Limite máximo de ${maxFiles} imagens atingido. Remova algumas para adicionar novas.`);
       return;
     }
 
@@ -65,20 +75,21 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <label className="text-xs font-semibold text-slate-300 block">
-          Imagens e Referências Visuais
+          {label || 'Imagens e Referências Visuais'}
         </label>
         <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
-          {files.length} / {UPLOAD_RULES.maxFiles} imagens
+          {showShortCounter ? `${files.length}/${maxFiles}` : `${files.length} / ${maxFiles} imagens`}
         </span>
       </div>
 
       {/* Regra comercial informada com clareza ao usuário */}
       <p className="text-[11px] text-slate-400 leading-relaxed">
-        Envie logotipos, fotos de produtos, espaço ou referências visuais que deseja ver no site. Limite oficial: até 6 imagens de no máximo 10 MB cada.
+        {helperText ||
+          `Envie logotipos, fotos de produtos, espaço ou referências visuais que deseja ver no site. Limite oficial: até 6 imagens de no máximo 10 MB cada.`}
       </p>
 
       {/* Botão de Seleção / Drop Area */}
-      {files.length < UPLOAD_RULES.maxFiles && (
+      {files.length < maxFiles && (
         <button
           type="button"
           disabled={disabled}
@@ -93,7 +104,7 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
               Toque para selecionar imagens
             </span>
             <span className="text-[10px] text-slate-500 block">
-              JPG, PNG, WebP ou GIF (máx. 10 MB cada)
+              {formatsHint || 'JPG, PNG, WebP ou GIF (máx. 10 MB cada)'}
             </span>
           </div>
         </button>
@@ -126,19 +137,19 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
             return (
               <div
                 key={`${file.name}-${idx}`}
-                className="relative rounded-xl overflow-hidden bg-slate-950 border border-slate-800 group shadow-sm flex flex-col justify-between"
+                className="relative rounded-xl overflow-hidden bg-slate-950 border border-slate-800 group shadow-sm flex flex-col justify-between animate-in fade-in zoom-in-95 duration-150"
               >
                 <div className="aspect-[4/3] w-full bg-slate-900 relative overflow-hidden">
                   <img
                     src={previewUrl}
                     alt={`Anexo ${idx + 1}`}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-opacity duration-150"
                     onLoad={() => URL.revokeObjectURL(previewUrl)}
                   />
                   <button
                     type="button"
                     onClick={() => handleRemoveFile(idx)}
-                    className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/70 hover:bg-rose-600 text-white flex items-center justify-center transition-colors shadow-md"
+                    className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/70 hover:bg-rose-600 text-white flex items-center justify-center transition-all active:scale-90 shadow-md"
                     title="Remover imagem"
                     aria-label={`Remover imagem ${file.name}`}
                   >
