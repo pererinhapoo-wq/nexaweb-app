@@ -43,6 +43,7 @@ export interface PortfolioProject {
   linkDemo: string;
   planoId?: 'essencial' | 'profissional' | 'personalizado' | 'premium';
   imagemUrl?: string;
+  imagens?: string[];
   destaqueHome?: boolean;
 }
 

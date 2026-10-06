@@ -356,15 +356,13 @@ export const getNexawebPlans = (lang: Language = 'pt-BR'): ServicePlan[] => {
       corIdentidade: 'azul',
       descricao: 'Site profissional para começar. Ideal para pequenos negócios e profissionais autônomos.',
       recursos: [
-        'Apresentação profissional',
-        'Estrutura essencial',
-        'Botões de contato direto',
-        'Redes sociais integradas',
-        'Responsividade 100% mobile',
-        'SEO básico para Google',
-        'Hospedagem segura em nuvem',
-        'Certificado de segurança SSL',
-        'Aprovação do cliente'
+        'Apresentação completa do negócio, serviços e diferenciais',
+        'Estrutura Home, Sobre, Serviços, Informações e Contato',
+        'Botão fixo de WhatsApp e links para redes sociais',
+        'Layout responsivo',
+        'SEO básico com título, descrição e meta',
+        'Hospedagem em nuvem + SSL',
+        'Aprovação antes da publicação'
       ],
       projetosRelacionados: ['demo-barbearia-kings']
     },

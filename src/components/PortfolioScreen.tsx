@@ -1,510 +1,240 @@
-import React, { useState, useEffect } from 'react';
-import { getPortfolioCategories, getPortfolioProjects } from '../data/portfolioData';
+import React, { useState, useMemo } from 'react';
+import { getPortfolioProjects } from '../data/portfolioData';
 import { PortfolioProject } from '../types';
 import { ProjectCardImage } from './ProjectCardImage';
-import {
-  ExternalLink,
-  CheckCircle2,
-  Sparkles,
-  X,
-  Smartphone,
-  Eye,
-  ArrowRight,
-  Search,
-  Heart,
-  Share2,
-  Check,
-} from 'lucide-react';
+import { Search, X, Sparkles, ChevronRight, Layers } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
-import { getFavoriteProjects, toggleFavoriteProject } from '../utils/storage';
 
 interface PortfolioScreenProps {
   onSelectProject?: (project: PortfolioProject) => void;
   onSelectProjectForBriefing?: (projectTitle: string) => void;
+  initialPlanFilter?: PlanFilter;
+  onPlanFilterChange?: (plan: PlanFilter) => void;
+  initialSearchQuery?: string;
+  onSearchQueryChange?: (query: string) => void;
 }
+
+type PlanFilter = 'todas' | 'essencial' | 'profissional' | 'premium';
 
 export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
   onSelectProject,
-  onSelectProjectForBriefing
+  initialPlanFilter = 'todas',
+  onPlanFilterChange,
+  initialSearchQuery = '',
+  onSearchQueryChange,
 }) => {
-  const { language, t } = useTranslation();
-  const [selectedCategory, setSelectedCategory] = useState<string>('todos');
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [showOnlyFavorites, setShowOnlyFavorites] = useState<boolean>(false);
-  const [favorites, setFavorites] = useState<string[]>([]);
-  const [activeDemo, setActiveDemo] = useState<PortfolioProject | null>(null);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const { language } = useTranslation();
 
-  const categories = getPortfolioCategories(language);
-  const projects = getPortfolioProjects(language);
+  const [selectedPlan, setSelectedPlan] = useState<PlanFilter>(initialPlanFilter);
+  const [searchQuery, setSearchQuery] = useState<string>(initialSearchQuery);
 
-  // Carrega favoritos salvos localmente
-  useEffect(() => {
-    async function loadFavorites() {
-      try {
-        const favs = await getFavoriteProjects();
-        setFavorites(favs);
-      } catch {
-        // Fallback
+  // Lista oficial e imutável de demonstrações cadastradas
+  const allProjects = useMemo(() => getPortfolioProjects(language), [language]);
+
+  // Filtros de Planos Oficiais: Todas, Essencial, Profissional, Premium (sem Personalizado)
+  const planTabs: { id: PlanFilter; label: string; count: number }[] = useMemo(() => {
+    return [
+      { id: 'todas', label: 'Todas', count: allProjects.length },
+      {
+        id: 'essencial',
+        label: 'Essencial',
+        count: allProjects.filter((p) => p.planoId === 'essencial').length,
+      },
+      {
+        id: 'profissional',
+        label: 'Profissional',
+        count: allProjects.filter((p) => p.planoId === 'profissional').length,
+      },
+      {
+        id: 'premium',
+        label: 'Premium',
+        count: allProjects.filter((p) => p.planoId === 'premium').length,
+      },
+    ];
+  }, [allProjects]);
+
+  // Filtragem rápida e inteligente por plano + texto de busca
+  const filteredProjects = useMemo(() => {
+    return allProjects.filter((project) => {
+      // 1. Filtro por plano
+      if (selectedPlan !== 'todas' && project.planoId !== selectedPlan) {
+        return false;
       }
-    }
-    loadFavorites();
-  }, []);
 
-  const handleToggleFavorite = async (projectId: string, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    const updated = await toggleFavoriteProject(projectId);
-    setFavorites(updated);
-  };
-
-  const handleShare = async (project: PortfolioProject, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-
-    const shareData = {
-      title: project.titulo,
-      text: `${project.titulo} — NexaWeb Apps`,
-      url: project.linkDemo,
-    };
-
-    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
-      try {
-        await navigator.share(shareData);
-        return;
-      } catch {
-        // Usuário cancelou ou navegador não completou o share nativo
+      // 2. Busca textual (nome, segmento, categoria, tags)
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase().trim();
+        const matchTitle = project.titulo.toLowerCase().includes(query);
+        const matchSegment = project.segmentoAlvo.toLowerCase().includes(query);
+        const matchCategory = project.categoria.toLowerCase().includes(query);
+        const matchTags = project.tags.some((tag) => tag.toLowerCase().includes(query));
+        return matchTitle || matchSegment || matchCategory || matchTags;
       }
-    }
 
-    // Fallback: copia para a área de transferência
-    try {
-      await navigator.clipboard.writeText(project.linkDemo);
-      setCopiedId(project.id);
-      setTimeout(() => setCopiedId(null), 2500);
-    } catch {
-      // Ignora falha de permissão de clipboard
-    }
-  };
-
-  // Trava de scroll no corpo da página quando o modal estiver aberto
-  useEffect(() => {
-    if (activeDemo) {
-      const originalOverflow = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-
-      const handlePopState = () => {
-        setActiveDemo(null);
-      };
-
-      window.history.pushState({ modalOpen: true }, '');
-      window.addEventListener('popstate', handlePopState);
-
-      return () => {
-        document.body.style.overflow = originalOverflow;
-        window.removeEventListener('popstate', handlePopState);
-      };
-    }
-  }, [activeDemo]);
-
-  // Filtragem composta: categoria + busca textual + favoritos
-  const filteredProjects = projects.filter((project) => {
-    // 1. Categoria
-    if (selectedCategory !== 'todos' && project.categoria !== selectedCategory) {
-      return false;
-    }
-
-    // 2. Favoritos
-    if (showOnlyFavorites && !favorites.includes(project.id)) {
-      return false;
-    }
-
-    // 3. Busca textual
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
-      const matchTitle = project.titulo.toLowerCase().includes(query);
-      const matchDesc = project.descricaoCurta.toLowerCase().includes(query);
-      const matchSegment = project.segmentoAlvo.toLowerCase().includes(query);
-      const matchTags = project.tags.some((t) => t.toLowerCase().includes(query));
-      const matchRecursos = project.recursos.some((r) => r.toLowerCase().includes(query));
-      return matchTitle || matchDesc || matchSegment || matchTags || matchRecursos;
-    }
-
-    return true;
-  });
+      return true;
+    });
+  }, [allProjects, selectedPlan, searchQuery]);
 
   return (
-    <div className="space-y-4 pb-20 animate-in fade-in duration-200">
-      {/* Title */}
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          <h1 className="text-xl font-extrabold text-white tracking-tight">
-            {t.portfolio.title}
+    <div className="space-y-4 pb-24 animate-in fade-in duration-150">
+      {/* 1. Cabeçalho Compacto & Contador Real */}
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight flex items-center gap-1.5">
+            <span>Vitrine de Demonstrações</span>
           </h1>
-          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-            {t.portfolio.badge}
-          </span>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Exibindo <span className="text-cyan-400 font-bold">{filteredProjects.length}</span> de{' '}
+            <span className="text-slate-300 font-semibold">{allProjects.length}</span> demonstrações
+          </p>
         </div>
-        <p className="text-xs text-slate-400">
-          {t.portfolio.subtitle}
-        </p>
+
+        <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 shrink-0">
+          Oficiais
+        </span>
       </div>
 
-      {/* Barra de Pesquisa */}
+      {/* 2. Barra de Busca Simples & Ágil */}
       <div className="relative">
         <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
         <input
           type="text"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder={t.portfolio.searchPlaceholder}
-          className="min-h-[44px] w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-9 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500/60 transition-colors"
+          onChange={(e) => {
+            const val = e.target.value;
+            setSearchQuery(val);
+            onSearchQueryChange?.(val);
+          }}
+          placeholder="Buscar projeto, segmento ou nicho..."
+          className="min-h-[44px] w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-9 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500/70 transition-colors shadow-sm"
         />
+
         {searchQuery && (
           <button
             type="button"
-            onClick={() => setSearchQuery('')}
-            className="p-1.5 text-slate-400 hover:text-white absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md hover:bg-slate-800 transition-colors"
-            title={t.portfolio.clearSearch}
+            onClick={() => {
+              setSearchQuery('');
+              onSearchQueryChange?.('');
+            }}
+            className="min-h-[36px] min-w-[36px] flex items-center justify-center p-1.5 text-slate-400 hover:text-white absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg hover:bg-slate-800 transition-colors"
+            title="Limpar busca"
+            aria-label="Limpar busca"
           >
             <X className="w-4 h-4" />
           </button>
         )}
       </div>
 
-      {/* Filtros Horizontais com Botão Favoritos */}
-      <div className="overflow-x-auto no-scrollbar -mx-4 px-4 py-1 flex items-center gap-1.5">
-        {/* Botão de Favoritos */}
-        <button
-          type="button"
-          onClick={() => setShowOnlyFavorites(!showOnlyFavorites)}
-          className={`min-h-[38px] py-1.5 px-3 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 active:scale-[0.98] ${
-            showOnlyFavorites
-              ? 'bg-rose-600 text-white shadow-sm'
-              : 'bg-slate-900/90 hover:bg-slate-850 text-slate-400 border border-slate-800'
-          }`}
-        >
-          <Heart className={`w-3.5 h-3.5 ${showOnlyFavorites ? 'fill-current text-white' : 'text-rose-400'}`} />
-          <span>{t.portfolio.favoritesOnly}</span>
-          {favorites.length > 0 && (
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-black/30 font-mono">
-              {favorites.length}
-            </span>
-          )}
-        </button>
-
-        {/* Categorias */}
-        {categories.map((cat) => {
-          const isSelected = !showOnlyFavorites && selectedCategory === cat.id;
+      {/* 3. Filtros Oficiais por Planos (Todas, Essencial, Profissional, Premium) */}
+      <div className="grid grid-cols-4 gap-1.5 p-1 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-sm">
+        {planTabs.map((tab) => {
+          const isSelected = selectedPlan === tab.id;
           return (
             <button
-              key={cat.id}
+              key={tab.id}
+              type="button"
               onClick={() => {
-                setShowOnlyFavorites(false);
-                setSelectedCategory(cat.id);
+                setSelectedPlan(tab.id);
+                onPlanFilterChange?.(tab.id);
               }}
-              className={`min-h-[38px] py-1.5 px-3 rounded-xl text-xs font-semibold whitespace-nowrap transition-all active:scale-[0.98] ${
+              className={`min-h-[42px] py-2 px-1 rounded-xl text-center transition-all flex flex-col items-center justify-center active:scale-[0.98] ${
                 isSelected
-                  ? 'bg-cyan-600 text-white shadow-sm'
-                  : 'bg-slate-900/90 hover:bg-slate-850 text-slate-400 border border-slate-800'
+                  ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white font-bold shadow-md shadow-indigo-950/40'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 font-medium'
               }`}
             >
-              {cat.nome}
+              <span className="text-[11px] sm:text-xs leading-none truncate max-w-full">
+                {tab.label}
+              </span>
+              <span
+                className={`text-[9px] font-mono mt-1 ${
+                  isSelected ? 'text-cyan-200 font-bold' : 'text-slate-500'
+                }`}
+              >
+                {tab.count}
+              </span>
             </button>
           );
         })}
       </div>
 
-      {/* Feedback de link copiado no compartilhamento */}
-      {copiedId && (
-        <div className="p-2.5 rounded-xl bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 text-xs flex items-center justify-center gap-2 animate-in fade-in duration-150">
-          <Check className="w-4 h-4 text-cyan-400" />
-          <span>{t.portfolio.shareSuccess}</span>
-        </div>
-      )}
-
-      {/* Projects List */}
-      <div className="space-y-4">
+      {/* 4. Lista / Grid de Projetos: Cada Card Inteiro é Clicável */}
+      <div className="space-y-3">
         {filteredProjects.length === 0 ? (
           <div className="rounded-2xl bg-slate-900/80 border border-slate-800 p-8 text-center space-y-3">
             <div className="w-12 h-12 mx-auto rounded-2xl bg-slate-800/80 flex items-center justify-center text-slate-500">
               <Search className="w-6 h-6" />
             </div>
-            <h3 className="text-sm font-bold text-white">
-              {t.portfolio.noResultsTitle}
-            </h3>
+            <h3 className="text-sm font-bold text-white">Nenhum projeto encontrado</h3>
             <p className="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
-              {t.portfolio.noResultsDesc}
+              Não encontramos demonstrações com os termos pesquisados.
             </p>
             <button
               type="button"
               onClick={() => {
                 setSearchQuery('');
-                setSelectedCategory('todos');
-                setShowOnlyFavorites(false);
+                setSelectedPlan('todas');
               }}
               className="min-h-[40px] px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-750 text-xs font-semibold text-cyan-400 border border-slate-700 transition-colors"
             >
-              {t.portfolio.clearSearch}
+              Limpar filtros
             </button>
           </div>
         ) : (
-          filteredProjects.map((project) => {
-            const isFav = favorites.includes(project.id);
-            const planBadge = project.planoId ? `Plano ${project.planoId.toUpperCase()}` : undefined;
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {filteredProjects.map((project) => {
+              const planBadge = project.planoId ? `PLANO ${project.planoId.toUpperCase()}` : undefined;
 
-            return (
-              <div
-                key={project.id}
-                className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden hover:border-slate-700 transition-all duration-150 shadow-md"
-              >
-                {/* 1. Imagem do Projeto com Captura Real e Fallback Responsivo */}
-                <ProjectCardImage
-                  project={project}
-                  aspectRatio="card"
-                  badge={planBadge}
-                />
+              return (
+                <div
+                  key={project.id}
+                  onClick={() => onSelectProject && onSelectProject(project)}
+                  className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden hover:border-indigo-500/40 transition-all duration-150 shadow-sm cursor-pointer active:scale-[0.985] group flex flex-col justify-between"
+                >
+                  <div>
+                    {/* Imagem Proporcional com Captura Real e Fallback Elegante */}
+                    <ProjectCardImage
+                      project={project}
+                      aspectRatio="card"
+                      badge={planBadge}
+                    />
 
-                {/* 2. Conteúdo do Card */}
-                <div className="p-4 space-y-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
-                      {categories.find((c) => c.id === project.categoria)?.nome || project.categoria}
-                    </span>
+                    {/* Informações Visuais Compactas */}
+                    <div className="p-3.5 space-y-1.5">
+                      <div className="flex items-center justify-between gap-1 text-[10px]">
+                        <span className="font-semibold text-cyan-400 uppercase tracking-wider truncate max-w-[140px]">
+                          {project.categoria}
+                        </span>
+                        <span className="font-mono text-slate-500 shrink-0">
+                          {project.planoId?.toUpperCase()}
+                        </span>
+                      </div>
 
-                    {/* Ações Rápidas: Favoritar e Compartilhar */}
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={(e) => handleToggleFavorite(project.id, e)}
-                        className={`p-1.5 rounded-lg border transition-all ${
-                          isFav
-                            ? 'bg-rose-600/20 border-rose-500 text-rose-400'
-                            : 'bg-slate-800/80 border-slate-700 text-slate-400 hover:text-white'
-                        }`}
-                        title={isFav ? t.portfolio.removeFromFavorites : t.portfolio.addToFavorites}
-                        aria-label={isFav ? t.portfolio.removeFromFavorites : t.portfolio.addToFavorites}
-                      >
-                        <Heart className={`w-3.5 h-3.5 ${isFav ? 'fill-current' : ''}`} />
-                      </button>
+                      <h3 className="text-sm font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-1">
+                        {project.titulo}
+                      </h3>
 
-                      <button
-                        type="button"
-                        onClick={(e) => handleShare(project, e)}
-                        className="p-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-slate-400 hover:text-white transition-all"
-                        title={t.portfolio.share}
-                        aria-label={t.portfolio.share}
-                      >
-                        <Share2 className="w-3.5 h-3.5" />
-                      </button>
+                      <p className="text-[11px] text-slate-400 line-clamp-1 leading-snug">
+                        {project.segmentoAlvo}
+                      </p>
                     </div>
                   </div>
 
-                  <h3 className="text-base font-bold text-white tracking-tight">
-                    {project.titulo}
-                  </h3>
-
-                  <p className="text-xs text-slate-300 leading-relaxed">
-                    {project.descricaoCurta}
-                  </p>
-
-                  {/* Target Segment */}
-                  <div className="text-[11px] text-cyan-300 font-medium bg-cyan-950/30 border border-cyan-900/40 rounded-lg px-2.5 py-1.5 flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                    <span className="truncate">{t.portfolio.idealFor} {project.segmentoAlvo}</span>
-                  </div>
-
-                  {/* Tags */}
-                  <div className="flex flex-wrap gap-1.5 pt-0.5">
-                    {project.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="text-[10px] px-2 py-0.5 rounded-md bg-slate-800/80 text-slate-400 border border-slate-700/50"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-
-                  {/* Action Buttons: "Ver site" com URL REAL em navegador externo */}
-                  <div className="pt-2 flex items-center gap-2">
-                    <a
-                      href={project.linkDemo}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="min-h-[44px] flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-cyan-300 font-bold text-xs border border-slate-700 hover:border-cyan-500/40 transition-all active:scale-[0.98]"
-                    >
-                      <span>Ver site</span>
-                      <ExternalLink className="w-3.5 h-3.5 text-cyan-400" />
-                    </a>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (onSelectProject) {
-                          onSelectProject(project);
-                        } else {
-                          setActiveDemo(project);
-                        }
-                      }}
-                      className="min-h-[44px] flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-white font-semibold text-xs border border-slate-700 transition-all active:scale-[0.98]"
-                    >
-                      <Eye className="w-3.5 h-3.5 text-indigo-400" />
-                      <span>Detalhes</span>
-                    </button>
+                  {/* Rodapé do Card: Ação visual integrada indicando toque */}
+                  <div className="px-3.5 py-2.5 bg-slate-950/40 border-t border-slate-800/60 flex items-center justify-between text-[11px] text-slate-400">
+                    <span className="text-[10.5px] text-slate-400 group-hover:text-slate-300 font-medium">
+                      Ver detalhes do projeto
+                    </span>
+                    <span className="font-semibold text-cyan-400 group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5">
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </span>
                   </div>
                 </div>
-              </div>
-            );
-          })
+              );
+            })}
+          </div>
         )}
       </div>
-
-      {/* Interactive Demonstration Modal */}
-      {activeDemo && (
-        <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/85 backdrop-blur-sm animate-in fade-in duration-150"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setActiveDemo(null);
-          }}
-        >
-          <div
-            className="w-full sm:max-w-lg bg-slate-900 border border-slate-800 rounded-t-3xl sm:rounded-2xl shadow-2xl max-h-[92vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150"
-            role="dialog"
-            aria-modal="true"
-          >
-            {/* Modal Header */}
-            <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/90 shrink-0">
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0">
-                  <Smartphone className="w-4 h-4" />
-                </div>
-                <div className="min-w-0">
-                  <h2 className="font-bold text-sm text-white truncate">
-                    {activeDemo.titulo}
-                  </h2>
-                  <p className="text-[11px] text-slate-400 truncate">
-                    {t.portfolio.modalSubtitle}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-1 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => handleToggleFavorite(activeDemo.id)}
-                  className={`p-2 rounded-lg transition-colors ${
-                    favorites.includes(activeDemo.id)
-                      ? 'text-rose-400 bg-rose-500/10'
-                      : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                  }`}
-                  title={favorites.includes(activeDemo.id) ? t.portfolio.removeFromFavorites : t.portfolio.addToFavorites}
-                >
-                  <Heart className={`w-4 h-4 ${favorites.includes(activeDemo.id) ? 'fill-current' : ''}`} />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleShare(activeDemo)}
-                  className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
-                  title={t.portfolio.share}
-                >
-                  <Share2 className="w-4 h-4" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveDemo(null)}
-                  className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
-                  aria-label={t.portfolio.close}
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Modal Content */}
-            <div className="p-5 overflow-y-auto space-y-4 flex-1">
-              {/* Simulated Device Preview Screen */}
-              <div className="border border-slate-700/80 rounded-2xl overflow-hidden bg-slate-950 shadow-inner">
-                {/* Browser bar */}
-                <div className="bg-slate-800/90 px-3 py-2 border-b border-slate-700/80 flex items-center gap-2">
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500/80" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
-                  </div>
-                  <div className="flex-1 bg-slate-900 rounded-md px-2 py-0.5 text-[10px] text-slate-400 font-mono text-center truncate">
-                    {activeDemo.linkDemo}
-                  </div>
-                </div>
-
-                {/* Simulated Web Page Content */}
-                <div className="p-4 space-y-3 bg-gradient-to-b from-slate-900 to-slate-950">
-                  <div className={`p-4 rounded-xl bg-gradient-to-r ${activeDemo.corDestaque} text-white`}>
-                    <span className="text-[10px] uppercase font-bold tracking-wider opacity-80 block">
-                      Preview Oficial NexaWeb
-                    </span>
-                    <h4 className="text-lg font-extrabold mt-0.5">
-                      {activeDemo.titulo}
-                    </h4>
-                    <p className="text-xs opacity-90 mt-1 leading-relaxed">
-                      {activeDemo.descricaoCompleta}
-                    </p>
-                  </div>
-
-                  {/* Highlights list */}
-                  <div className="space-y-2 pt-1">
-                    <span className="text-[11px] font-semibold text-slate-300 block">
-                      {t.portfolio.modalIncluded}
-                    </span>
-                    {activeDemo.recursos.map((rec, i) => (
-                      <div key={i} className="flex items-start gap-2 text-xs text-slate-300">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                        <span>{rec}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="pt-2 flex flex-col gap-2.5">
-                <a
-                  href={activeDemo.linkDemo}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="min-h-[46px] flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-xs bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-950/40 transition-all text-center active:scale-[0.98]"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  <span>{t.portfolio.openInBrowser}</span>
-                </a>
-
-                {onSelectProjectForBriefing && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const title = activeDemo.titulo;
-                      setActiveDemo(null);
-                      onSelectProjectForBriefing(title);
-                    }}
-                    className="min-h-[46px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition-all shadow-md shadow-indigo-950 active:scale-[0.98]"
-                  >
-                    <span>{t.portfolio.wantThisModel}</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                )}
-
-                <button
-                  type="button"
-                  onClick={() => setActiveDemo(null)}
-                  className="min-h-[44px] py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 font-semibold text-xs transition-colors text-center"
-                >
-                  {t.portfolio.close}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   ViewTab,
   OnboardingAnswers,
@@ -33,6 +33,16 @@ import {
   saveOnboardingAnswers,
 } from './utils/storage';
 import { calculateRecommendation } from './utils/recommendationEngine';
+import { getPortfolioProjects } from './data/portfolioData';
+
+interface HistoryEntry {
+  tab: ViewTab;
+  projectDetail: PortfolioProject | null;
+  selectedPlan?: string;
+  selectedModel?: string;
+  selectedWebsiteLanguage?: WebsiteLanguage;
+  modelApproach?: 'exact' | 'inspiration';
+}
 
 function AppContent() {
   const { language, t } = useTranslation();
@@ -46,11 +56,50 @@ function AppContent() {
     }
   });
 
-  const [currentTab, setCurrentTab] = useState<ViewTab>('home');
-  const [selectedPlanForProject, setSelectedPlanForProject] = useState<string>('profissional');
-  const [selectedModelForProject, setSelectedModelForProject] = useState<string | undefined>(undefined);
-  const [selectedWebsiteLanguageForProject, setSelectedWebsiteLanguageForProject] = useState<WebsiteLanguage | undefined>(undefined);
-  const [selectedProjectDetail, setSelectedProjectDetail] = useState<PortfolioProject | null>(null);
+  // Pilha de histórico de navegação real do aplicativo
+  const [history, setHistory] = useState<HistoryEntry[]>([
+    { tab: 'home', projectDetail: null },
+  ]);
+
+  // Estados padrão salvos para inicializações
+  const [savedPlan, setSavedPlan] = useState<string>('profissional');
+  const [savedModel, setSavedModel] = useState<string | undefined>(undefined);
+  const [savedModelApproach, setSavedModelApproach] = useState<'exact' | 'inspiration'>('exact');
+  const [savedWebsiteLanguage, setSavedWebsiteLanguage] = useState<WebsiteLanguage | undefined>(undefined);
+
+  // Preservação de estado da Vitrine de Demonstrações (Filtro, Busca e Rolagem)
+  const [portfolioPlanFilter, setPortfolioPlanFilter] = useState<
+    'todas' | 'essencial' | 'profissional' | 'premium'
+  >('todas');
+  const [portfolioSearchQuery, setPortfolioSearchQuery] = useState('');
+  const portfolioScrollPosRef = useRef(0);
+
+  // Derivação estrita do estado da tela ativa a partir do topo do histórico
+  const currentEntry = history[history.length - 1] || { tab: 'home', projectDetail: null };
+  const currentTab = currentEntry.tab;
+  const selectedProjectDetail = currentEntry.projectDetail || null;
+  const selectedPlanForProject = currentEntry.selectedPlan || savedPlan;
+  const selectedModelForProject =
+    currentEntry.selectedModel !== undefined ? currentEntry.selectedModel : savedModel;
+  const selectedModelApproachForProject =
+    currentEntry.modelApproach || savedModelApproach;
+  const selectedWebsiteLanguageForProject =
+    currentEntry.selectedWebsiteLanguage || savedWebsiteLanguage;
+
+  // Restaura posição da lista ao fechar detalhes
+  useEffect(() => {
+    if (!selectedProjectDetail && portfolioScrollPosRef.current > 0) {
+      const savedPos = portfolioScrollPosRef.current;
+      setTimeout(() => {
+        window.scrollTo({ top: savedPos, behavior: 'instant' as ScrollBehavior });
+      }, 20);
+    }
+  }, [selectedProjectDetail]);
+
+  // Refs para coordenação com etapas internas do wizard de briefing (ProjectScreen)
+  const projectStepRef = useRef<number>(1);
+  const projectStepBackRef = useRef<(() => void) | null>(null);
+  const canStepBackInProjectRef = useRef<boolean>(false);
 
   // Estados dos Modais & Drawer
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
@@ -92,7 +141,7 @@ function AppContent() {
           if (savedAnswers) {
             const rec = calculateRecommendation(savedAnswers, language, t);
             setRecommendation(rec);
-            setSelectedWebsiteLanguageForProject(savedAnswers.websiteLanguage);
+            setSavedWebsiteLanguage(savedAnswers.websiteLanguage);
           }
         }
       } catch {
@@ -102,6 +151,121 @@ function AppContent() {
 
     checkFirstOpenAndLoadRecommendation();
   }, [language, t]);
+
+  // Função central de avanço de navegação com registro de histórico real
+  const navigateTo = useCallback(
+    (
+      tab: ViewTab,
+      options?: {
+        projectDetail?: PortfolioProject | null;
+        selectedPlan?: string;
+        selectedModel?: string;
+        selectedWebsiteLanguage?: WebsiteLanguage;
+        modelApproach?: 'exact' | 'inspiration';
+        resetToRoot?: boolean;
+      }
+    ) => {
+      // Se saindo do criador de projetos, reseta refs de wizard
+      if (tab !== 'project') {
+        projectStepRef.current = 1;
+        projectStepBackRef.current = null;
+        canStepBackInProjectRef.current = false;
+      }
+
+      if (options?.selectedPlan) setSavedPlan(options.selectedPlan);
+      if (options?.selectedModel !== undefined) setSavedModel(options.selectedModel);
+      if (options?.modelApproach) setSavedModelApproach(options.modelApproach);
+      if (options?.selectedWebsiteLanguage) setSavedWebsiteLanguage(options.selectedWebsiteLanguage);
+
+      setHistory((prev) => {
+        // Ao navegar para a home sem detalhe ou resetando raiz (ex.: toque no BottomNav Início):
+        if (
+          tab === 'home' &&
+          (options?.resetToRoot || (!options?.projectDetail && !options?.selectedPlan && !options?.selectedModel))
+        ) {
+          return [{ tab: 'home', projectDetail: null }];
+        }
+
+        const current = prev[prev.length - 1];
+        const nextEntry: HistoryEntry = {
+          tab,
+          projectDetail: options?.projectDetail !== undefined ? options.projectDetail : null,
+          selectedPlan: options?.selectedPlan !== undefined ? options.selectedPlan : current?.selectedPlan,
+          selectedModel: options?.selectedModel !== undefined ? options.selectedModel : undefined,
+          modelApproach:
+            options?.modelApproach !== undefined ? options.modelApproach : current?.modelApproach,
+          selectedWebsiteLanguage:
+            options?.selectedWebsiteLanguage !== undefined
+              ? options.selectedWebsiteLanguage
+              : current?.selectedWebsiteLanguage,
+        };
+
+        // Não empilha duplicata se o destino for estritamente idêntico ao topo atual
+        if (
+          current &&
+          current.tab === nextEntry.tab &&
+          current.projectDetail?.id === nextEntry.projectDetail?.id &&
+          current.selectedPlan === nextEntry.selectedPlan &&
+          current.selectedModel === nextEntry.selectedModel &&
+          current.modelApproach === nextEntry.modelApproach
+        ) {
+          return prev;
+        }
+
+        // Prevenção de loop A -> B -> A:
+        // Se a tela destino for idêntica à tela imediatamente anterior, remove o topo atual
+        if (prev.length >= 2) {
+          const prevEntry = prev[prev.length - 2];
+          if (
+            prevEntry.tab === nextEntry.tab &&
+            prevEntry.projectDetail?.id === nextEntry.projectDetail?.id &&
+            prevEntry.selectedPlan === nextEntry.selectedPlan &&
+            prevEntry.selectedModel === nextEntry.selectedModel &&
+            prevEntry.modelApproach === nextEntry.modelApproach
+          ) {
+            return prev.slice(0, prev.length - 1);
+          }
+        }
+
+        // Se for troca direta de aba de menu principal (sem contexto/plano/modelo específico)
+        // e a aba já existe na pilha, trunca até ela para evitar ciclos infinitos entre abas
+        if (!options?.projectDetail && !options?.selectedModel && !options?.selectedPlan) {
+          const existingIndex = prev.findIndex((e) => e.tab === tab && !e.projectDetail);
+          if (existingIndex !== -1 && existingIndex > 0) {
+            return [...prev.slice(0, existingIndex), nextEntry];
+          }
+        }
+
+        return [...prev, nextEntry];
+      });
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+    []
+  );
+
+  // Lógica unificada do botão Voltar (visual e nativo Android)
+  const handleGoBack = useCallback(() => {
+    // 1. Se estiver no wizard de projeto e além da etapa 1, recua a etapa interna
+    if (currentTab === 'project' && canStepBackInProjectRef.current && projectStepBackRef.current) {
+      projectStepBackRef.current();
+      return;
+    }
+
+    // 2. Desempilha o histórico de navegação
+    setHistory((prev) => {
+      if (prev.length > 1) {
+        return prev.slice(0, prev.length - 1);
+      }
+      // Se só houver 1 tela e não for home, vai para a home
+      if (prev.length === 1 && prev[0].tab !== 'home') {
+        return [{ tab: 'home', projectDetail: null }];
+      }
+      return prev;
+    });
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentTab]);
 
   // Suporte aprimorado e intuitivo ao botão físico/gestual de voltar do Android
   const handleAndroidBack = useCallback(() => {
@@ -123,31 +287,21 @@ function AppContent() {
       return;
     }
 
-    // 2. Se estiver vendo detalhes de um projeto, volta para a lista
-    if (selectedProjectDetail) {
-      setSelectedProjectDetail(null);
-      return;
-    }
-
-    // 3. Se o Menu lateral/drawer estiver aberto: fecha o menu
+    // 2. Se o Menu lateral/drawer estiver aberto: fecha o menu
     if (isMenuOpen) {
       setIsMenuOpen(false);
       return;
     }
 
-    // 4. Se estiver em tela interna (Portal, Admin, Configurações, etc.): volta para Início
-    if (currentTab !== 'home') {
-      setCurrentTab('home');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    // 3. Executa a exata mesma lógica do botão Voltar visual
+    handleGoBack();
   }, [
-    selectedProjectDetail,
-    currentTab,
-    isMenuOpen,
     isContactOpen,
+    isLanguageModalOpen,
     isOnboardingOpen,
     isRecommendationOpen,
-    isLanguageModalOpen,
+    isMenuOpen,
+    handleGoBack,
   ]);
 
   useEffect(() => {
@@ -161,39 +315,6 @@ function AppContent() {
     };
   }, [handleAndroidBack]);
 
-  // Gesto nativo de swipe da esquerda para a direita para abrir o menu lateral
-  useEffect(() => {
-    let startX = 0;
-    let startY = 0;
-
-    const onTouchStart = (e: TouchEvent) => {
-      if (e.touches.length !== 1) return;
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
-    };
-
-    const onTouchEnd = (e: TouchEvent) => {
-      if (e.changedTouches.length !== 1) return;
-      const endX = e.changedTouches[0].clientX;
-      const endY = e.changedTouches[0].clientY;
-      const deltaX = endX - startX;
-      const deltaY = endY - startY;
-
-      // Inicia nos primeiros 50px da borda esquerda e desliza mais de 45px para a direita horizontalmente
-      if (startX <= 50 && deltaX > 45 && Math.abs(deltaX) > Math.abs(deltaY) * 1.1) {
-        setIsMenuOpen(true);
-      }
-    };
-
-    window.addEventListener('touchstart', onTouchStart, { passive: true });
-    window.addEventListener('touchend', onTouchEnd, { passive: true });
-
-    return () => {
-      window.removeEventListener('touchstart', onTouchStart);
-      window.removeEventListener('touchend', onTouchEnd);
-    };
-  }, []);
-
   // Handlers de Onboarding e Recomendação
   const handleOnboardingComplete = async (answers: OnboardingAnswers) => {
     await saveOnboardingAnswers(answers);
@@ -202,37 +323,32 @@ function AppContent() {
     const rec = calculateRecommendation(answers, language, t);
     setRecommendation(rec);
 
-    setSelectedPlanForProject(rec.planId);
+    setSavedPlan(rec.planId);
     if (rec.projectTitle) {
-      setSelectedModelForProject(rec.projectTitle);
+      setSavedModel(rec.projectTitle);
     }
-    setSelectedWebsiteLanguageForProject(answers.websiteLanguage);
+    setSavedWebsiteLanguage(answers.websiteLanguage);
 
     setIsOnboardingOpen(false);
     setIsRecommendationOpen(true);
   };
 
   const handleStartProjectFromRecommendation = (rec: ProjectRecommendation) => {
-    setSelectedPlanForProject(rec.planId);
-    if (rec.projectTitle) {
-      setSelectedModelForProject(rec.projectTitle);
-    }
     setIsRecommendationOpen(false);
-    setCurrentTab('project');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    navigateTo('project', {
+      selectedPlan: rec.planId,
+      selectedModel: rec.projectTitle || undefined,
+    });
   };
 
   const handleExplorePlanFromRecommendation = (planId: string) => {
-    setSelectedPlanForProject(planId);
     setIsRecommendationOpen(false);
-    setCurrentTab('services');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    navigateTo('services', { selectedPlan: planId });
   };
 
   const handleNavigateToPortfolio = () => {
     setIsRecommendationOpen(false);
-    setCurrentTab('portfolio');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    navigateTo('portfolio');
   };
 
   const handleRedoOnboarding = () => {
@@ -242,21 +358,31 @@ function AppContent() {
 
   // Handlers de navegação cruzada
   const handleSelectPlan = (planId: string) => {
-    setSelectedPlanForProject(planId);
-    setCurrentTab('project');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    navigateTo('project', { selectedPlan: planId });
   };
 
   const handleSelectProjectForBriefing = (projectTitle: string) => {
-    setSelectedModelForProject(projectTitle);
-    setCurrentTab('project');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const allProjs = getPortfolioProjects(language);
+    const proj = allProjs.find((p) => p.titulo === projectTitle);
+    navigateTo('project', {
+      selectedModel: projectTitle,
+      selectedPlan: proj?.planoId || selectedPlanForProject,
+    });
+  };
+
+  const handleSelectProject = (project: PortfolioProject) => {
+    portfolioScrollPosRef.current = window.scrollY;
+    navigateTo(currentTab, { projectDetail: project });
   };
 
   const handleNavigate = (tab: ViewTab) => {
-    setCurrentTab(tab);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    navigateTo(tab);
   };
+
+  const canGoBack =
+    history.length > 1 ||
+    selectedProjectDetail !== null ||
+    currentTab !== 'home';
 
   return (
     <div
@@ -270,13 +396,11 @@ function AppContent() {
       {/* Header oficial da NexaWeb */}
       <Header
         currentTab={currentTab}
-        onNavigate={(tab) => {
-          setSelectedProjectDetail(null);
-          handleNavigate(tab);
-        }}
+        onNavigate={handleNavigate}
         onOpenMenu={() => setIsMenuOpen(true)}
         title={selectedProjectDetail ? selectedProjectDetail.titulo : undefined}
-        onBack={selectedProjectDetail ? () => setSelectedProjectDetail(null) : undefined}
+        onBack={handleGoBack}
+        canGoBack={canGoBack}
       />
 
       {/* Área de conteúdo principal com transição suave entre telas */}
@@ -288,15 +412,13 @@ function AppContent() {
           {selectedProjectDetail ? (
             <ProjectDetailScreen
               project={selectedProjectDetail}
-              onBack={() => setSelectedProjectDetail(null)}
-              onStartBriefing={(proj) => {
-                setSelectedProjectDetail(null);
-                setSelectedModelForProject(proj.titulo);
-                if (proj.planoId) {
-                  setSelectedPlanForProject(proj.planoId);
-                }
-                setCurrentTab('project');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+              onBack={handleGoBack}
+              onStartBriefing={(proj, approach) => {
+                navigateTo('project', {
+                  selectedModel: proj.titulo,
+                  selectedPlan: proj.planoId || 'profissional',
+                  modelApproach: approach,
+                });
               }}
             />
           ) : (
@@ -306,9 +428,10 @@ function AppContent() {
                   onNavigate={handleNavigate}
                   recommendation={recommendation}
                   onOpenRecommendation={() => setIsRecommendationOpen(true)}
-                  onSelectProject={(project) => setSelectedProjectDetail(project)}
+                  onSelectProject={handleSelectProject}
                   onSelectPlan={handleSelectPlan}
                   onOpenContact={() => setIsContactOpen(true)}
+                  onStartQuiz={() => setIsOnboardingOpen(true)}
                 />
               )}
 
@@ -322,8 +445,12 @@ function AppContent() {
 
               {currentTab === 'portfolio' && (
                 <PortfolioScreen
-                  onSelectProject={(project) => setSelectedProjectDetail(project)}
+                  onSelectProject={handleSelectProject}
                   onSelectProjectForBriefing={handleSelectProjectForBriefing}
+                  initialPlanFilter={portfolioPlanFilter}
+                  onPlanFilterChange={setPortfolioPlanFilter}
+                  initialSearchQuery={portfolioSearchQuery}
+                  onSearchQueryChange={setPortfolioSearchQuery}
                 />
               )}
 
@@ -331,8 +458,15 @@ function AppContent() {
                 <ProjectScreen
                   initialPlan={selectedPlanForProject}
                   initialModel={selectedModelForProject}
+                  initialModelApproach={selectedModelApproachForProject}
                   initialWebsiteLanguage={selectedWebsiteLanguageForProject}
                   onNavigate={handleNavigate}
+                  onBack={handleGoBack}
+                  onStepChange={(step, canGoBackStep, goBackStep) => {
+                    projectStepRef.current = step;
+                    canStepBackInProjectRef.current = canGoBackStep;
+                    projectStepBackRef.current = goBackStep;
+                  }}
                 />
               )}
 
@@ -353,15 +487,13 @@ function AppContent() {
       {/* Navegação inferior estritamente simples (Início, Serviços, Portfólio, Projeto) */}
       <BottomNav
         currentTab={currentTab}
-        onNavigate={(tab) => {
-          setSelectedProjectDetail(null);
-          handleNavigate(tab);
-        }}
+        onNavigate={handleNavigate}
       />
 
-      {/* Menu Drawer lateral/sheet com todas as áreas */}
+      {/* Menu Drawer lateral/sheet ancorado estritamente na esquerda com gesto de borda */}
       <AppDrawer
         isOpen={isMenuOpen}
+        onOpen={() => setIsMenuOpen(true)}
         onClose={() => setIsMenuOpen(false)}
         currentTab={currentTab}
         onNavigate={handleNavigate}

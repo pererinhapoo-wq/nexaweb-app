@@ -1,18 +1,17 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { ViewTab } from '../types';
 import {
   Home,
-  Layers,
-  Briefcase,
   Sparkles,
+  Briefcase,
+  FolderKanban,
+  Layers,
+  Users,
   UserCheck,
-  Shield,
+  MessageSquare,
+  HelpCircle,
   Settings,
-  ExternalLink,
-  MessageCircle,
   X,
-  Instagram,
-  Mail,
   ChevronRight,
 } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
@@ -20,284 +19,495 @@ import { useTranslation } from '../contexts/LanguageContext';
 interface AppDrawerProps {
   isOpen: boolean;
   onClose: () => void;
+  onOpen?: () => void;
   currentTab: ViewTab;
   onNavigate: (tab: ViewTab) => void;
   onOpenContact: () => void;
 }
 
+const DRAWER_WIDTH = 290; // largura de referência do drawer em px
+
 export const AppDrawer: React.FC<AppDrawerProps> = ({
   isOpen,
   onClose,
+  onOpen,
   currentTab,
   onNavigate,
   onOpenContact,
 }) => {
   const { t } = useTranslation();
 
-  // Scroll lock suave e seguro sem resetar a posição do scroll da página
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
+
+  // Estado interno para visibilidade no DOM durante animações
+  const [isRendered, setIsRendered] = useState<boolean>(isOpen);
+
+  // Refs de rastreamento de toque em tempo real (0ms lag, 60-120fps suave no Galaxy A20)
+  const isDraggingRef = useRef<boolean>(false);
+  const touchStartXRef = useRef<number>(0);
+  const touchStartYRef = useRef<number>(0);
+  const touchStartTimeRef = useRef<number>(0);
+  const currentTranslateRef = useRef<number>(-DRAWER_WIDTH);
+  const isHorizontalGestureRef = useRef<boolean | null>(null);
+
+  // Trava de scroll no body sem causar salto de layout ou scroll
   useEffect(() => {
-    if (!isOpen) return;
-
-    const scrollY = window.scrollY;
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.width = '100%';
-
-    return () => {
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
-      window.scrollTo(0, scrollY);
-    };
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      setIsRendered(true);
+    } else {
+      document.body.style.overflow = '';
+      const timer = setTimeout(() => {
+        if (!isOpen && !isDraggingRef.current) {
+          setIsRendered(false);
+        }
+      }, 250);
+      return () => clearTimeout(timer);
+    }
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  // Sincroniza posição visual com a prop isOpen quando não estiver arrastando
+  useEffect(() => {
+    if (isDraggingRef.current) return;
 
-  const handleSelectTab = (tab: ViewTab) => {
-    onClose();
-    onNavigate(tab);
-  };
+    if (isOpen) {
+      if (drawerRef.current) {
+        drawerRef.current.style.transition = 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1)';
+        drawerRef.current.style.transform = 'translate3d(0, 0, 0)';
+      }
+      if (backdropRef.current) {
+        backdropRef.current.style.transition = 'opacity 0.22s ease-out';
+        backdropRef.current.style.opacity = '1';
+        backdropRef.current.style.pointerEvents = 'auto';
+      }
+      currentTranslateRef.current = 0;
+    } else {
+      if (drawerRef.current) {
+        drawerRef.current.style.transition = 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1)';
+        drawerRef.current.style.transform = 'translate3d(-100%, 0, 0)';
+      }
+      if (backdropRef.current) {
+        backdropRef.current.style.transition = 'opacity 0.22s ease-out';
+        backdropRef.current.style.opacity = '0';
+        backdropRef.current.style.pointerEvents = 'none';
+      }
+      currentTranslateRef.current = -DRAWER_WIDTH;
+    }
+  }, [isOpen]);
 
-  const touchStartXRef = React.useRef<number | null>(null);
-  const touchStartYRef = React.useRef<number | null>(null);
+  // Handler de navegação ao clicar em um item
+  const handleSelectTab = useCallback(
+    (tab: ViewTab) => {
+      onClose();
+      onNavigate(tab);
+    },
+    [onClose, onNavigate]
+  );
 
-  const handleTouchStart = (e: React.TouchEvent) => {
+  // =========================================================================
+  // GESTO DE ABRIR (Arrasto da borda esquerda para a direita)
+  // =========================================================================
+  const handleEdgeTouchStart = (e: React.TouchEvent) => {
+    if (isOpen || e.touches.length !== 1) return;
+
+    setIsRendered(true);
+    isDraggingRef.current = true;
     touchStartXRef.current = e.touches[0].clientX;
     touchStartYRef.current = e.touches[0].clientY;
+    touchStartTimeRef.current = Date.now();
+    isHorizontalGestureRef.current = null;
+
+    if (drawerRef.current) {
+      drawerRef.current.style.transition = 'none';
+      drawerRef.current.style.transform = `translate3d(-${DRAWER_WIDTH}px, 0, 0)`;
+    }
+    if (backdropRef.current) {
+      backdropRef.current.style.transition = 'none';
+      backdropRef.current.style.opacity = '0';
+      backdropRef.current.style.pointerEvents = 'auto';
+    }
   };
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartXRef.current === null || touchStartYRef.current === null) return;
-    const deltaX = e.changedTouches[0].clientX - touchStartXRef.current;
-    const deltaY = e.changedTouches[0].clientY - touchStartYRef.current;
-    
-    // Se arrastou para a esquerda mais de 45px e o movimento foi predominantemente horizontal, fecha
-    if (deltaX < -45 && Math.abs(deltaX) > Math.abs(deltaY)) {
+  const handleEdgeTouchMove = (e: React.TouchEvent) => {
+    if (!isDraggingRef.current || e.touches.length !== 1) return;
+
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
+    const deltaX = currentX - touchStartXRef.current;
+    const deltaY = currentY - touchStartYRef.current;
+
+    // Detecta intenção do gesto (horizontal vs vertical)
+    if (isHorizontalGestureRef.current === null) {
+      if (Math.abs(deltaX) > 6 || Math.abs(deltaY) > 6) {
+        isHorizontalGestureRef.current = deltaX > 0 && deltaX > Math.abs(deltaY) * 0.8;
+        if (!isHorizontalGestureRef.current) {
+          isDraggingRef.current = false;
+          return;
+        }
+      } else {
+        return;
+      }
+    }
+
+    if (!isHorizontalGestureRef.current) return;
+
+    // Acompanha diretamente o dedo em tempo real
+    const clampedDeltaX = Math.max(0, Math.min(deltaX, DRAWER_WIDTH));
+    const translate = -DRAWER_WIDTH + clampedDeltaX;
+    currentTranslateRef.current = translate;
+
+    const progress = clampedDeltaX / DRAWER_WIDTH;
+
+    if (drawerRef.current) {
+      drawerRef.current.style.transform = `translate3d(${translate}px, 0, 0)`;
+    }
+    if (backdropRef.current) {
+      backdropRef.current.style.opacity = `${progress}`;
+    }
+  };
+
+  const handleEdgeTouchEnd = (e: React.TouchEvent) => {
+    if (!isDraggingRef.current) return;
+    isDraggingRef.current = false;
+
+    const endX = e.changedTouches[0].clientX;
+    const deltaX = endX - touchStartXRef.current;
+    const elapsed = Date.now() - touchStartTimeRef.current;
+    const velocity = deltaX / Math.max(elapsed, 1);
+
+    // Reativa transição fluida para ancorar
+    if (drawerRef.current) {
+      drawerRef.current.style.transition = 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1)';
+    }
+    if (backdropRef.current) {
+      backdropRef.current.style.transition = 'opacity 0.22s ease-out';
+    }
+
+    // Abre se arrastou mais de 35% da largura ou deu um flick rápido para a direita
+    const shouldOpen = deltaX > DRAWER_WIDTH * 0.35 || (velocity > 0.35 && deltaX > 35);
+
+    if (shouldOpen) {
+      if (drawerRef.current) {
+        drawerRef.current.style.transform = 'translate3d(0, 0, 0)';
+      }
+      if (backdropRef.current) {
+        backdropRef.current.style.opacity = '1';
+        backdropRef.current.style.pointerEvents = 'auto';
+      }
+      currentTranslateRef.current = 0;
+      onOpen?.();
+    } else {
+      if (drawerRef.current) {
+        drawerRef.current.style.transform = 'translate3d(-100%, 0, 0)';
+      }
+      if (backdropRef.current) {
+        backdropRef.current.style.opacity = '0';
+        backdropRef.current.style.pointerEvents = 'none';
+      }
+      currentTranslateRef.current = -DRAWER_WIDTH;
       onClose();
     }
-    touchStartXRef.current = null;
-    touchStartYRef.current = null;
   };
 
+  // =========================================================================
+  // GESTO DE FECHAR (Arrasto de volta para a esquerda quando aberto)
+  // =========================================================================
+  const handleDrawerTouchStart = (e: React.TouchEvent) => {
+    if (!isOpen || e.touches.length !== 1) return;
+
+    isDraggingRef.current = true;
+    touchStartXRef.current = e.touches[0].clientX;
+    touchStartYRef.current = e.touches[0].clientY;
+    touchStartTimeRef.current = Date.now();
+    isHorizontalGestureRef.current = null;
+
+    if (drawerRef.current) {
+      drawerRef.current.style.transition = 'none';
+    }
+    if (backdropRef.current) {
+      backdropRef.current.style.transition = 'none';
+    }
+  };
+
+  const handleDrawerTouchMove = (e: React.TouchEvent) => {
+    if (!isDraggingRef.current || e.touches.length !== 1) return;
+
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
+    const deltaX = currentX - touchStartXRef.current;
+    const deltaY = currentY - touchStartYRef.current;
+
+    if (isHorizontalGestureRef.current === null) {
+      if (Math.abs(deltaX) > 6 || Math.abs(deltaY) > 6) {
+        isHorizontalGestureRef.current = deltaX < 0 && Math.abs(deltaX) > Math.abs(deltaY) * 0.8;
+        if (!isHorizontalGestureRef.current) {
+          isDraggingRef.current = false;
+          return;
+        }
+      } else {
+        return;
+      }
+    }
+
+    if (!isHorizontalGestureRef.current) return;
+
+    // Move acompanhando o dedo para a esquerda
+    const clampedDeltaX = Math.min(0, Math.max(deltaX, -DRAWER_WIDTH));
+    currentTranslateRef.current = clampedDeltaX;
+
+    const progress = Math.max(0, 1 + clampedDeltaX / DRAWER_WIDTH);
+
+    if (drawerRef.current) {
+      drawerRef.current.style.transform = `translate3d(${clampedDeltaX}px, 0, 0)`;
+    }
+    if (backdropRef.current) {
+      backdropRef.current.style.opacity = `${progress}`;
+    }
+  };
+
+  const handleDrawerTouchEnd = (e: React.TouchEvent) => {
+    if (!isDraggingRef.current) return;
+    isDraggingRef.current = false;
+
+    const endX = e.changedTouches[0].clientX;
+    const deltaX = endX - touchStartXRef.current;
+    const elapsed = Date.now() - touchStartTimeRef.current;
+    const velocity = deltaX / Math.max(elapsed, 1);
+
+    if (drawerRef.current) {
+      drawerRef.current.style.transition = 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1)';
+    }
+    if (backdropRef.current) {
+      backdropRef.current.style.transition = 'opacity 0.22s ease-out';
+    }
+
+    // Fecha se arrastou mais de 25% para a esquerda ou deu flick rápido
+    const shouldClose = deltaX < -DRAWER_WIDTH * 0.25 || (velocity < -0.35 && deltaX < -25);
+
+    if (shouldClose) {
+      if (drawerRef.current) {
+        drawerRef.current.style.transform = 'translate3d(-100%, 0, 0)';
+      }
+      if (backdropRef.current) {
+        backdropRef.current.style.opacity = '0';
+        backdropRef.current.style.pointerEvents = 'none';
+      }
+      currentTranslateRef.current = -DRAWER_WIDTH;
+      onClose();
+    } else {
+      if (drawerRef.current) {
+        drawerRef.current.style.transform = 'translate3d(0, 0, 0)';
+      }
+      if (backdropRef.current) {
+        backdropRef.current.style.opacity = '1';
+        backdropRef.current.style.pointerEvents = 'auto';
+      }
+      currentTranslateRef.current = 0;
+    }
+  };
+
+  // =========================================================================
+  // ITENS OFICIAIS EXATOS DA PARTE 3 (Sem inventar itens novos)
+  // =========================================================================
+  const navigationItems = [
+    {
+      id: 'home',
+      label: 'Início',
+      icon: Home,
+      action: () => handleSelectTab('home'),
+      isActive: currentTab === 'home',
+    },
+    {
+      id: 'project',
+      label: 'Criar site',
+      icon: Sparkles,
+      action: () => handleSelectTab('project'),
+      isActive: currentTab === 'project',
+    },
+    {
+      id: 'portfolio',
+      label: 'Portfólio',
+      icon: Briefcase,
+      action: () => handleSelectTab('portfolio'),
+      isActive: currentTab === 'portfolio',
+    },
+    {
+      id: 'projects',
+      label: 'Projetos',
+      icon: FolderKanban,
+      action: () => handleSelectTab('portal'),
+      isActive: currentTab === 'portal',
+    },
+    {
+      id: 'services',
+      label: 'Encontrar clientes',
+      icon: Layers,
+      action: () => handleSelectTab('services'),
+      isActive: currentTab === 'services',
+    },
+    {
+      id: 'leads',
+      label: 'Meus leads',
+      icon: Users,
+      action: () => handleSelectTab('admin'),
+      isActive: currentTab === 'admin',
+    },
+    {
+      id: 'client_area',
+      label: 'Área do Cliente',
+      icon: UserCheck,
+      action: () => handleSelectTab('portal'),
+      isActive: false, // subitem direto para o Portal
+    },
+    {
+      id: 'feedback',
+      label: 'Feedback',
+      icon: MessageSquare,
+      action: () => {
+        onClose();
+        onOpenContact();
+      },
+      isActive: false,
+    },
+    {
+      id: 'help',
+      label: 'Ajuda',
+      icon: HelpCircle,
+      action: () => {
+        onClose();
+        onOpenContact();
+      },
+      isActive: false,
+    },
+    {
+      id: 'settings',
+      label: 'Configurações',
+      icon: Settings,
+      action: () => handleSelectTab('settings'),
+      isActive: currentTab === 'settings',
+    },
+  ];
+
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label="Menu de Navegação"
-      className="fixed inset-0 z-50 flex justify-start bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
+    <>
+      {/* 1. Zona de captura na borda esquerda (quando fechado, não interfere no conteúdo do centro) */}
+      {!isOpen && (
+        <div
+          onTouchStart={handleEdgeTouchStart}
+          onTouchMove={handleEdgeTouchMove}
+          onTouchEnd={handleEdgeTouchEnd}
+          className="fixed top-0 left-0 bottom-0 w-6 z-40 touch-pan-y"
+          style={{ width: '26px' }}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* 2. Container do Drawer e Backdrop (visível durante arrasto ou quando aberto) */}
       <div
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        className="w-full max-w-[280px] sm:max-w-xs h-full bg-slate-900 border-r border-slate-800 shadow-2xl flex flex-col justify-between overflow-y-auto no-scrollbar animate-in slide-in-from-left duration-200"
-        onClick={(e) => e.stopPropagation()}
+        className={`fixed inset-0 z-50 transition-opacity ${
+          isRendered || isOpen ? 'visible' : 'invisible pointer-events-none'
+        }`}
       >
-        {/* Drawer Header */}
-        <div className="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 p-0.5 shadow-md shadow-indigo-500/20">
-              <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-cyan-400" />
+        {/* Backdrop discreto sem blur pesado (máxima performance no Galaxy A20) */}
+        <div
+          ref={backdropRef}
+          onClick={onClose}
+          className="absolute inset-0 bg-slate-950/60"
+          style={{
+            opacity: isOpen ? 1 : 0,
+            pointerEvents: isOpen ? 'auto' : 'none',
+            willChange: 'opacity',
+          }}
+          aria-hidden="true"
+        />
+
+        {/* 3. Painel do Menu Lateral Ancorado Estritamente na Esquerda */}
+        <div
+          ref={drawerRef}
+          onTouchStart={handleDrawerTouchStart}
+          onTouchMove={handleDrawerTouchMove}
+          onTouchEnd={handleDrawerTouchEnd}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Menu Principal"
+          className="absolute top-0 bottom-0 left-0 w-[285px] sm:w-[310px] max-w-[85vw] h-full bg-slate-900 border-r border-slate-800 shadow-2xl flex flex-col justify-between overflow-y-auto no-scrollbar z-10"
+          style={{
+            transform: isOpen ? 'translate3d(0, 0, 0)' : 'translate3d(-100%, 0, 0)',
+            willChange: 'transform',
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header do Menu */}
+          <div className="p-4 sm:p-5 border-b border-slate-800/80 flex items-center justify-between shrink-0 bg-slate-900">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 p-0.5 shadow-md shadow-indigo-500/20 shrink-0">
+                <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
+                  <Sparkles className="w-4 h-4 text-cyan-400" />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-extrabold text-sm sm:text-base tracking-tight text-white">NexaWeb</span>
+                  <span className="text-[10px] px-1.5 py-0.2 rounded font-mono font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                    Menu
+                  </span>
+                </div>
+                <p className="text-[10px] text-slate-400 leading-tight">Navegação Principal</p>
               </div>
             </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-base tracking-tight text-white">NexaWeb</span>
-                <span className="text-[10px] px-1.5 py-0.2 rounded font-mono font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                  App
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-400 leading-tight">Central do Aplicativo</p>
-            </div>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white transition-colors active:scale-95"
+              aria-label="Fechar menu"
+              title="Fechar menu"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-750 text-slate-400 hover:text-white flex items-center justify-center transition-colors"
-            aria-label="Fechar Menu"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Drawer Content */}
-        <div className="p-4 space-y-5 flex-1">
-          {/* 1. Navegação Principal */}
-          <div className="space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-3">
-              Principal
-            </span>
-
-            {[
-              { tab: 'home' as ViewTab, label: 'Início', icon: <Home className="w-4 h-4" /> },
-              { tab: 'services' as ViewTab, label: 'Serviços & Planos', icon: <Layers className="w-4 h-4" /> },
-              { tab: 'portfolio' as ViewTab, label: 'Portfólio de Demos', icon: <Briefcase className="w-4 h-4" /> },
-              { tab: 'project' as ViewTab, label: 'Iniciar Projeto / Briefing', icon: <Sparkles className="w-4 h-4" /> },
-            ].map((item) => {
-              const isActive = currentTab === item.tab;
+          {/* Lista de Navegação com 10 Itens Oficiais e Touch Targets Confortáveis (min 46px) */}
+          <div className="p-3 space-y-1 flex-1 overflow-y-auto no-scrollbar">
+            {navigationItems.map((item) => {
+              const Icon = item.icon;
               return (
                 <button
-                  key={item.tab}
+                  key={item.id}
                   type="button"
-                  onClick={() => handleSelectTab(item.tab)}
-                  className={`min-h-[46px] w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                    isActive
-                      ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/40 shadow-sm'
-                      : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                  onClick={item.action}
+                  className={`min-h-[46px] w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs sm:text-[13px] font-semibold transition-all active:scale-[0.98] ${
+                    item.isActive
+                      ? 'bg-indigo-600/20 text-cyan-300 border border-indigo-500/40 shadow-sm'
+                      : 'text-slate-300 hover:bg-slate-800/70 hover:text-white border border-transparent'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <span className={isActive ? 'text-cyan-400' : 'text-slate-400'}>{item.icon}</span>
+                    <span className={item.isActive ? 'text-cyan-400' : 'text-slate-400'}>
+                      <Icon className="w-4 h-4" />
+                    </span>
                     <span>{item.label}</span>
                   </div>
-                  {isActive && <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />}
+
+                  {item.isActive ? (
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400" />
+                  ) : (
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
+                  )}
                 </button>
               );
             })}
           </div>
 
-          {/* Divisor */}
-          <div className="h-px bg-slate-800/80 my-1" />
-
-          {/* 2. Área do Cliente & Admin */}
-          <div className="space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-3">
-              Área do Cliente & Gestão
-            </span>
-
-            <button
-              type="button"
-              onClick={() => handleSelectTab('portal')}
-              className={`min-h-[46px] w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                currentTab === 'portal'
-                  ? 'bg-cyan-600/20 text-cyan-300 border border-cyan-500/40 shadow-sm'
-                  : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-cyan-400">
-                  <UserCheck className="w-4 h-4" />
-                </span>
-                <span>Área do Cliente</span>
-              </div>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
-                Portal
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleSelectTab('admin')}
-              className={`min-h-[46px] w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                currentTab === 'admin'
-                  ? 'bg-amber-600/20 text-amber-300 border border-amber-500/40 shadow-sm'
-                  : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-amber-400">
-                  <Shield className="w-4 h-4" />
-                </span>
-                <span>Admin NexaWeb</span>
-              </div>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                Acesso
-              </span>
-            </button>
-          </div>
-
-          {/* Divisor */}
-          <div className="h-px bg-slate-800/80 my-1" />
-
-          {/* 3. Configurações & Contatos Oficiais */}
-          <div className="space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-3">
-              Suporte & Ajustes
-            </span>
-
-            <button
-              type="button"
-              onClick={() => handleSelectTab('settings')}
-              className={`min-h-[46px] w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                currentTab === 'settings'
-                  ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/40 shadow-sm'
-                  : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-indigo-400">
-                  <Settings className="w-4 h-4" />
-                </span>
-                <span>Configurações (Tema / Idioma)</span>
-              </div>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
-                onOpenContact();
-              }}
-              className="min-h-[46px] w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/80 hover:text-white transition-all"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-emerald-400">
-                  <MessageCircle className="w-4 h-4" />
-                </span>
-                <span>Falar com a NexaWeb</span>
-              </div>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
-            </button>
-
-            <a
-              href="https://nexaweeb.vercel.app/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="min-h-[46px] w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/80 hover:text-white transition-all"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-cyan-400">
-                  <ExternalLink className="w-4 h-4" />
-                </span>
-                <span>Conhecer a NexaWeb (Site)</span>
-              </div>
-              <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
-            </a>
-          </div>
-        </div>
-
-        {/* Drawer Footer com Links Oficiais */}
-        <div className="p-4 border-t border-slate-800 bg-slate-950/60 space-y-3 shrink-0">
-          <div className="grid grid-cols-2 gap-2">
-            <a
-              href="https://www.instagram.com/nexaw1/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-1.5 p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-pink-500/50 text-slate-300 text-xs font-semibold transition-colors"
-            >
-              <Instagram className="w-3.5 h-3.5 text-pink-400" />
-              <span>@nexaw1</span>
-            </a>
-
-            <a
-              href="mailto:nexaweeb@gmail.com"
-              className="flex items-center justify-center gap-1.5 p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-cyan-500/50 text-slate-300 text-xs font-semibold transition-colors truncate"
-            >
-              <Mail className="w-3.5 h-3.5 text-cyan-400" />
-              <span className="truncate">E-mail</span>
-            </a>
-          </div>
-
-          <div className="text-center text-[10px] text-slate-500">
-            NexaWeb App · Sites profissionais
+          {/* Footer do Menu */}
+          <div className="p-3.5 border-t border-slate-800/80 bg-slate-950/60 shrink-0">
+            <p className="text-center text-[10.5px] font-medium text-slate-500">
+              NexaWeb App · Sites profissionais
+            </p>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };

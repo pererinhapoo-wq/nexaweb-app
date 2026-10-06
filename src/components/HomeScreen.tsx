@@ -1,16 +1,18 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ViewTab, PortfolioProject, ProjectRecommendation } from '../types';
 import { getPortfolioProjects } from '../data/portfolioData';
-import { getNexawebPlans } from '../data/servicesData';
 import { ProjectCardImage } from './ProjectCardImage';
 import {
-  Layers,
   Sparkles,
-  ArrowRight,
+  Layers,
+  Users,
   FolderKanban,
-  CheckCircle2,
+  ArrowRight,
   ChevronRight,
-  UserCheck,
+  HelpCircle,
+  Zap,
+  Smartphone,
+  ShieldCheck,
 } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 
@@ -21,6 +23,7 @@ interface HomeScreenProps {
   onSelectProject: (project: PortfolioProject) => void;
   onSelectPlan: (planId: string) => void;
   onOpenContact: () => void;
+  onStartQuiz?: () => void;
 }
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({
@@ -30,91 +33,207 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   onSelectProject,
   onSelectPlan,
   onOpenContact,
+  onStartQuiz,
 }) => {
-  const { language, t } = useTranslation();
+  const { language } = useTranslation();
 
-  const allProjects = getPortfolioProjects(language);
-  const plans = getNexawebPlans(language);
+  // Carrega apenas os 4 projetos em destaque para máxima performance
+  const featuredProjects = getPortfolioProjects(language)
+    .filter((p) => p.destaqueHome)
+    .slice(0, 4);
 
-  // Seleciona 4 projetos em destaque para visualização compacta
-  const featuredProjects = allProjects.filter((p) => p.destaqueHome).slice(0, 4);
+  // Mini-banner rotativo suave e compacto
+  const highlights = [
+    {
+      icon: Zap,
+      text: 'Sites de alta conversão otimizados para WhatsApp',
+      color: 'text-amber-400',
+    },
+    {
+      icon: Smartphone,
+      text: 'Design responsivo e veloz para qualquer celular',
+      color: 'text-cyan-400',
+    },
+    {
+      icon: ShieldCheck,
+      text: 'Projetos profissionais entregues em até 7 dias',
+      color: 'text-emerald-400',
+    },
+  ];
+
+  const [currentHighlightIndex, setCurrentHighlightIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentHighlightIndex((prev) => (prev + 1) % highlights.length);
+    }, 4500);
+    return () => clearInterval(interval);
+  }, [highlights.length]);
+
+  const activeHighlight = highlights[currentHighlightIndex];
+  const HighlightIcon = activeHighlight.icon;
 
   return (
     <div className="space-y-4 pb-20 animate-in fade-in duration-150">
-      {/* 1. Card de Boas-Vindas & Ações Rápidas do App */}
-      <section className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-400">
-              Aplicativo Oficial
-            </span>
-            <h2 className="text-sm sm:text-base font-bold text-white">
-              Crie o site do seu negócio
-            </h2>
-          </div>
+      {/* 1. CABEÇALHO COMPACTO & AMIGÁVEL */}
+      <section className="pt-0.5">
+        <h1 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-1.5">
+          <span>Olá</span>
+          <span className="inline-block select-none">👋</span>
+        </h1>
+        <p className="text-xs text-slate-400 mt-0.5">
+          O que você quer fazer hoje?
+        </p>
+      </section>
 
-          <div className="w-9 h-9 rounded-xl bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center text-cyan-400 shrink-0">
-            <Sparkles className="w-4 h-4" />
+      {/* 2. BANNER COMPACTO ROTATIVO SUAVE */}
+      <section
+        onClick={() => setCurrentHighlightIndex((prev) => (prev + 1) % highlights.length)}
+        className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between gap-2.5 cursor-pointer active:scale-[0.99] transition-all"
+        title="Toque para alternar destaque"
+      >
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-7 h-7 rounded-lg bg-slate-800 flex items-center justify-center shrink-0">
+            <HighlightIcon className={`w-3.5 h-3.5 ${activeHighlight.color}`} />
           </div>
+          <p className="text-[11.5px] font-semibold text-slate-200 truncate">
+            {activeHighlight.text}
+          </p>
         </div>
 
-        {/* Botões de Ação Rápida */}
-        <div className="grid grid-cols-2 gap-2 pt-1">
-          <button
-            type="button"
-            onClick={() => onNavigate('project')}
-            className="min-h-[44px] flex items-center justify-center gap-1.5 p-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs shadow-md shadow-indigo-950/40 transition-all active:scale-[0.98]"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Iniciar Briefing</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => onNavigate('portfolio')}
-            className="min-h-[44px] flex items-center justify-center gap-1.5 p-2.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-semibold text-xs border border-slate-700 transition-all active:scale-[0.98]"
-          >
-            <FolderKanban className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Ver Modelos</span>
-          </button>
+        {/* Indicadores discretos */}
+        <div className="flex items-center gap-1 shrink-0">
+          {highlights.map((_, idx) => (
+            <span
+              key={idx}
+              className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                idx === currentHighlightIndex ? 'bg-cyan-400 w-3' : 'bg-slate-700'
+              }`}
+            />
+          ))}
         </div>
       </section>
 
-      {/* Banner de Recomendação Salva (se já respondeu perguntas) */}
-      {recommendation && (
-        <section className="bg-gradient-to-r from-indigo-950/70 via-slate-900 to-slate-900 border border-indigo-500/30 rounded-2xl p-3.5 shadow-sm flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-cyan-300">
-              <CheckCircle2 className="w-3 h-3 text-cyan-400" />
-              <span>Plano Recomendado</span>
+      {/* 3. AÇÃO PRINCIPAL / CTA: "Criar meu site" */}
+      <section>
+        <button
+          type="button"
+          onClick={() => onNavigate('project')}
+          className="w-full text-left p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-cyan-500 text-white shadow-lg shadow-indigo-950/40 border border-indigo-400/30 transition-all duration-150 active:scale-[0.985] group flex items-center justify-between gap-3"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center shrink-0">
+              <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <p className="text-xs font-bold text-white truncate mt-0.5">
-              {recommendation.planName} · {recommendation.segmentLabel}
-            </p>
+            <div className="min-w-0">
+              <span className="text-sm sm:text-base font-extrabold text-white block leading-snug">
+                Criar meu site
+              </span>
+              <span className="text-[11px] text-indigo-100/90 block truncate mt-0.5">
+                Inicie o briefing oficial em poucos passos
+              </span>
+            </div>
           </div>
 
-          <button
-            type="button"
-            onClick={onOpenRecommendation}
-            className="min-h-[38px] px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shrink-0 flex items-center gap-1 transition-all"
-          >
-            <span>Ver</span>
-            <ChevronRight className="w-3.5 h-3.5" />
-          </button>
-        </section>
-      )}
+          <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center shrink-0 group-hover:translate-x-0.5 transition-transform">
+            <ArrowRight className="w-4 h-4 text-white" />
+          </div>
+        </button>
+      </section>
 
-      {/* 2. PROJETOS EM DESTAQUE (Cards Menores, Proporcionais e Clicáveis) */}
-      <section className="space-y-2.5">
-        <div className="flex items-center justify-between px-1">
+      {/* 4. ATALHOS COMPACTOS (Encontrar clientes, Meus leads, Portfólio) */}
+      <section className="grid grid-cols-3 gap-2">
+        {/* Atalho 1: Encontrar clientes */}
+        <button
+          type="button"
+          onClick={() => onNavigate('services')}
+          className="min-h-[50px] p-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-left flex flex-col justify-between transition-all active:scale-[0.97]"
+        >
+          <div className="w-7 h-7 rounded-lg bg-cyan-500/15 text-cyan-400 flex items-center justify-center mb-1">
+            <Layers className="w-3.5 h-3.5" />
+          </div>
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-              Demonstrações em Destaque
-            </h3>
-            <p className="text-[11px] text-slate-500">
-              Toque em um modelo para ver os detalhes
-            </p>
+            <span className="text-[11px] font-bold text-white block leading-tight truncate">
+              Encontrar clientes
+            </span>
+            <span className="text-[9.5px] text-slate-500 block truncate">
+              Planos & soluções
+            </span>
           </div>
+        </button>
+
+        {/* Atalho 2: Meus leads */}
+        <button
+          type="button"
+          onClick={() => onNavigate('admin')}
+          className="min-h-[50px] p-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-left flex flex-col justify-between transition-all active:scale-[0.97]"
+        >
+          <div className="w-7 h-7 rounded-lg bg-amber-500/15 text-amber-400 flex items-center justify-center mb-1">
+            <Users className="w-3.5 h-3.5" />
+          </div>
+          <div>
+            <span className="text-[11px] font-bold text-white block leading-tight truncate">
+              Meus leads
+            </span>
+            <span className="text-[9.5px] text-slate-500 block truncate">
+              Painel da equipe
+            </span>
+          </div>
+        </button>
+
+        {/* Atalho 3: Portfólio */}
+        <button
+          type="button"
+          onClick={() => onNavigate('portfolio')}
+          className="min-h-[50px] p-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-left flex flex-col justify-between transition-all active:scale-[0.97]"
+        >
+          <div className="w-7 h-7 rounded-lg bg-indigo-500/15 text-indigo-400 flex items-center justify-center mb-1">
+            <FolderKanban className="w-3.5 h-3.5" />
+          </div>
+          <div>
+            <span className="text-[11px] font-bold text-white block leading-tight truncate">
+              Portfólio
+            </span>
+            <span className="text-[9.5px] text-slate-500 block truncate">
+              Ver demonstrações
+            </span>
+          </div>
+        </button>
+      </section>
+
+      {/* 5. "ME AJUDA A ESCOLHER UM PLANO" (ÁREA SECUNDÁRIA) */}
+      <section>
+        <button
+          type="button"
+          onClick={() => (onStartQuiz ? onStartQuiz() : onOpenRecommendation())}
+          className="w-full text-left p-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 transition-all active:scale-[0.985] flex items-center justify-between gap-2.5"
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center shrink-0 text-cyan-400">
+              <HelpCircle className="w-4 h-4" />
+            </div>
+            <div className="min-w-0">
+              <span className="text-xs font-bold text-white block truncate">
+                Não sabe qual plano escolher?
+              </span>
+              <span className="text-[10.5px] text-slate-400 block truncate">
+                Responda 2 perguntas e descubra o plano ideal.
+              </span>
+            </div>
+          </div>
+
+          <span className="text-[11px] font-semibold text-cyan-400 shrink-0 flex items-center gap-0.5">
+            Descobrir <ChevronRight className="w-3.5 h-3.5" />
+          </span>
+        </button>
+      </section>
+
+      {/* 6. PROJETOS EM DESTAQUE (CARD INTEIRO CLICÁVEL, MÁXIMO 4 CARDS) */}
+      <section className="space-y-2.5 pt-0.5">
+        <div className="flex items-center justify-between px-0.5">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+            Projetos em destaque
+          </h2>
 
           <button
             type="button"
@@ -122,12 +241,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             className="text-xs font-semibold text-cyan-400 hover:text-cyan-300 flex items-center gap-0.5 transition-colors"
           >
             <span>Ver todos</span>
-            <ChevronRight className="w-3.5 h-3.5" />
+            <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        {/* Grid Compacto de Projetos (2 colunas em mobile e tablets para visualização rápida) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        {/* Grid de 2 colunas: Card inteiro é clicável sem botão interno */}
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
           {featuredProjects.map((project) => {
             const planBadge = project.planoId ? project.planoId.toUpperCase() : 'PROFISSIONAL';
 
@@ -135,131 +254,28 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               <div
                 key={project.id}
                 onClick={() => onSelectProject(project)}
-                className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm hover:border-indigo-500/50 transition-all duration-150 flex flex-col justify-between cursor-pointer active:scale-[0.985] group"
+                className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm hover:border-slate-700 transition-all duration-150 flex flex-col justify-between cursor-pointer active:scale-[0.98] group"
               >
                 <div>
-                  {/* Imagem Proporcional Compacta com Fallback Automático */}
                   <ProjectCardImage
                     project={project}
                     aspectRatio="compact"
                     badge={planBadge}
                   />
 
-                  {/* Informações Compactas do Card */}
-                  <div className="p-3 space-y-1">
-                    <div className="flex items-center justify-between text-[10px] text-slate-400">
-                      <span className="font-semibold text-cyan-400/90 truncate max-w-[120px]">
-                        {project.categoria}
-                      </span>
-                      <span className="font-mono text-slate-500">
-                        {planBadge}
-                      </span>
-                    </div>
-
-                    <h4 className="text-xs sm:text-sm font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-1">
+                  <div className="p-2.5 space-y-0.5">
+                    <span className="text-[10px] font-semibold text-cyan-400 block truncate">
+                      {project.categoria}
+                    </span>
+                    <h3 className="text-xs font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-1">
                       {project.titulo}
-                    </h4>
-
-                    <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
-                      {project.descricaoCurta}
-                    </p>
+                    </h3>
                   </div>
-                </div>
-
-                {/* Rodapé do Card com Ação de Ver Detalhes */}
-                <div className="px-3 pb-3 pt-1 border-t border-slate-800/60 flex items-center justify-between text-[11px] text-slate-400">
-                  <span className="text-[10px] text-slate-500 font-medium">Toque para ver detalhes</span>
-                  <span className="font-bold text-cyan-400 group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5">
-                    Detalhes <ChevronRight className="w-3 h-3" />
-                  </span>
                 </div>
               </div>
             );
           })}
         </div>
-      </section>
-
-      {/* 3. PLANOS OFICIAIS NEXAWEB (Visualização Compacta em Abas/Cards) */}
-      <section className="space-y-2.5 pt-1">
-        <div className="flex items-center justify-between px-1">
-          <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-              Nossos 4 Planos
-            </h3>
-            <p className="text-[11px] text-slate-500">
-              Soluções transparentes para cada momento do seu negócio
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => onNavigate('services')}
-            className="text-xs font-semibold text-cyan-400 hover:text-cyan-300 flex items-center gap-0.5 transition-colors"
-          >
-            <span>Tabela</span>
-            <ChevronRight className="w-3 h-3" />
-          </button>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {plans.map((plan) => (
-            <div
-              key={plan.id}
-              onClick={() => onSelectPlan(plan.id)}
-              className={`p-3 rounded-xl border text-left flex flex-col justify-between cursor-pointer transition-all active:scale-[0.98] ${
-                plan.destaque
-                  ? 'bg-indigo-950/40 border-indigo-500/50 text-white shadow-sm ring-1 ring-indigo-500/30'
-                  : 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-300'
-              }`}
-            >
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 block">
-                  {plan.nome}
-                </span>
-                <span className="text-xs sm:text-sm font-extrabold text-white block mt-0.5">
-                  {plan.preco}
-                </span>
-              </div>
-
-              <p className="text-[10px] text-slate-400 line-clamp-1 mt-1.5">
-                {plan.tagline}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 4. ATALHOS RÁPIDOS ÚTEIS (Portal do Cliente & Suporte) */}
-      <section className="grid grid-cols-2 gap-2 pt-1">
-        <button
-          type="button"
-          onClick={() => onNavigate('portal')}
-          className="min-h-[46px] p-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-left flex items-center justify-between group transition-all"
-        >
-          <div className="flex items-center gap-2.5">
-            <UserCheck className="w-4 h-4 text-cyan-400 shrink-0" />
-            <div>
-              <span className="text-xs font-bold text-white block leading-tight">Área do Cliente</span>
-              <span className="text-[10px] text-slate-500 block">Status do projeto</span>
-            </div>
-          </div>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-white transition-colors" />
-        </button>
-
-        <button
-          type="button"
-          onClick={onOpenContact}
-          className="min-h-[46px] p-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-left flex items-center justify-between group transition-all"
-        >
-          <div className="flex items-center gap-2.5">
-            <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
-            <div>
-              <span className="text-xs font-bold text-white block leading-tight">Falar com a Equipe</span>
-              <span className="text-[10px] text-slate-500 block">Canais oficiais</span>
-            </div>
-          </div>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-white transition-colors" />
-        </button>
       </section>
     </div>
   );
