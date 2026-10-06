@@ -1,7 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ViewTab, WebsiteLanguage } from '../types';
 import { getNexawebPlans } from '../data/servicesData';
 import { getPortfolioProjects } from '../data/portfolioData';
+import {
+  OFFICIAL_EXTRA_FEATURES,
+  OFFICIAL_PLANS_COMMERCIAL,
+  ExtraFeature,
+} from '../data/commercialRules';
+import {
+  calculateBudget,
+  getSuggestedFeaturesForSegment,
+} from '../utils/pricingEngine';
+import {
+  createBriefing,
+  uploadBriefingImages,
+} from '../utils/briefingService';
+import { ImageUploadField } from './ImageUploadField';
 import {
   Sparkles,
   Check,
@@ -10,7 +24,15 @@ import {
   Store,
   Lightbulb,
   MessageSquare,
-  Globe2
+  Globe2,
+  DollarSign,
+  AlertCircle,
+  Plus,
+  Zap,
+  Send,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 
@@ -32,19 +54,52 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
   const plans = getNexawebPlans(language);
   const portfolioProjects = getPortfolioProjects(language);
 
+  // Mapeamento de modelo do portfólio para segmento correspondente
+  const getSegmentByModelTitle = (modelTitle: string): string => {
+    const proj = portfolioProjects.find((p) => p.titulo === modelTitle);
+    if (!proj) return 'services';
+    if (proj.id.includes('barbearia')) return 'barber';
+    if (proj.id.includes('salao')) return 'beauty';
+    if (proj.id.includes('academia')) return 'fitness';
+    if (proj.id.includes('imobiliaria')) return 'realEstate';
+    if (proj.id.includes('clinica')) return 'clinic';
+    if (proj.id.includes('restaurante')) return 'food';
+    return 'services';
+  };
+
   const [startType, setStartType] = useState<'modelo' | 'segmento' | 'propria'>('modelo');
   const [selectedModel, setSelectedModel] = useState<string>(initialModel || portfolioProjects[0]?.titulo || '');
-  const [selectedSegment, setSelectedSegment] = useState<string>('services');
+  const [selectedSegment, setSelectedSegment] = useState<string>(() => {
+    if (initialModel) return getSegmentByModelTitle(initialModel);
+    return 'services';
+  });
   const [selectedPlan, setSelectedPlan] = useState<string>(initialPlan || 'profissional');
   const [siteLanguage, setSiteLanguage] = useState<WebsiteLanguage>(
     initialWebsiteLanguage || (language === 'pt-PT' ? 'pt-PT' : language === 'en' ? 'en' : language === 'es' ? 'es' : language === 'fr' ? 'fr' : 'pt-BR')
   );
 
+  // Recursos extras selecionados
+  const [selectedFeatureIds, setSelectedFeatureIds] = useState<string[]>([]);
+  const [showAllFeatures, setShowAllFeatures] = useState(false);
+
+  // Informações do negócio & Contato
   const [businessName, setBusinessName] = useState('');
   const [description, setDescription] = useState('');
   const [contactName, setContactName] = useState('');
   const [contactWhatsapp, setContactWhatsapp] = useState('');
+
+  // Imagens anexadas (Regra: máx 6 imagens, máx 10 MB cada)
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+
+  // Estados de envio
   const [copied, setCopied] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionSuccess, setSubmissionSuccess] = useState<{
+    projectId: string;
+    message: string;
+    isOfflineFallback?: boolean;
+  } | null>(null);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
 
   // Sincroniza props se alteradas externamente
   useEffect(() => {
@@ -55,6 +110,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     if (initialModel) {
       setStartType('modelo');
       setSelectedModel(initialModel);
+      setSelectedSegment(getSegmentByModelTitle(initialModel));
     }
   }, [initialModel]);
 
@@ -77,6 +133,37 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
   ];
 
   const planObj = plans.find((p) => p.id === selectedPlan) || plans[1];
+  const currentSegmentLabel = segmentsOptions.find((s) => s.id === selectedSegment)?.label || selectedSegment;
+
+  // Sugestões contextuais pelo segmento (Apenas recomendação, NÃO gratuitas)
+  const suggestedFeatures = useMemo(() => {
+    return getSuggestedFeaturesForSegment(selectedSegment);
+  }, [selectedSegment]);
+
+  // Cálculo de orçamento oficial em tempo real
+  const budget = useMemo(() => {
+    return calculateBudget(selectedPlan, selectedFeatureIds, selectedSegment);
+  }, [selectedPlan, selectedFeatureIds, selectedSegment]);
+
+  // Handler para alternar seleção de recursos
+  const handleToggleFeature = (feature: ExtraFeature) => {
+    // Se for plano essencial (fechado)
+    if (selectedPlan === 'essencial') {
+      return;
+    }
+
+    // Se for realtime e o plano não permitir (Profissional)
+    if (feature.isRealtime && selectedPlan === 'profissional') {
+      return;
+    }
+
+    setSelectedFeatureIds((prev) => {
+      if (prev.includes(feature.id)) {
+        return prev.filter((id) => id !== feature.id);
+      }
+      return [...prev, feature.id];
+    });
+  };
 
   const getSiteLanguageLabel = (langCode: WebsiteLanguage): string => {
     switch (langCode) {
@@ -97,130 +184,31 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     }
   };
 
-  const getOriginText = (targetLang: 'pt-BR' | 'pt-PT' | 'en' | 'es' | 'fr'): string => {
-    const segmentLabel = segmentsOptions.find((s) => s.id === selectedSegment)?.label || selectedSegment;
-
-    if (targetLang === 'en') {
-      if (startType === 'modelo') return `Based on demo: ${selectedModel}`;
-      if (startType === 'segmento') return `Industry: ${segmentLabel}`;
-      return 'Custom idea / Tailor-made project from scratch';
-    }
-
-    if (targetLang === 'es') {
-      if (startType === 'modelo') return `Basado en demo: ${selectedModel}`;
-      if (startType === 'segmento') return `Sector: ${segmentLabel}`;
-      return 'Idea propia / Proyecto a medida desde cero';
-    }
-
-    if (targetLang === 'fr') {
-      if (startType === 'modelo') return `D'après la démo: ${selectedModel}`;
-      if (startType === 'segmento') return `Secteur: ${segmentLabel}`;
-      return 'Idée propre / Projet sur mesure de A à Z';
-    }
-
-    if (targetLang === 'pt-PT') {
-      if (startType === 'modelo') return `Baseado no modelo: ${selectedModel}`;
-      if (startType === 'segmento') return `Segmento: ${segmentLabel}`;
-      return 'Ideia própria / Projeto à medida de raiz';
-    }
-
-    // pt-BR
-    if (startType === 'modelo') return `Baseado no modelo: ${selectedModel}`;
-    if (startType === 'segmento') return `Segmento: ${segmentLabel}`;
+  const getOriginText = (): string => {
+    if (startType === 'modelo') return `Baseado na demo: ${selectedModel}`;
+    if (startType === 'segmento') return `Segmento: ${currentSegmentLabel}`;
     return 'Ideia própria / Projeto sob medida do zero';
   };
 
+  // Mensagem pré-formatada para WhatsApp e Área de Transferência
   const generateBriefingMessage = (): string => {
-    // 1. Mensagem em Inglês
-    if (siteLanguage === 'en') {
-      const origin = getOriginText('en');
-      return `Hello NexaWeb! I would like to request a website project:
-- *Company/Business:* ${businessName || 'To be defined'}
-- *Contact Name:* ${contactName || 'Not provided'}
-- *WhatsApp Contact:* ${contactWhatsapp || 'Not provided'}
-- *Starting Point:* ${origin}
-- *Interested Plan:* Plan ${planObj.nome} (${planObj.tagline})
-- *Website Language:* 🇺🇸 English
-- *What I need:* ${description || 'I would like more information and guidance from the team'}`;
-    }
+    const origin = getOriginText();
+    const extrasList = budget.selectedFeatures.length > 0
+      ? budget.selectedFeatures.map((f) => `  • ${f.nome} (${f.formattedPreco})`).join('\n')
+      : '  • Nenhum recurso extra';
 
-    // 2. Mensagem em Espanhol
-    if (siteLanguage === 'es') {
-      const origin = getOriginText('es');
-      return `¡Hola NexaWeb! Me gustaría solicitar un proyecto de sitio web:
-- *Empresa/Negocio:* ${businessName || 'A definir'}
-- *Responsable:* ${contactName || 'No informado'}
-- *WhatsApp de Contacto:* ${contactWhatsapp || 'No informado'}
-- *Punto de Partida:* ${origin}
-- *Plan de Interés:* Plan ${planObj.nome} (${planObj.tagline})
-- *Idioma del Sitio Web:* 🇪🇸 Español
-- *Qué necesito:* ${description || 'Deseo más información y asesoramiento del equipo'}`;
-    }
-
-    // 3. Mensagem em Francês
-    if (siteLanguage === 'fr') {
-      const origin = getOriginText('fr');
-      return `Bonjour NexaWeb ! Je souhaite commander un projet de site web :
-- *Entreprise/Activité :* ${businessName || 'À définir'}
-- *Responsable :* ${contactName || 'Non renseigné'}
-- *WhatsApp de Contact :* ${contactWhatsapp || 'Non renseigné'}
-- *Point de Départ :* ${origin}
-- *Formule Envisagée :* Formule ${planObj.nome} (${planObj.tagline})
-- *Langue du Site Web :* 🇫🇷 Français
-- *Besoins :* ${description || 'Je souhaite plus d’informations et l’avis de l’équipe'}`;
-    }
-
-    // 4. Mensagem em Português de Portugal (PT-PT)
-    if (siteLanguage === 'pt-PT') {
-      const origin = getOriginText('pt-PT');
-      return `Olá NexaWeb! Gostaria de solicitar um projeto de sítio web:
-- *Empresa/Negócio:* ${businessName || 'A definir'}
-- *Responsável:* ${contactName || 'Não informado'}
-- *Telemóvel / WhatsApp de Contacto:* ${contactWhatsapp || 'Não informado'}
-- *Ponto de Partida:* ${origin}
-- *Plano de Interesse:* Plano ${planObj.nome} (${planObj.tagline})
-- *Idioma do Sítio Web:* 🇵🇹 Português (Portugal)
-- *O que necessito:* ${description || 'Quero mais informações e orientação da equipa'}`;
-    }
-
-    // 5. Mensagem Bilíngue (Português + English)
-    if (siteLanguage === 'pt-en') {
-      const originPt = getOriginText('pt-BR');
-      const originEn = getOriginText('en');
-      return `Olá NexaWeb! / Hello NexaWeb!
-Solicitação de Projeto de Site Bilíngue / Bilingual Website Project Request:
-- *Empresa / Company:* ${businessName || 'A definir / TBD'}
-- *Responsável / Contact:* ${contactName || 'Não informado / N/A'}
-- *WhatsApp:* ${contactWhatsapp || 'Não informado / N/A'}
-- *Ponto de Partida / Starting Point:* ${originPt} (${originEn})
-- *Plano / Plan:* ${planObj.nome} (${planObj.tagline})
-- *Idioma do Site / Website Language:* 🌎 Português + English (Bilíngue)
-- *O que preciso / What I need:* ${description || 'Quero mais informações e orientação da equipe / Seeking guidance'}`;
-    }
-
-    // 6. Outro Idioma
-    if (siteLanguage === 'other') {
-      const origin = getOriginText('pt-BR');
-      return `Olá NexaWeb! Gostaria de solicitar um projeto de site internacional:
+    return `Olá NexaWeb! Gostaria de solicitar uma proposta de site profissional:
 - *Empresa/Negócio:* ${businessName || 'Ainda a definir'}
 - *Responsável:* ${contactName || 'Não informado'}
 - *WhatsApp de Contato:* ${contactWhatsapp || 'Não informado'}
 - *Ponto de Partida:* ${origin}
-- *Plano de Interesse:* Plano ${planObj.nome} (${planObj.tagline})
-- *Idioma do Site:* 🌐 Outro idioma personalizado (a definir)
-- *O que preciso:* ${description || 'Quero alinhar os detalhes e idiomas com a equipe'}`;
-    }
-
-    // 7. Mensagem em Português Brasileiro (pt-BR - padrão)
-    const origin = getOriginText('pt-BR');
-    return `Olá NexaWeb! Gostaria de solicitar um projeto de site:
-- *Empresa/Negócio:* ${businessName || 'Ainda a definir'}
-- *Responsável:* ${contactName || 'Não informado'}
-- *WhatsApp de Contato:* ${contactWhatsapp || 'Não informado'}
-- *Ponto de Partida:* ${origin}
-- *Plano de Interesse:* Plano ${planObj.nome} (${planObj.tagline})
-- *Idioma do Site:* 🇧🇷 Português (Brasil)
-- *O que preciso:* ${description || 'Quero mais informações e orientação da equipe'}`;
+- *Plano Escolhido:* Plano ${planObj.nome} (${planObj.preco} • ${planObj.tagline})
+- *Recursos Extras Selecionados:*
+${extrasList}
+- *Orçamento Estimado:* ${budget.formattedTotalPrice}
+- *Idioma do Futuro Site:* ${getSiteLanguageLabel(siteLanguage)}
+- *Imagens/Anexos:* ${attachedFiles.length} foto(s) anexada(s)
+- *O que preciso / Necessidades:* ${description || 'Quero mais informações e orientação da equipe NexaWeb'}`;
   };
 
   const handleCopyBriefing = async () => {
@@ -241,7 +229,53 @@ Solicitação de Projeto de Site Bilíngue / Bilingual Website Project Request:
     window.open(whatsappUrl, '_blank');
   };
 
-  const currentSegmentLabel = segmentsOptions.find((s) => s.id === selectedSegment)?.label || selectedSegment;
+  // Envio integrado ao backend oficial da NexaWeb
+  const handleSubmitProject = async () => {
+    setIsSubmitting(true);
+    setSubmissionError(null);
+    setSubmissionSuccess(null);
+
+    const payload = {
+      empresa: businessName || 'A definir',
+      segmento: currentSegmentLabel,
+      plano: selectedPlan,
+      idiomaSite: siteLanguage,
+      responsavel: contactName || 'Não informado',
+      whatsapp: contactWhatsapp || 'Não informado',
+      necessidades: description || 'Proposta via NexaWeb App',
+      recursosSelecionados: selectedFeatureIds,
+      orcamentoEstimado: budget.formattedTotalPrice,
+      valorNumerico: budget.totalPrice,
+      origem: getOriginText(),
+    };
+
+    try {
+      // 1. Cria o briefing no backend
+      const res = await createBriefing(payload);
+      if (res.success && res.projectId) {
+        // 2. Se houver imagens anexadas, envia para o backend
+        if (attachedFiles.length > 0) {
+          await uploadBriefingImages(res.projectId, attachedFiles);
+        }
+
+        const message = res.isOfflineFallback
+          ? 'Código de referência gerado (modo offline). Para concluir, envie o resumo pelo WhatsApp abaixo.'
+          : 'Seu projeto foi enviado com sucesso para a equipe NexaWeb!';
+
+        setSubmissionSuccess({
+          projectId: res.projectId,
+          message,
+          isOfflineFallback: Boolean(res.isOfflineFallback),
+        });
+      } else {
+        setSubmissionError(res.error || 'Não foi possível concluir o envio automático. Você pode enviar pelo WhatsApp.');
+      }
+    } catch (err: any) {
+      setSubmissionError('Falha temporária de conexão com o servidor. Envie pelo WhatsApp para atendimento imediato.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="space-y-6 pb-20 animate-in fade-in duration-200">
@@ -252,15 +286,15 @@ Solicitação de Projeto de Site Bilíngue / Bilingual Website Project Request:
             {t.project.title}
           </h1>
           <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-            {t.project.badge}
+            Briefing & Orçamento
           </span>
         </div>
         <p className="text-xs text-slate-400">
-          {t.project.subtitle}
+          Personalize as preferências, selecione recursos oficiais e calcule o orçamento do seu site profissional.
         </p>
       </div>
 
-      {/* Step 1: Como prefere começar */}
+      {/* Step 1: Como prefere começar & Segmento */}
       <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3.5 shadow-sm">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 text-xs font-bold flex items-center justify-center border border-indigo-500/30">
@@ -278,7 +312,7 @@ Solicitação de Projeto de Site Bilíngue / Bilingual Website Project Request:
             onClick={() => setStartType('modelo')}
             className={`p-2.5 sm:p-3 rounded-xl border text-left flex flex-col justify-between transition-all ${
               startType === 'modelo'
-                ? 'bg-indigo-950/40 border-indigo-500 text-white shadow-sm'
+                ? 'bg-indigo-950/40 border-indigo-500 text-white shadow-sm ring-1 ring-indigo-500/40'
                 : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
             }`}
           >
@@ -295,7 +329,7 @@ Solicitação de Projeto de Site Bilíngue / Bilingual Website Project Request:
             onClick={() => setStartType('segmento')}
             className={`p-2.5 sm:p-3 rounded-xl border text-left flex flex-col justify-between transition-all ${
               startType === 'segmento'
-                ? 'bg-indigo-950/40 border-indigo-500 text-white shadow-sm'
+                ? 'bg-indigo-950/40 border-indigo-500 text-white shadow-sm ring-1 ring-indigo-500/40'
                 : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
             }`}
           >
@@ -312,7 +346,7 @@ Solicitação de Projeto de Site Bilíngue / Bilingual Website Project Request:
             onClick={() => setStartType('propria')}
             className={`p-2.5 sm:p-3 rounded-xl border text-left flex flex-col justify-between transition-all ${
               startType === 'propria'
-                ? 'bg-indigo-950/40 border-indigo-500 text-white shadow-sm'
+                ? 'bg-indigo-950/40 border-indigo-500 text-white shadow-sm ring-1 ring-indigo-500/40'
                 : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
             }`}
           >
@@ -326,51 +360,46 @@ Solicitação de Projeto de Site Bilíngue / Bilingual Website Project Request:
 
         {/* Detalhes da escolha */}
         {startType === 'modelo' && (
-          <div className="pt-2 border-t border-slate-800/80">
-            <label className="text-[11px] font-semibold text-slate-300 block mb-1.5">
+          <div className="pt-2 border-t border-slate-800/80 space-y-2">
+            <label className="text-[11px] font-semibold text-slate-300 block mb-1">
               {t.project.selectModelLabel}
             </label>
             <select
               value={selectedModel}
-              onChange={(e) => setSelectedModel(e.target.value)}
+              onChange={(e) => {
+                setSelectedModel(e.target.value);
+                setSelectedSegment(getSegmentByModelTitle(e.target.value));
+              }}
               className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
             >
               {portfolioProjects.map((p) => (
                 <option key={p.id} value={p.titulo}>
-                  {p.titulo}
+                  {p.titulo} ({p.categoria})
                 </option>
               ))}
             </select>
           </div>
         )}
 
-        {startType === 'segmento' && (
-          <div className="pt-2 border-t border-slate-800/80">
-            <label className="text-[11px] font-semibold text-slate-300 block mb-1.5">
-              {t.project.selectSegmentLabel}
-            </label>
-            <select
-              value={selectedSegment}
-              onChange={(e) => setSelectedSegment(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
-            >
-              {segmentsOptions.map((seg) => (
-                <option key={seg.id} value={seg.id}>
-                  {seg.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        {startType === 'propria' && (
-          <div className="pt-2 border-t border-slate-800/80 text-xs text-slate-400 leading-relaxed bg-slate-950/40 p-2.5 rounded-lg">
-            {t.project.customDesc}
-          </div>
-        )}
+        <div className="pt-2 border-t border-slate-800/80">
+          <label className="text-[11px] font-semibold text-slate-300 block mb-1.5">
+            Segmento de Atuação da Empresa:
+          </label>
+          <select
+            value={selectedSegment}
+            onChange={(e) => setSelectedSegment(e.target.value)}
+            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+          >
+            {segmentsOptions.map((seg) => (
+              <option key={seg.id} value={seg.id}>
+                {seg.label}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
-      {/* Step 2: Escolha do Plano */}
+      {/* Step 2: Escolha do Plano (Valores Oficiais) */}
       <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -410,18 +439,217 @@ Solicitação de Projeto de Site Bilíngue / Bilingual Website Project Request:
               >
                 <span className="text-xs font-bold block">{plan.nome}</span>
                 <span className="text-[10px] text-slate-400 block mt-0.5 truncate">{plan.preco}</span>
+                <span className="text-[9px] text-slate-500 font-mono block mt-0.5">{plan.prazo}</span>
               </button>
             );
           })}
         </div>
+
+        {selectedPlan === 'essencial' && (
+          <div className="p-2.5 rounded-xl bg-blue-950/30 border border-blue-500/30 text-[11px] text-blue-300 leading-relaxed">
+            💡 O plano <strong>Essencial (R$ 1.000)</strong> possui escopo fechado e enxuto. Caso deseje adicionar recursos extras, selecione o plano <strong>Profissional</strong> ou <strong>Personalizado</strong>.
+          </div>
+        )}
       </div>
 
-      {/* Step 3: Idioma do Site (Separado do Idioma do App) */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-sm">
+      {/* Step 3: Recursos Extras e Recomendações do Segmento */}
+      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3.5 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 text-xs font-bold flex items-center justify-center border border-indigo-500/30">
               3
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-white">
+                Recursos Extras & Recomendações
+              </h2>
+            </div>
+          </div>
+
+          <span className="text-[10px] font-mono text-cyan-400 font-bold">
+            {selectedFeatureIds.length} selecionado(s)
+          </span>
+        </div>
+
+        {/* 1. Sugestões de Recursos pelo Segmento Escolhido (Regra: apenas recomendação, seguem preço oficial) */}
+        {suggestedFeatures.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-300 uppercase tracking-wide">
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span>Sugeridos para {currentSegmentLabel}:</span>
+            </div>
+            <p className="text-[10px] text-slate-400">
+              Recursos recomendados para o seu nicho. Ao selecionar, o valor oficial do item é adicionado ao orçamento.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+              {suggestedFeatures.map((feat) => {
+                const isSelected = selectedFeatureIds.includes(feat.id);
+                const isRealtimeBlocked = feat.isRealtime && !budget.allowExtras;
+
+                return (
+                  <button
+                    key={feat.id}
+                    type="button"
+                    disabled={selectedPlan === 'essencial'}
+                    onClick={() => handleToggleFeature(feat)}
+                    className={`p-2.5 rounded-xl border text-left transition-all flex items-start justify-between gap-2 ${
+                      isSelected
+                        ? 'bg-amber-950/40 border-amber-500 text-white shadow-sm ring-1 ring-amber-500/40'
+                        : selectedPlan === 'essencial'
+                        ? 'bg-slate-950/30 border-slate-800/50 text-slate-500 opacity-60 cursor-not-allowed'
+                        : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700'
+                    }`}
+                  >
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-bold truncate">{feat.nome}</span>
+                        {feat.isRealtime && (
+                          <span className="text-[9px] px-1 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 font-mono">
+                            Realtime
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">{feat.descricao}</p>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <span className="text-xs font-bold font-mono text-cyan-400">
+                        + R$ {feat.preco}
+                      </span>
+                      <div className="mt-1 flex justify-end">
+                        <div
+                          className={`w-4 h-4 rounded-md border flex items-center justify-center transition-colors ${
+                            isSelected
+                              ? 'bg-amber-500 border-amber-400 text-slate-950'
+                              : 'border-slate-700 bg-slate-900'
+                          }`}
+                        >
+                          {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* 2. Catálogo Geral de Recursos Extras */}
+        <div className="pt-2 border-t border-slate-800/80">
+          <button
+            type="button"
+            onClick={() => setShowAllFeatures(!showAllFeatures)}
+            className="w-full flex items-center justify-between py-2 text-xs font-semibold text-slate-300 hover:text-white"
+          >
+            <span>Ver todos os recursos disponíveis (+R$150, +R$200, +R$300)</span>
+            {showAllFeatures ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </button>
+
+          {showAllFeatures && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
+              {OFFICIAL_EXTRA_FEATURES.map((feat) => {
+                const isSelected = selectedFeatureIds.includes(feat.id);
+                const isRealtime = feat.isRealtime;
+                const isRealtimeRestricted = isRealtime && (selectedPlan === 'essencial' || selectedPlan === 'profissional');
+
+                return (
+                  <button
+                    key={feat.id}
+                    type="button"
+                    disabled={selectedPlan === 'essencial' || isRealtimeRestricted}
+                    onClick={() => handleToggleFeature(feat)}
+                    className={`p-2.5 rounded-xl border text-left transition-all flex items-start justify-between gap-2 ${
+                      isSelected
+                        ? 'bg-indigo-950/40 border-indigo-500 text-white shadow-sm ring-1 ring-indigo-500/40'
+                        : isRealtimeRestricted || selectedPlan === 'essencial'
+                        ? 'bg-slate-950/30 border-slate-800/40 text-slate-500 opacity-60 cursor-not-allowed'
+                        : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700'
+                    }`}
+                  >
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-bold truncate">{feat.nome}</span>
+                        {isRealtime && (
+                          <span className="text-[9px] px-1 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 font-mono">
+                            Realtime
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">{feat.descricao}</p>
+                      {isRealtimeRestricted && (
+                        <span className="text-[9px] text-amber-400/90 block mt-0.5">
+                          Requer Personalizado ou Premium
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <span className="text-xs font-bold font-mono text-cyan-400">
+                        + R$ {feat.preco}
+                      </span>
+                      <div className="mt-1 flex justify-end">
+                        <div
+                          className={`w-4 h-4 rounded-md border flex items-center justify-center transition-colors ${
+                            isSelected
+                              ? 'bg-indigo-600 border-indigo-500 text-white'
+                              : 'border-slate-700 bg-slate-900'
+                          }`}
+                        >
+                          {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* 3. CARD DE ORÇAMENTO ESTIMADO EM TEMPO REAL */}
+        <div className="mt-3 p-3.5 rounded-xl bg-gradient-to-r from-indigo-950/60 via-slate-950 to-slate-950 border border-indigo-500/30 space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-slate-400">Plano Base ({budget.planName}):</span>
+            <span className="font-mono font-bold text-white">{budget.formattedBasePrice}</span>
+          </div>
+
+          {budget.extrasTotal > 0 && (
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-slate-400">Extras Selecionados ({budget.selectedFeatures.length}):</span>
+              <span className="font-mono font-bold text-cyan-400">{budget.formattedExtrasTotal}</span>
+            </div>
+          )}
+
+          <div className="pt-2 border-t border-slate-800 flex items-center justify-between">
+            <span className="text-xs font-bold text-white uppercase tracking-wider">
+              Orçamento Estimado:
+            </span>
+            <span className="text-base sm:text-lg font-black font-mono text-cyan-300">
+              {budget.formattedTotalPrice}
+            </span>
+          </div>
+
+          {budget.warnings.length > 0 && (
+            <div className="pt-1 text-[10px] text-amber-400 space-y-0.5">
+              {budget.warnings.map((w, idx) => (
+                <div key={idx} className="flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3 shrink-0" />
+                  <span>{w}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Step 4: Idioma do Site (Separado do Idioma do App) */}
+      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-sm">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 text-xs font-bold flex items-center justify-center border border-indigo-500/30">
+              4
             </div>
             <div className="flex items-center gap-1.5">
               <Globe2 className="w-4 h-4 text-cyan-400" />
@@ -466,18 +694,18 @@ Solicitação de Projeto de Site Bilíngue / Bilingual Website Project Request:
         </div>
       </div>
 
-      {/* Step 4: Informações do Negócio */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3.5 shadow-sm">
+      {/* Step 5: Informações do Negócio & Upload de Imagens */}
+      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-4 shadow-sm">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 text-xs font-bold flex items-center justify-center border border-indigo-500/30">
-            4
+            5
           </div>
           <h2 className="text-sm font-bold text-white">
             {t.project.step4Title}
           </h2>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-3.5">
           <div>
             <label className="text-[11px] font-semibold text-slate-300 block mb-1">
               {t.project.businessNameLabel}
@@ -504,7 +732,16 @@ Solicitação de Projeto de Site Bilíngue / Bilingual Website Project Request:
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          {/* Upload de Imagens Conforme Regras Comerciais (máx 6 imagens, máx 10 MB) */}
+          <div className="pt-2 border-t border-slate-800/80">
+            <ImageUploadField
+              files={attachedFiles}
+              onChange={setAttachedFiles}
+              disabled={isSubmitting}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 border-t border-slate-800/80">
             <div>
               <label className="text-[11px] font-semibold text-slate-300 block mb-1">
                 {t.project.yourNameLabel}
@@ -533,7 +770,7 @@ Solicitação de Projeto de Site Bilíngue / Bilingual Website Project Request:
         </div>
       </div>
 
-      {/* Step 5: Preview e Envio */}
+      {/* Step 6: Preview, Resumo e Envio */}
       <div className="bg-gradient-to-br from-indigo-950/60 via-slate-900 to-slate-900 border border-indigo-500/30 rounded-2xl p-4 space-y-3.5 shadow-lg">
         <div className="flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-cyan-400" />
@@ -546,47 +783,104 @@ Solicitação de Projeto de Site Bilíngue / Bilingual Website Project Request:
           {t.project.step5Desc}
         </p>
 
-        {/* Briefing summary preview box */}
+        {/* Resumo do Orçamento e Projeto */}
         <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-3 text-[11px] font-mono text-slate-300 space-y-1">
           <div className="text-cyan-400 font-semibold text-[10px] uppercase">{t.project.summaryTitle}</div>
-          <div>• {t.project.summaryCompany}: {businessName || t.project.toDefine}</div>
-          <div>• {t.project.summaryStartingPoint}: {startType === 'modelo' ? selectedModel : startType === 'segmento' ? currentSegmentLabel : t.project.customIdea}</div>
-          <div>• {t.project.summaryPlan}: {planObj.nome} ({planObj.tagline})</div>
-          <div>• {t.project.summaryLanguage}: {getSiteLanguageLabel(siteLanguage)}</div>
-          <div>• {t.project.summaryContact}: {contactName || t.project.notInformed} {contactWhatsapp ? `• ${contactWhatsapp}` : ''}</div>
+          <div>• Empresa: {businessName || 'A definir'}</div>
+          <div>• Segmento: {currentSegmentLabel}</div>
+          <div>• Ponto de Partida: {startType === 'modelo' ? selectedModel : startType === 'segmento' ? currentSegmentLabel : 'Ideia própria sob medida'}</div>
+          <div>• Plano: {planObj.nome} ({planObj.preco} • {planObj.prazo})</div>
+          <div>• Recursos Extras: {budget.selectedFeatures.length > 0 ? budget.selectedFeatures.map((f) => f.nome).join(', ') : 'Nenhum'}</div>
+          <div className="text-cyan-300 font-bold">• Orçamento Estimado: {budget.formattedTotalPrice}</div>
+          <div>• Idioma do Site: {getSiteLanguageLabel(siteLanguage)}</div>
+          <div>• Anexos: {attachedFiles.length} imagem(ns)</div>
+          <div>• Responsável: {contactName || 'Não informado'} {contactWhatsapp ? `• ${contactWhatsapp}` : ''}</div>
         </div>
 
-        <div className="pt-2 flex flex-col sm:flex-row gap-2.5">
-          <button
-            type="button"
-            onClick={handleSendWhatsapp}
-            className="min-h-[48px] flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-950/40 transition-all active:scale-[0.98]"
-          >
-            <MessageSquare className="w-4 h-4 fill-current" />
-            <span>{t.project.sendWhatsappBtn}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleCopyBriefing}
-            className={`min-h-[48px] py-3 px-4 rounded-xl font-semibold text-xs border transition-all flex items-center justify-center gap-1.5 active:scale-[0.98] ${
-              copied
-                ? 'bg-cyan-950/50 border-cyan-500 text-cyan-300'
-                : 'bg-slate-800 hover:bg-slate-750 border-slate-700 text-slate-300'
+        {/* Feedback de envio ou contingência offline */}
+        {submissionSuccess && (
+          <div
+            className={`p-3 rounded-xl border text-xs space-y-1 animate-in fade-in ${
+              submissionSuccess.isOfflineFallback
+                ? 'bg-amber-950/80 border-amber-500/50 text-amber-300'
+                : 'bg-emerald-950/80 border-emerald-500/50 text-emerald-300'
             }`}
           >
-            {copied ? (
-              <>
-                <Check className="w-4 h-4 text-cyan-400" />
-                <span>{t.project.copiedBtn}</span>
-              </>
-            ) : (
-              <>
-                <Copy className="w-4 h-4" />
-                <span>{t.project.copySummaryBtn}</span>
-              </>
-            )}
+            <div
+              className={`flex items-center gap-2 font-bold ${
+                submissionSuccess.isOfflineFallback ? 'text-amber-200' : 'text-emerald-200'
+              }`}
+            >
+              {submissionSuccess.isOfflineFallback ? (
+                <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
+              ) : (
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              )}
+              <span>{submissionSuccess.message}</span>
+            </div>
+            <p
+              className={`text-[11px] font-mono ${
+                submissionSuccess.isOfflineFallback ? 'text-amber-300/90' : 'text-emerald-300/90'
+              }`}
+            >
+              Código de Referência: <strong>{submissionSuccess.projectId}</strong>
+            </p>
+          </div>
+        )}
+
+        {/* Feedback de erro */}
+        {submissionError && (
+          <div className="p-3 rounded-xl bg-rose-950/80 border border-rose-500/50 text-rose-300 text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+            <span>{submissionError}</span>
+          </div>
+        )}
+
+        <div className="pt-2 flex flex-col gap-2.5">
+          {/* Botão de Envio Integrado ao Backend do NexaWeb Site */}
+          <button
+            type="button"
+            disabled={isSubmitting}
+            onClick={handleSubmitProject}
+            className="min-h-[48px] w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs shadow-lg shadow-indigo-950/40 transition-all active:scale-[0.98]"
+          >
+            <Send className="w-4 h-4" />
+            <span>{isSubmitting ? 'Registrando Projeto...' : 'Enviar Briefing para NexaWeb'}</span>
           </button>
+
+          {/* Botões de Ação Auxiliares: WhatsApp e Copiar Resumo */}
+          <div className="flex flex-col sm:flex-row gap-2">
+            <button
+              type="button"
+              onClick={handleSendWhatsapp}
+              className="min-h-[44px] flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-950/40 transition-all active:scale-[0.98]"
+            >
+              <MessageSquare className="w-4 h-4 fill-current" />
+              <span>Enviar pelo WhatsApp</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleCopyBriefing}
+              className={`min-h-[44px] py-2.5 px-4 rounded-xl font-semibold text-xs border transition-all flex items-center justify-center gap-1.5 active:scale-[0.98] ${
+                copied
+                  ? 'bg-cyan-950/50 border-cyan-500 text-cyan-300'
+                  : 'bg-slate-800 hover:bg-slate-750 border-slate-700 text-slate-300'
+              }`}
+            >
+              {copied ? (
+                <>
+                  <Check className="w-4 h-4 text-cyan-400" />
+                  <span>{t.project.copiedBtn}</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4" />
+                  <span>{t.project.copySummaryBtn}</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

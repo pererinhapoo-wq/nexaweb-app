@@ -106,6 +106,8 @@ export interface ProjectBriefingData {
   descricaoNecessidade: string;
   nomeContato: string;
   whatsappContato: string;
+  recursosExtras?: string[];
+  orcamentoEstimado?: string;
 }
 
 export type InterestOption =
