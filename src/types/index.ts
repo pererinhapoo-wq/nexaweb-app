@@ -106,7 +106,6 @@ export interface ProjectBriefingData {
   descricaoNecessidade: string;
   nomeContato: string;
   telefoneContato?: string;
-  whatsappContato?: string;
   recursosExtras?: string[];
   orcamentoEstimado?: string;
 }

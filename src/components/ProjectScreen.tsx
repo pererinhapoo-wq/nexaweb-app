@@ -231,20 +231,27 @@ ${extrasList}
     setSubmissionError(null);
     setSubmissionSuccess(null);
 
+    const briefingText = generateBriefingMessage();
+
     const payload = {
-      clientName: contactName || 'Não informado',
-      businessName: businessName || 'A definir',
-      empresa: businessName || 'A definir',
-      responsavel: contactName || 'Não informado',
+      clientName: contactName.trim() || 'Não informado',
+      businessName: businessName.trim() || 'A definir',
+      empresa: businessName.trim() || 'A definir',
+      responsavel: contactName.trim() || 'Não informado',
+      clientEmail: '',
+      clientPhone: contactPhone.trim(),
+      phone: contactPhone.trim(),
       segmento: currentSegmentLabel,
       plano: selectedPlan,
+      plan: selectedPlan,
       idiomaSite: siteLanguage,
-      whatsapp: contactPhone || 'Não informado',
-      necessidades: description || 'Proposta via NexaWeb App',
+      clientNotes: description.trim() || 'Proposta via NexaWeb App',
+      necessidades: description.trim() || 'Proposta via NexaWeb App',
       recursosSelecionados: selectedFeatureIds,
       orcamentoEstimado: budget.formattedTotalPrice,
       valorNumerico: budget.totalPrice,
       origem: getOriginText(),
+      briefingSummary: briefingText,
     };
 
     try {
@@ -754,13 +761,13 @@ ${extrasList}
             </div>
             <div>
               <label className="text-[11px] font-semibold text-slate-300 block mb-1">
-                {t.project.whatsappLabel}
+                {t.project.phoneLabel}
               </label>
               <input
                 type="tel"
                 value={contactPhone}
                 onChange={(e) => setContactPhone(e.target.value)}
-                placeholder={t.project.whatsappPlaceholder}
+                placeholder={t.project.phonePlaceholder}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-indigo-500"
               />
             </div>
@@ -904,6 +911,7 @@ ${extrasList}
               </a>
             </div>
           </div>
+        </div>
       </div>
     </div>
   );

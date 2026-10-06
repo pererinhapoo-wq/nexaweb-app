@@ -133,7 +133,7 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
         recursos: [
           'Humanized presentation of healthcare professionals',
           'Complete list of medical specialties and procedures',
-          'Direct triage and WhatsApp consultation scheduling',
+          'Direct triage and online consultation scheduling',
           'Interactive location map with parking and access info'
         ],
         corDestaque: 'from-indigo-600 via-sky-600 to-blue-900',
@@ -170,12 +170,12 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
         planoId: 'profissional',
         destaqueHome: true,
         descricaoCurta: 'Diseño visual refinado con presentación de tratamientos estéticos y botón de reservas ágil.',
-        descricaoCompleta: 'Creado para estudios de estética y salones de alto nivel. Muestra el catálogo de servicios, tratamientos capilares, galería de fotos y citas inmediatas por WhatsApp.',
+        descricaoCompleta: 'Creado para estudios de estética y salones de alto nivel. Muestra el catálogo de servicios, tratamientos capilares, galería de fotos y citas inmediatas por atención directa.',
         segmentoAlvo: 'Salones de belleza, centros de estética, maquilladoras y spas de lujo',
         tags: ['Diseño Exclusivo', 'Reserva Rápida', 'Catálogo Visual', 'Mobile First'],
         recursos: [
           'Exhibición elegante de tratamientos y servicios',
-          'Botones de reserva directa con mensaje preparado en WhatsApp',
+          'Botones de reserva directa con atención inmediata',
           'Diseño sobrio enfocado en transmitir distinción y confianza',
           'Carga ultra rápida en cualquier dispositivo móvil'
         ],
@@ -252,7 +252,7 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
         recursos: [
           'Presentación humanizada del equipo de facultativos',
           'Listado completo de especialidades y procedimientos',
-          'Canal de triaje y citas directas por WhatsApp',
+          'Canal de triaje y citas directas',
           'Ubicación con mapa interactivo y datos de acceso'
         ],
         corDestaque: 'from-indigo-600 via-sky-600 to-blue-900',
@@ -289,12 +289,12 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
         planoId: 'profissional',
         destaqueHome: true,
         descricaoCurta: 'Mise en page raffinée mettant en valeur les soins esthétiques avec prise de rendez-vous instantanée.',
-        descricaoCompleta: 'Conçu pour instituts de beauté et salons haut de gamme. Présente la carte des soins, coiffure, galerie de transformations et intégration WhatsApp.',
+        descricaoCompleta: 'Conçu pour instituts de beauté et salons haut de gamme. Présente la carte des soins, coiffure, galerie de transformations et intégration directe de contact.',
         segmentoAlvo: 'Instituts de beauté, salons de coiffure, maquilleuses et spas de luxe',
         tags: ['Design Raffiné', 'Réservation Simple', 'Vitrine de Soins', 'Mobile First'],
         recursos: [
           'Présentation élégante des soins et prestations',
-          'Boutons de réservation directe via WhatsApp',
+          'Boutons de réservation directe',
           'Atmosphère soignée instaurant confiance et prestige',
           'Temps de chargement ultra rapide sur tous smartphones'
         ],
@@ -371,7 +371,7 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
         recursos: [
           'Présentation humaine et professionnelle de l’équipe',
           'Liste exhaustive des spécialités et actes dispensés',
-          'Orientation et prise de contact WhatsApp pour consultation',
+          'Orientation et prise de contact directe pour consultation',
           'Plan interactif avec accès transports et parking'
         ],
         corDestaque: 'from-indigo-600 via-sky-600 to-blue-900',
@@ -413,7 +413,7 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
         tags: ['Design Sofisticado', 'Marcação Fácil', 'Galeria de Serviços', 'Mobile First'],
         recursos: [
           'Exibição visual elegante dos tratamentos e serviços',
-          'Botões de marcação direta com mensagem pronta no WhatsApp',
+          'Botões de marcação direta com atendimento rápido',
           'Design clean com foco em transmitir luxo e confiança',
           'Carregamento ultra veloz em qualquer ligação móvel'
         ],
@@ -490,7 +490,7 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
         recursos: [
           'Apresentação humanizada dos profissionais de saúde',
           'Lista de especialidades e procedimentos realizados',
-          'Canal de triagem e marcação de consultas por WhatsApp',
+          'Canal de triagem e marcação de consultas direta',
           'Localização com mapa interativo e informações de acesso'
         ],
         corDestaque: 'from-indigo-600 via-sky-600 to-blue-900',
