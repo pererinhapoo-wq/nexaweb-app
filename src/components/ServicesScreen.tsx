@@ -1,24 +1,53 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ViewTab } from '../types';
 import { getNexawebPlans } from '../data/servicesData';
 import { getPortfolioProjects } from '../data/portfolioData';
-import { Check, Sparkles, ArrowRight, Shield, Clock, ExternalLink } from 'lucide-react';
+import {
+  Check,
+  Sparkles,
+  ArrowRight,
+  Shield,
+  Clock,
+  ExternalLink,
+  ArrowLeft,
+  ChevronDown,
+} from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 
 interface ServicesScreenProps {
   onSelectPlan: (planId: string) => void;
   onNavigate: (tab: ViewTab) => void;
+  onBack?: () => void;
   onSelectProjectForBriefing?: (projectTitle: string) => void;
 }
 
 export const ServicesScreen: React.FC<ServicesScreenProps> = ({
   onSelectPlan,
   onNavigate,
-  onSelectProjectForBriefing,
+  onBack,
 }) => {
-  const { language, t } = useTranslation();
+  const { language } = useTranslation();
   const plans = getNexawebPlans(language);
   const allProjects = getPortfolioProjects(language);
+
+  // Controle local dos acordeões "Ver o que está incluído" por plano
+  // Não recarrega a página, não altera scroll e mantém posição no mobile
+  const [expandedPlans, setExpandedPlans] = useState<Record<string, boolean>>({});
+
+  const togglePlanExpanded = (planId: string) => {
+    setExpandedPlans((prev) => ({
+      ...prev,
+      [planId]: !prev[planId],
+    }));
+  };
+
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      onNavigate('home');
+    }
+  };
 
   const getThemeStyles = (planId: string) => {
     switch (planId) {
@@ -59,141 +88,179 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
   };
 
   return (
-    <div className="space-y-6 pb-20 animate-in fade-in duration-200">
-      {/* Header */}
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          <h1 className="text-xl font-extrabold text-white tracking-tight">
-            {t.services.title}
-          </h1>
-          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-            Oficiais NexaWeb
-          </span>
-        </div>
-        <p className="text-xs text-slate-400">
-          {t.services.subtitle}
-        </p>
+    <div className="space-y-4 pb-24 animate-in fade-in duration-150 overflow-x-hidden">
+      {/* 1. Barra Contextual com Botão Voltar */}
+      <div className="flex items-center justify-between pb-1 border-b border-slate-800/80">
+        <button
+          type="button"
+          onClick={handleBack}
+          className="min-h-[44px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors text-xs font-semibold active:scale-95"
+          aria-label="Voltar para a tela anterior"
+        >
+          <ArrowLeft className="w-4 h-4 text-cyan-400" />
+          <span>Voltar</span>
+        </button>
+
+        <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+          Oficiais NexaWeb
+        </span>
       </div>
 
-      {/* Plans List */}
-      <div className="space-y-6">
+      {/* 2. Header Compacto */}
+      <section className="pt-0.5">
+        <h1 className="text-base sm:text-lg font-bold text-white tracking-tight">
+          Serviços & Planos
+        </h1>
+        <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
+          Escolha o modelo ideal para fortalecer a presença digital da sua marca.
+        </p>
+      </section>
+
+      {/* 3. Cards dos Planos Oficiais */}
+      <div className="space-y-4">
         {plans.map((plan) => {
           const theme = getThemeStyles(plan.id);
+          const isExpanded = Boolean(expandedPlans[plan.id]);
 
           // Projetos reais relacionados a este plano
           const relatedProjects = (plan.projetosRelacionados || [])
             .map((pId) => allProjects.find((proj) => proj.id === pId))
             .filter(Boolean);
 
+          // Mostra os primeiros 3 recursos no modo compacto e todos no modo expandido
+          const visibleFeatures = isExpanded ? plan.recursos : plan.recursos.slice(0, 3);
+
           return (
             <div
               key={plan.id}
-              className={`relative rounded-2xl bg-slate-900 border ${theme.cardBorder} p-5 transition-all duration-150 shadow-xl`}
+              className={`relative rounded-2xl bg-slate-900 border ${theme.cardBorder} p-4 sm:p-5 transition-all duration-150 shadow-lg overflow-hidden`}
             >
               {/* Highlight badge para o Profissional */}
               {plan.destaque && (
-                <div className="absolute -top-3 right-4 inline-flex items-center gap-1 px-3 py-0.5 rounded-full bg-amber-500 text-slate-950 text-[10px] font-black uppercase tracking-wider shadow-md shadow-amber-950">
+                <div className="absolute top-3 right-3 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500 text-slate-950 text-[9.5px] font-black uppercase tracking-wider shadow-md shadow-amber-950">
                   <Sparkles className="w-3 h-3 text-slate-950 fill-current" />
                   <span>Mais Escolhido</span>
                 </div>
               )}
 
-              {/* Cabeçalho do Plano com Preço e Prazo */}
-              <div className="flex items-start justify-between gap-3 mb-2">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-black text-white tracking-tight">
-                      {plan.nome}
-                    </h2>
-                    <span
-                      className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border ${theme.badgeBg}`}
-                    >
-                      {plan.id}
-                    </span>
-                  </div>
-                  <p className="text-xs font-semibold text-slate-300 mt-0.5">
-                    {plan.tagline}
-                  </p>
-                </div>
-
-                <div className="text-right shrink-0">
-                  <div className={`text-base sm:text-lg font-black font-mono ${theme.priceColor}`}>
-                    {plan.preco}
-                  </div>
-                  {plan.prazo && (
-                    <div className="text-[10px] text-slate-400 font-mono flex items-center justify-end gap-1 mt-0.5">
-                      <Clock className="w-3 h-3 text-slate-500" />
-                      <span>{plan.prazo}</span>
-                    </div>
-                  )}
-                </div>
+              {/* Cabeçalho do Card: Nome e Tag */}
+              <div className="flex items-center gap-2 mb-1">
+                <h2 className="text-base sm:text-lg font-black text-white tracking-tight">
+                  {plan.nome}
+                </h2>
+                <span
+                  className={`text-[9.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border ${theme.badgeBg}`}
+                >
+                  {plan.id}
+                </span>
               </div>
 
-              {/* Descrição */}
-              <p className="text-xs text-slate-400 leading-relaxed mt-2">
+              {/* Preço e Prazo em destaque */}
+              <div className="flex items-baseline justify-between gap-2 my-2 py-1.5 px-3 rounded-xl bg-slate-950/60 border border-slate-800/80">
+                <span className={`text-base sm:text-lg font-black font-mono ${theme.priceColor}`}>
+                  {plan.preco}
+                </span>
+                {plan.prazo && (
+                  <span className="text-[10.5px] text-slate-400 font-mono flex items-center gap-1">
+                    <Clock className="w-3 h-3 text-slate-500" />
+                    <span>{plan.prazo}</span>
+                  </span>
+                )}
+              </div>
+
+              {/* Tagline / Subtítulo Oficial */}
+              <p className="text-xs font-semibold text-slate-200 mt-1">
+                {plan.tagline}
+              </p>
+
+              {/* Descrição curta */}
+              <p className="text-[11.5px] text-slate-400 leading-relaxed mt-1">
                 {plan.descricao}
               </p>
 
-              {/* Lista de Recursos Inclusos */}
-              <div className="mt-4 pt-3 border-t border-slate-800/80 space-y-2">
-                <span className="text-[11px] font-semibold text-slate-300 block">
-                  O que está incluso:
+              {/* Principais Recursos Inclusos */}
+              <div className="mt-3 pt-3 border-t border-slate-800/80 space-y-1.5">
+                <span className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 block">
+                  Principais recursos:
                 </span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {plan.recursos.map((rec, i) => (
+                <div className="space-y-1.5">
+                  {visibleFeatures.map((rec, i) => (
                     <div key={i} className="flex items-start gap-2 text-xs text-slate-300">
                       <div className="w-4 h-4 rounded-full bg-slate-800 flex items-center justify-center shrink-0 mt-0.5">
                         <Check className={`w-3 h-3 ${theme.iconColor}`} />
                       </div>
-                      <span>{rec}</span>
+                      <span className="leading-snug break-words">{rec}</span>
                     </div>
                   ))}
                 </div>
+
+                {/* Ação: "Ver o que está incluído" (expande sem scroll jump e sem recarregar tela) */}
+                <div className="pt-1.5">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      togglePlanExpanded(plan.id);
+                    }}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-cyan-400 hover:text-cyan-300 active:scale-95 transition-all py-1"
+                    aria-expanded={isExpanded}
+                  >
+                    <span>{isExpanded ? 'Ocultar detalhes' : 'Ver o que está incluído'}</span>
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                        isExpanded ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </button>
+                </div>
               </div>
 
-              {/* 6. PROJETOS RELACIONADOS AO PLANO */}
-              {relatedProjects.length > 0 && (
-                <div className="mt-4 pt-3 border-t border-slate-800/80 space-y-2">
-                  <span className="text-[11px] font-semibold text-slate-300 block">
+              {/* Demonstrações / Projetos reais deste plano (exibidos quando expandido) */}
+              {isExpanded && relatedProjects.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-slate-800/80 space-y-2 animate-in fade-in duration-150">
+                  <span className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 block">
                     Demonstrações reais deste plano:
                   </span>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div className="space-y-2">
                     {relatedProjects.map((relProj) => (
                       <div
                         key={relProj!.id}
-                        className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800 flex items-center justify-between gap-2"
+                        className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-1"
                       >
-                        <div className="min-w-0">
+                        <div className="flex items-center justify-between gap-2">
                           <p className="text-xs font-bold text-white truncate">
                             {relProj!.titulo}
                           </p>
-                          <span className="text-[10px] text-slate-400 truncate block">
-                            {relProj!.segmentoAlvo}
+                          <span className="text-[10px] text-cyan-400 font-semibold truncate shrink-0">
+                            {relProj!.categoria}
                           </span>
                         </div>
 
-                        <a
-                          href={relProj!.linkDemo}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-750 text-cyan-300 hover:text-cyan-200 text-[11px] font-semibold flex items-center gap-1 border border-slate-700 transition-colors shrink-0"
-                          title="Abrir site de demonstração"
-                        >
-                          <span>Ver site</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
+                        {/* URL real clicável (sem botão "Ver site") */}
+                        <div>
+                          <a
+                            href={relProj!.linkDemo}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-cyan-400 hover:text-cyan-300 underline font-mono text-[11px] break-all inline-flex items-center gap-1 transition-colors"
+                          >
+                            <span>{relProj!.linkDemo}</span>
+                            <ExternalLink className="w-3 h-3 shrink-0" />
+                          </a>
+                        </div>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Botão de Solicitação do Plano */}
-              <div className="mt-5 pt-2">
+              {/* Botão de Solicitação do Plano (CTA Existente) */}
+              <div className="mt-4 pt-2">
                 <button
                   type="button"
                   onClick={() => onSelectPlan(plan.id)}
-                  className={`min-h-[46px] w-full py-3 px-4 rounded-xl text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2 active:scale-[0.98] ${theme.btnBg}`}
+                  className={`min-h-[46px] w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2 active:scale-[0.98] ${theme.btnBg}`}
                 >
                   <span>Solicitar Plano {plan.nome}</span>
                   <ArrowRight className="w-4 h-4" />
@@ -205,13 +272,13 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
       </div>
 
       {/* Caixa de Garantia & Dúvidas */}
-      <div className="rounded-xl bg-slate-900/60 border border-slate-800 p-4 space-y-2">
-        <div className="flex items-center gap-2 text-xs font-semibold text-slate-300">
-          <Shield className="w-4 h-4 text-indigo-400" />
-          <span>{t.services.questionsTitle}</span>
+      <div className="rounded-2xl bg-slate-900 border border-slate-800 p-4 space-y-1.5 shadow-sm">
+        <div className="flex items-center gap-2 text-xs font-bold text-white">
+          <Shield className="w-4 h-4 text-cyan-400" />
+          <span>Dúvidas sobre qual plano escolher?</span>
         </div>
-        <p className="text-xs text-slate-400 leading-relaxed">
-          {t.services.questionsDesc}
+        <p className="text-[11.5px] text-slate-400 leading-relaxed">
+          Nossa equipe analisa as necessidades do seu negócio para sugerir a melhor estrutura técnica e visual para o seu projeto.
         </p>
       </div>
     </div>

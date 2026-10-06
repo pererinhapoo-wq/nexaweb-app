@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation, LanguageOption } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { Language, ThemeMode, AnimationMode } from '../types';
@@ -34,10 +34,18 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onOpenLanguageMo
 
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
 
   const showToast = (msg: string) => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     setToastMessage(msg);
-    setTimeout(() => {
+    toastTimerRef.current = setTimeout(() => {
       setToastMessage(null);
     }, 2400);
   };

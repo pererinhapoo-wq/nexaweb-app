@@ -8,7 +8,7 @@ interface BottomNavProps {
   onNavigate: (tab: ViewTab) => void;
 }
 
-export const BottomNav: React.FC<BottomNavProps> = ({
+export const BottomNav: React.FC<BottomNavProps> = React.memo(({
   currentTab,
   onNavigate,
 }) => {
@@ -70,4 +70,6 @@ export const BottomNav: React.FC<BottomNavProps> = ({
       </div>
     </nav>
   );
-};
+});
+
+BottomNav.displayName = 'BottomNav';

@@ -12,7 +12,7 @@ interface HeaderProps {
   canGoBack?: boolean;
 }
 
-export const Header: React.FC<HeaderProps> = ({
+export const Header: React.FC<HeaderProps> = React.memo(({
   currentTab,
   onNavigate,
   onOpenMenu,
@@ -103,4 +103,6 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
     </header>
   );
-};
+});
+
+Header.displayName = 'Header';

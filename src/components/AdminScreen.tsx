@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { ClientProject, ClientRequest } from '../types';
 import {
   getAllProjects,
@@ -51,6 +51,13 @@ export const AdminScreen: React.FC = () => {
   } | null>(null);
   const [replyText, setReplyText] = useState('');
   const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
+  const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     async function checkAuth() {
@@ -112,7 +119,8 @@ export const AdminScreen: React.FC = () => {
     await loadProjects();
     setEditingProject(null);
     setFeedbackMsg('Projeto atualizado com sucesso!');
-    setTimeout(() => setFeedbackMsg(null), 3000);
+    if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
+    feedbackTimerRef.current = setTimeout(() => setFeedbackMsg(null), 3000);
   };
 
   const openReplyModal = (projectId: string, req: ClientRequest) => {
@@ -134,23 +142,27 @@ export const AdminScreen: React.FC = () => {
     setReplyingRequest(null);
     setReplyText('');
     setFeedbackMsg('Resposta enviada ao cliente com sucesso!');
-    setTimeout(() => setFeedbackMsg(null), 3000);
+    if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
+    feedbackTimerRef.current = setTimeout(() => setFeedbackMsg(null), 3000);
   };
 
-  // Coleta todas as solicitações para a visão de lista do Admin
-  const allRequests: { projectId: string; projectName: string; clientName: string; req: ClientRequest }[] = [];
-  projects.forEach((p) => {
-    if (p.solicitacoes) {
-      p.solicitacoes.forEach((r) => {
-        allRequests.push({
-          projectId: p.id,
-          projectName: p.nomeProjeto,
-          clientName: p.nomeCliente,
-          req: r,
+  // Coleta todas as solicitações para a visão de lista do Admin (memoizado para evitar re-computações)
+  const allRequests = useMemo(() => {
+    const list: { projectId: string; projectName: string; clientName: string; req: ClientRequest }[] = [];
+    projects.forEach((p) => {
+      if (p.solicitacoes) {
+        p.solicitacoes.forEach((r) => {
+          list.push({
+            projectId: p.id,
+            projectName: p.nomeProjeto,
+            clientName: p.nomeCliente,
+            req: r,
+          });
         });
-      });
-    }
-  });
+      }
+    });
+    return list;
+  }, [projects]);
 
   return (
     <div className="space-y-5 pb-20 animate-in fade-in duration-200">

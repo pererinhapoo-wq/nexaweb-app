@@ -1,6 +1,8 @@
 import { ServicePlan, Language } from '../types';
 
-export const getNexawebPlans = (lang: Language = 'pt-BR'): ServicePlan[] => {
+const plansCache: Partial<Record<Language, ServicePlan[]>> = {};
+
+function buildNexawebPlans(lang: Language = 'pt-BR'): ServicePlan[] {
   if (lang === 'en') {
     return [
       {
@@ -369,12 +371,12 @@ export const getNexawebPlans = (lang: Language = 'pt-BR'): ServicePlan[] => {
     {
       id: 'profissional',
       nome: 'PROFISSIONAL',
-      tagline: 'Mais recursos para o seu negócio',
+      tagline: 'Mais recursos e autoridade para fortalecer sua marca no mercado',
       preco: 'R$ 1.700',
       prazo: '5–8 dias',
       corIdentidade: 'dourado',
       destaque: true,
-      descricao: 'Mais recursos para o seu negócio. A escolha mais procurada por empresas para gerar autoridade e atrair clientes.',
+      descricao: 'Mais recursos e autoridade para fortalecer sua marca no mercado. A escolha mais procurada por empresas para gerar autoridade e atrair clientes.',
       recursos: [
         'Estrutura mais completa',
         'Seções estratégicas',
@@ -391,11 +393,11 @@ export const getNexawebPlans = (lang: Language = 'pt-BR'): ServicePlan[] => {
     {
       id: 'personalizado',
       nome: 'PERSONALIZADO',
-      tagline: 'Um projeto feito para você',
+      tagline: 'Um projeto sob medida criado de acordo com as necessidades do seu negócio',
       preco: 'A partir de R$ 2.800',
       prazo: 'Conforme escopo',
       corIdentidade: 'roxo',
-      descricao: 'Um projeto feito para você. Estrutura sob medida, visual exclusivo e suporte consultivo da NexaWeb.',
+      descricao: 'Um projeto sob medida criado de acordo com as necessidades do seu negócio. Estrutura sob medida, visual exclusivo e suporte consultivo da NexaWeb.',
       recursos: [
         'Visual personalizado',
         'Identidade visual sob medida',
@@ -410,11 +412,11 @@ export const getNexawebPlans = (lang: Language = 'pt-BR'): ServicePlan[] => {
     {
       id: 'premium',
       nome: 'PREMIUM',
-      tagline: 'Experiência digital de alto impacto',
+      tagline: 'A experiência máxima de sofisticação visual, tecnologia e exclusividade',
       preco: 'A partir de R$ 4.500',
-      prazo: 'Atendimento VIP',
+      prazo: 'VIP / conforme escopo',
       corIdentidade: 'dourado',
-      descricao: 'Experiência digital de alto impacto. Direção de arte exclusiva, microinterações e máxima autoridade de mercado.',
+      descricao: 'A experiência máxima de sofisticação visual, tecnologia e exclusividade. Direção de arte exclusiva, microinterações e máxima autoridade de mercado.',
       recursos: [
         'Direção de arte refinada',
         'Apresentação premium',
@@ -427,6 +429,13 @@ export const getNexawebPlans = (lang: Language = 'pt-BR'): ServicePlan[] => {
       projetosRelacionados: ['demo-clinica-saude']
     }
   ];
+}
+
+export const getNexawebPlans = (lang: Language = 'pt-BR'): ServicePlan[] => {
+  if (!plansCache[lang]) {
+    plansCache[lang] = buildNexawebPlans(lang);
+  }
+  return plansCache[lang]!;
 };
 
 export const NEXAWEB_PLANS = getNexawebPlans('pt-BR');

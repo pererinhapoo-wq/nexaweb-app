@@ -53,18 +53,24 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
 
   // Trava de scroll no body sem causar salto de layout ou scroll
   useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null;
     if (isOpen) {
       document.body.style.overflow = 'hidden';
       setIsRendered(true);
     } else {
       document.body.style.overflow = '';
-      const timer = setTimeout(() => {
+      timer = setTimeout(() => {
         if (!isOpen && !isDraggingRef.current) {
           setIsRendered(false);
         }
       }, 250);
-      return () => clearTimeout(timer);
     }
+    return () => {
+      if (timer) clearTimeout(timer);
+      if (isOpen) {
+        document.body.style.overflow = '';
+      }
+    };
   }, [isOpen]);
 
   // Sincroniza posição visual com a prop isOpen quando não estiver arrastando

@@ -19,24 +19,29 @@ export const getPortfolioCategories = (lang: Language = 'pt-BR'): PortfolioCateg
 
   // pt-BR, pt-PT, es, fr padrão
   return [
-    { id: 'todos', nome: 'Todos' },
+    { id: 'todos', nome: 'Todos os Segmentos' },
     { id: 'beleza-estetica', nome: 'Beleza & Estética' },
     { id: 'saude-fitness', nome: 'Saúde & Fitness' },
     { id: 'imobiliario', nome: 'Imobiliário' },
-    { id: 'gastronomia', nome: 'Gastronomia' },
+    { id: 'gastronomia', nome: 'Gastronomy / Restaurante' },
     { id: 'arquitetura', nome: 'Arquitetura' },
     { id: 'tecnologia', nome: 'Tecnologia' },
     { id: 'pet', nome: 'Pet Shop' },
     { id: 'engenharia', nome: 'Engenharia' },
-    { id: 'comercio', nome: 'Comércio' },
+    { id: 'comercio', nome: 'Comércio & Loja' },
     { id: 'juridico', nome: 'Jurídico' },
   ];
 };
 
+const projectsCache: Partial<Record<Language, PortfolioProject[]>> = {};
+
 export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject[] => {
+  if (projectsCache[lang]) {
+    return projectsCache[lang]!;
+  }
   // 13 Demonstrações Oficiais Verificadas (Essencial, Profissional e Premium)
-  // Nota: Projetos Personalizados são criados sob medida para o cliente e não possuem demos fixas.
-  return [
+  // Imagens reais de cada segmento em alta resolução e carregamento veloz
+  const projects: PortfolioProject[] = [
     // ----------------------------------------------------
     // 1. ESSENCIAL (1 projeto oficial)
     // ----------------------------------------------------
@@ -58,9 +63,10 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
       ],
       corDestaque: 'from-amber-600 via-orange-600 to-stone-800',
       linkDemo: 'https://king-s-barber-2-yn3c.vercel.app/',
+      imagemUrl: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=800&q=80',
       imagens: [
-        'https://image.thum.io/get/width/900/crop/550/noanimate/https://king-s-barber-2-yn3c.vercel.app/',
-        'https://image.thum.io/get/width/420/crop/650/noanimate/https://king-s-barber-2-yn3c.vercel.app/'
+        'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=800&q=80'
       ]
     },
 
@@ -85,9 +91,10 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
       ],
       corDestaque: 'from-pink-600 via-rose-500 to-amber-500',
       linkDemo: 'https://sal-o-premium.vercel.app/',
+      imagemUrl: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=800&q=80',
       imagens: [
-        'https://image.thum.io/get/width/900/crop/550/noanimate/https://sal-o-premium.vercel.app/',
-        'https://image.thum.io/get/width/420/crop/650/noanimate/https://sal-o-premium.vercel.app/'
+        'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=800&q=80'
       ]
     },
     {
@@ -107,7 +114,12 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
         'Otimização completa para visualização em smartphones'
       ],
       corDestaque: 'from-stone-700 via-zinc-800 to-cyan-900',
-      linkDemo: 'https://nexaweb-nova-arq-1.vercel.app/'
+      linkDemo: 'https://nexaweb-nova-arq-1.vercel.app/',
+      imagemUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
+      imagens: [
+        'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=800&q=80'
+      ]
     },
     {
       id: 'demo-lumiere',
@@ -126,7 +138,12 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
         'Navegação intuitiva com carregamento rápido'
       ],
       corDestaque: 'from-rose-600 via-pink-500 to-purple-800',
-      linkDemo: 'https://nexaweb-lumiere.vercel.app/'
+      linkDemo: 'https://nexaweb-lumiere.vercel.app/',
+      imagemUrl: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=800&q=80',
+      imagens: [
+        'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80'
+      ]
     },
     {
       id: 'demo-vertex-digital',
@@ -145,7 +162,12 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
         'Design moderno com microinterações refinadas'
       ],
       corDestaque: 'from-indigo-600 via-blue-600 to-cyan-700',
-      linkDemo: 'https://nexaweb-vertex-digital.vercel.app/'
+      linkDemo: 'https://nexaweb-vertex-digital.vercel.app/',
+      imagemUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80',
+      imagens: [
+        'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80'
+      ]
     },
     {
       id: 'demo-pet-shop',
@@ -164,7 +186,12 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
         'Localização no mapa e horários de plantão'
       ],
       corDestaque: 'from-amber-500 via-emerald-600 to-teal-800',
-      linkDemo: 'https://pet-shop-personalidade-e-profission.vercel.app/'
+      linkDemo: 'https://pet-shop-personalidade-e-profission.vercel.app/',
+      imagemUrl: 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=800&q=80',
+      imagens: [
+        'https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?auto=format&fit=crop&w=800&q=80'
+      ]
     },
     {
       id: 'demo-restaurante-premium',
@@ -183,7 +210,12 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
         'Horários de funcionamento e localização GPS'
       ],
       corDestaque: 'from-orange-600 via-amber-600 to-red-700',
-      linkDemo: 'https://restaurante-premium-delta.vercel.app/'
+      linkDemo: 'https://restaurante-premium-delta.vercel.app/',
+      imagemUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80',
+      imagens: [
+        'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80'
+      ]
     },
 
     // ----------------------------------------------------
@@ -206,7 +238,12 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
         'Design dinâmico otimizado para celulares'
       ],
       corDestaque: 'from-cyan-600 via-blue-600 to-indigo-800',
-      linkDemo: 'https://academia-premium-beryl.vercel.app/'
+      linkDemo: 'https://academia-premium-beryl.vercel.app/',
+      imagemUrl: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80',
+      imagens: [
+        'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=800&q=80'
+      ]
     },
     {
       id: 'demo-engenharia-premium',
@@ -225,7 +262,12 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
         'Responsividade técnica com carregamento fluido'
       ],
       corDestaque: 'from-blue-700 via-indigo-800 to-slate-900',
-      linkDemo: 'https://engenharia-premium.vercel.app/'
+      linkDemo: 'https://engenharia-premium.vercel.app/',
+      imagemUrl: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=800&q=80',
+      imagens: [
+        'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=800&q=80'
+      ]
     },
     {
       id: 'demo-imobiliaria-premium',
@@ -244,7 +286,12 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
         'Botões de atendimento direto para corretores credenciados'
       ],
       corDestaque: 'from-emerald-600 via-teal-600 to-slate-800',
-      linkDemo: 'https://imobili-ria-premium.vercel.app/'
+      linkDemo: 'https://imobili-ria-premium.vercel.app/',
+      imagemUrl: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80',
+      imagens: [
+        'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80'
+      ]
     },
     {
       id: 'demo-loja-premium',
@@ -263,7 +310,12 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
         'Navegação rápida sem travamentos no celular'
       ],
       corDestaque: 'from-purple-600 via-pink-600 to-rose-800',
-      linkDemo: 'https://loja-premium.vercel.app/'
+      linkDemo: 'https://loja-premium.vercel.app/',
+      imagemUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80',
+      imagens: [
+        'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1472851294608-062f824d29cc?auto=format&fit=crop&w=800&q=80'
+      ]
     },
     {
       id: 'demo-clinica-saude',
@@ -282,7 +334,12 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
         'Endereço com mapa interativo e informações de acesso'
       ],
       corDestaque: 'from-indigo-600 via-sky-600 to-blue-900',
-      linkDemo: 'https://grok-workspace-1-three-alpha.vercel.app/'
+      linkDemo: 'https://grok-workspace-1-three-alpha.vercel.app/',
+      imagemUrl: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80',
+      imagens: [
+        'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=800&q=80'
+      ]
     },
     {
       id: 'demo-grok-workspace-puce',
@@ -301,9 +358,16 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
         'Design sóbrio e elegante que reforça a confiança do cliente'
       ],
       corDestaque: 'from-amber-700 via-stone-800 to-slate-900',
-      linkDemo: 'https://grok-workspace-puce.vercel.app/'
+      linkDemo: 'https://grok-workspace-puce.vercel.app/',
+      imagemUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
+      imagens: [
+        'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=800&q=80'
+      ]
     }
   ];
+  projectsCache[lang] = projects;
+  return projects;
 };
 
 export const PORTFOLIO_CATEGORIES = getPortfolioCategories('pt-BR');

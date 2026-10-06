@@ -10,8 +10,6 @@ import {
   Tag,
   ShieldCheck,
   Send,
-  ChevronLeft,
-  ChevronRight,
   Check,
 } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
@@ -29,16 +27,16 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  // 1. Lista de Imagens Reais estável com useMemo (Suporte a imagem única ou múltiplas perspectivas)
+  // 1. Lista de Imagens Reais do segmento
   const imageList = useMemo(() => {
-    const defaultCaptureUrl =
-      project.imagemUrl ||
-      `https://image.thum.io/get/width/900/crop/550/noanimate/${project.linkDemo}`;
-
-    return project.imagens && project.imagens.length > 0
-      ? project.imagens
-      : [defaultCaptureUrl];
-  }, [project.imagemUrl, project.linkDemo, project.imagens]);
+    if (project.imagens && project.imagens.length > 0) {
+      return project.imagens;
+    }
+    if (project.imagemUrl) {
+      return [project.imagemUrl];
+    }
+    return ['https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80'];
+  }, [project.imagemUrl, project.imagens]);
 
   const hasMultipleImages = imageList.length > 1;
 
@@ -50,6 +48,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
 
   // Gesto de Swipe no celular
   const touchStartXRef = useRef<number | null>(null);
+  const touchStartYRef = useRef<number | null>(null);
   const touchDeltaXRef = useRef<number>(0);
   const autoplayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -75,7 +74,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
       })()
     : 'Em desenvolvimento';
 
-  // Navegação manual de imagem
+  // Navegação manual de imagem (sem setas na UI)
   const handlePrevImage = useCallback(() => {
     setIsInteracting(true);
     setCurrentImageIndex((prev) => (prev > 0 ? prev - 1 : imageList.length - 1));
@@ -87,24 +86,40 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
   }, [imageList.length]);
 
   // Pré-carregamento sob demanda SOMENTE da próxima imagem
+  const preloadedImagesRef = useRef<Set<string>>(new Set());
+
   useEffect(() => {
     if (hasMultipleImages) {
       const nextIdx = (currentImageIndex + 1) % imageList.length;
-      const img = new Image();
-      img.src = imageList[nextIdx];
+      const nextUrl = imageList[nextIdx];
+      if (nextUrl && !preloadedImagesRef.current.has(nextUrl)) {
+        preloadedImagesRef.current.add(nextUrl);
+        const img = new Image();
+        img.src = nextUrl;
+      }
     }
   }, [currentImageIndex, imageList, hasMultipleImages]);
 
-  // Autoplay lento suave apenas quando houver múltiplas imagens e o usuário não estiver interagindo
+  // Autoplay lento suave apenas quando houver múltiplas imagens, app visível e sem interação ativa
   useEffect(() => {
     if (!hasMultipleImages || isInteracting) return;
 
+    const handleVisibility = () => {
+      if (document.hidden && autoplayTimerRef.current) {
+        clearTimeout(autoplayTimerRef.current);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+
     autoplayTimerRef.current = setTimeout(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
       setCurrentImageIndex((prev) => (prev + 1) % imageList.length);
     }, 6000);
 
     return () => {
       if (autoplayTimerRef.current) clearTimeout(autoplayTimerRef.current);
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [currentImageIndex, hasMultipleImages, isInteracting, imageList.length]);
 
@@ -117,34 +132,36 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
     return () => clearTimeout(resumeTimer);
   }, [isInteracting]);
 
-  // Handlers de toque para swipe natural no mobile
+  // Handlers de toque para swipe natural no mobile (sem travar a página)
   const handleTouchStart = (e: React.TouchEvent) => {
     setIsInteracting(true);
     touchStartXRef.current = e.touches[0].clientX;
+    touchStartYRef.current = e.touches[0].clientY;
     touchDeltaXRef.current = 0;
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (touchStartXRef.current === null) return;
-    touchDeltaXRef.current = e.touches[0].clientX - touchStartXRef.current;
+    const deltaX = e.touches[0].clientX - touchStartXRef.current;
+    const deltaY = e.touches[0].clientY - (touchStartYRef.current || 0);
+
+    // Prioriza movimento horizontal
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+      touchDeltaXRef.current = deltaX;
+    }
   };
 
   const handleTouchEnd = () => {
     if (touchStartXRef.current === null) return;
     const delta = touchDeltaXRef.current;
-    if (delta < -45) {
+    if (delta < -40) {
       handleNextImage();
-    } else if (delta > 45) {
+    } else if (delta > 40) {
       handlePrevImage();
     }
     touchStartXRef.current = null;
+    touchStartYRef.current = null;
     touchDeltaXRef.current = 0;
-  };
-
-  const handleOpenLiveSite = () => {
-    if (hasValidUrl) {
-      window.open(project.linkDemo, '_blank', 'noopener,noreferrer');
-    }
   };
 
   const handleStart = () => {
@@ -170,7 +187,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
         </span>
       </div>
 
-      {/* 2. Carrossel / Imagem Principal */}
+      {/* 2. Carrossel / Imagem Principal (Swipe com Toque, Sem Setas) */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-lg">
         <div
           className="relative w-full aspect-[16/10] bg-slate-950 overflow-hidden select-none"
@@ -184,7 +201,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
             <div className="absolute inset-0 bg-slate-800/60 animate-pulse pointer-events-none z-0" />
           )}
 
-          {/* Imagem Real */}
+          {/* Imagem Real do Segmento */}
           {!failedImages[currentImageIndex] ? (
             <img
               key={`img-${currentImageIndex}`}
@@ -198,12 +215,12 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
               onError={() =>
                 setFailedImages((prev) => ({ ...prev, [currentImageIndex]: true }))
               }
-              className={`w-full h-full object-cover object-top transition-opacity duration-300 ${
+              className={`w-full h-full object-cover object-center transition-opacity duration-300 ${
                 loadedImages[currentImageIndex] ? 'opacity-100' : 'opacity-0'
               }`}
             />
           ) : (
-            /* Fallback elegante caso a captura falhe */
+            /* Fallback elegante caso a imagem falhe */
             <div
               className={`absolute inset-0 w-full h-full bg-gradient-to-br ${project.corDestaque} p-4 flex flex-col justify-between overflow-hidden select-none`}
             >
@@ -233,61 +250,40 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
             </div>
           )}
 
-          {/* Badge de Posição: Apenas se houver múltiplas imagens */}
+          {/* Badge discreto de contagem quando houver múltiplas imagens */}
           {hasMultipleImages && (
             <div className="absolute top-2.5 right-2.5 z-20 pointer-events-none">
-              <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-slate-950/80 backdrop-blur-md text-white border border-slate-700/80 shadow-md">
+              <span className="text-[9.5px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-950/80 backdrop-blur-md text-white border border-slate-700/80 shadow-md">
                 {currentImageIndex + 1}/{imageList.length}
               </span>
             </div>
           )}
 
-          {/* Botões de Troca Manual: Apenas se houver múltiplas imagens */}
+          {/* Indicadores pequenos (bolinhas) - SEM SETAS */}
           {hasMultipleImages && (
-            <>
-              <button
-                type="button"
-                onClick={handlePrevImage}
-                className="min-h-[44px] min-w-[44px] absolute left-2 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center p-2 rounded-full bg-slate-950/70 hover:bg-slate-900 text-white/90 hover:text-white border border-slate-700/80 shadow-lg active:scale-95 transition-all"
-                aria-label="Imagem anterior"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-
-              <button
-                type="button"
-                onClick={handleNextImage}
-                className="min-h-[44px] min-w-[44px] absolute right-2 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center p-2 rounded-full bg-slate-950/70 hover:bg-slate-900 text-white/90 hover:text-white border border-slate-700/80 shadow-lg active:scale-95 transition-all"
-                aria-label="Próxima imagem"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-
-              {/* Indicadores / Dots: Apenas se houver múltiplas imagens */}
-              <div className="absolute bottom-2.5 left-0 right-0 z-20 flex items-center justify-center gap-1.5 pointer-events-none">
-                {imageList.map((_, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => {
-                      setIsInteracting(true);
-                      setCurrentImageIndex(idx);
-                    }}
-                    className={`pointer-events-auto h-1.5 transition-all rounded-full ${
-                      idx === currentImageIndex
-                        ? 'w-6 bg-cyan-400'
-                        : 'w-1.5 bg-white/40 hover:bg-white/70'
-                    }`}
-                    aria-label={`Ir para a imagem ${idx + 1}`}
-                  />
-                ))}
-              </div>
-            </>
+            <div className="absolute bottom-2.5 left-0 right-0 z-20 flex items-center justify-center gap-1.5 pointer-events-none">
+              {imageList.map((_, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    setIsInteracting(true);
+                    setCurrentImageIndex(idx);
+                  }}
+                  className={`pointer-events-auto h-1.5 transition-all rounded-full ${
+                    idx === currentImageIndex
+                      ? 'w-4 bg-cyan-400 shadow-sm'
+                      : 'w-1.5 bg-white/40 hover:bg-white/70'
+                  }`}
+                  aria-label={`Ir para a imagem ${idx + 1}`}
+                />
+              ))}
+            </div>
           )}
         </div>
 
         {/* Informações Básicas do Projeto */}
-        <div className="p-4 sm:p-5 space-y-3">
+        <div className="p-4 sm:p-5 space-y-2.5">
           <div className="flex items-center justify-between text-xs text-slate-400">
             <span className="inline-flex items-center gap-1 font-semibold text-cyan-400">
               <Globe className="w-3.5 h-3.5" />
@@ -308,7 +304,27 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
         </div>
       </div>
 
-      {/* 3. Segmento Alvo & Nicho */}
+      {/* 3. Link Real do Projeto (REMOVIDO botão "Ver site", exibindo SOMENTE o link real clicável) */}
+      {hasValidUrl && (
+        <div className="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 space-y-1.5 shadow-sm">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+            Link real do projeto
+          </span>
+          <div>
+            <a
+              href={project.linkDemo}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2 break-all font-mono text-xs sm:text-sm inline-flex items-center gap-1.5 transition-colors active:opacity-75"
+            >
+              <span>{project.linkDemo}</span>
+              <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+            </a>
+          </div>
+        </div>
+      )}
+
+      {/* 4. Segmento Alvo & Nicho */}
       {project.segmentoAlvo && (
         <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-1.5">
           <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
@@ -321,7 +337,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
         </div>
       )}
 
-      {/* 4. Escolha da Abordagem do Modelo (Antes de iniciar o briefing) */}
+      {/* 5. Escolha da Abordagem do Modelo (Antes de iniciar o briefing) */}
       <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 shadow-sm">
         <div className="flex items-center justify-between">
           <label className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
@@ -394,7 +410,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
         </div>
       </div>
 
-      {/* 5. Recursos Inclusos / O que este modelo apresenta */}
+      {/* 6. Recursos Inclusos / O que este modelo apresenta */}
       {project.recursos && project.recursos.length > 0 && (
         <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
@@ -416,7 +432,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
         </div>
       )}
 
-      {/* 6. Tags & Diferenciais */}
+      {/* 7. Tags & Diferenciais */}
       {project.tags && project.tags.length > 0 && (
         <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2.5">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
@@ -436,7 +452,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
         </div>
       )}
 
-      {/* 7. Nota de Padrão NexaWeb */}
+      {/* 8. Nota de Padrão NexaWeb */}
       <div className="p-3.5 rounded-xl bg-indigo-950/30 border border-indigo-500/20 text-xs text-slate-400 flex items-center gap-2.5">
         <ShieldCheck className="w-4 h-4 text-cyan-400 shrink-0" />
         <span>
@@ -444,30 +460,13 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
         </span>
       </div>
 
-      {/* 8. Barra de Ações Fixa no Rodapé Mobile */}
+      {/* 9. Barra de Ação Fixa no Rodapé Mobile (Apenas ação principal de solicitar briefing, SEM botão Ver Site) */}
       <div className="fixed bottom-0 left-0 right-0 z-40 p-3 sm:p-4 bg-slate-950/95 backdrop-blur-md border-t border-slate-800 shadow-2xl">
-        <div className="max-w-3xl mx-auto flex items-center gap-2.5">
-          {/* Botão Secundário: Ver site no ar */}
-          <button
-            type="button"
-            onClick={handleOpenLiveSite}
-            disabled={!hasValidUrl}
-            className={`min-h-[48px] flex-1 flex items-center justify-center gap-1.5 py-3 px-3 rounded-xl border font-bold text-xs transition-all active:scale-[0.98] ${
-              hasValidUrl
-                ? 'bg-slate-900 hover:bg-slate-800 text-cyan-300 border-slate-700 hover:border-cyan-500/50'
-                : 'bg-slate-900/50 text-slate-500 border-slate-800 cursor-not-allowed opacity-60'
-            }`}
-            title={hasValidUrl ? 'Abrir site oficial em nova guia' : 'Demonstração sem link público'}
-          >
-            <ExternalLink className="w-4 h-4 text-cyan-400" />
-            <span>{hasValidUrl ? 'Ver site no ar' : 'Site em homologação'}</span>
-          </button>
-
-          {/* Botão Principal: Quero esse site */}
+        <div className="max-w-3xl mx-auto">
           <button
             type="button"
             onClick={handleStart}
-            className="min-h-[48px] flex-1 flex items-center justify-center gap-1.5 py-3 px-3 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs shadow-lg shadow-indigo-950/50 transition-all active:scale-[0.98]"
+            className="w-full min-h-[48px] flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-sm shadow-lg shadow-indigo-950/50 transition-all active:scale-[0.985]"
           >
             <Send className="w-4 h-4" />
             <span>Quero esse site</span>

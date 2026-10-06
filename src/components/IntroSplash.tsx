@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Sparkles } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 
@@ -9,6 +9,7 @@ interface IntroSplashProps {
 export const IntroSplash: React.FC<IntroSplashProps> = ({ onFinish }) => {
   const { t } = useTranslation();
   const [isExiting, setIsExiting] = useState(false);
+  const skipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     // Animação rápida e elegante (total ~1.1s)
@@ -28,12 +29,14 @@ export const IntroSplash: React.FC<IntroSplashProps> = ({ onFinish }) => {
     return () => {
       clearTimeout(exitTimer);
       clearTimeout(finishTimer);
+      if (skipTimerRef.current) clearTimeout(skipTimerRef.current);
     };
   }, [onFinish]);
 
   const handleSkip = () => {
     setIsExiting(true);
-    setTimeout(() => {
+    if (skipTimerRef.current) clearTimeout(skipTimerRef.current);
+    skipTimerRef.current = setTimeout(() => {
       try {
         sessionStorage.setItem('nexaweb_intro_shown', 'true');
       } catch {

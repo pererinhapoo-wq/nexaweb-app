@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { ViewTab, PortfolioProject, ProjectRecommendation } from '../types';
 import { getPortfolioProjects } from '../data/portfolioData';
 import { ProjectCardImage } from './ProjectCardImage';
@@ -10,30 +10,337 @@ import {
   ArrowRight,
   ChevronRight,
   HelpCircle,
-  Zap,
-  Smartphone,
-  ShieldCheck,
+  Scissors,
+  Dumbbell,
+  UtensilsCrossed,
+  Stethoscope,
+  Building2,
+  HardHat,
+  ShoppingBag,
 } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 
-// Mini-banner rotativo suave e compacto (estático a nível de módulo para 0 alocações por render)
-const HIGHLIGHTS = [
+interface BannerSlide {
+  id: string;
+  segmento: string;
+  titulo: string;
+  subtitulo: string;
+  imagemUrl: string;
+  projectId: string;
+}
+
+// Banners oficiais dos segmentos da NexaWeb com fotografias profissionais reais de cada segmento
+const BANNER_SLIDES: BannerSlide[] = [
   {
-    icon: Zap,
-    text: 'Sites de alta conversão otimizados para WhatsApp',
-    color: 'text-amber-400',
+    id: 'banner-geral',
+    segmento: 'NexaWeb Sites',
+    titulo: 'Seu negócio merece um site profissional',
+    subtitulo: 'Projetos modernos, rápidos e pensados para sua marca.',
+    imagemUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80',
+    projectId: 'demo-vertex-digital',
   },
   {
-    icon: Smartphone,
-    text: 'Design responsivo e veloz para qualquer celular',
-    color: 'text-cyan-400',
+    id: 'banner-academia',
+    segmento: 'Academia & Fitness',
+    titulo: 'Mais energia para sua academia',
+    subtitulo: 'Apresente planos, modalidades e atraia novos alunos no celular.',
+    imagemUrl: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80',
+    projectId: 'demo-academia-premium',
   },
   {
-    icon: ShieldCheck,
-    text: 'Projetos profissionais entregues em até 7 dias',
-    color: 'text-emerald-400',
+    id: 'banner-restaurante',
+    segmento: 'Restaurante & Gastronomia',
+    titulo: 'Seu cardápio sempre em destaque',
+    subtitulo: 'Fotos apetitosas, pratos do dia e canal direto para reservas.',
+    imagemUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80',
+    projectId: 'demo-restaurante-premium',
+  },
+  {
+    id: 'banner-barbearia',
+    segmento: 'Barbearia & Estética',
+    titulo: 'Destaque sua barbearia',
+    subtitulo: 'Agendamentos ágeis de cortes e identidade marcante.',
+    imagemUrl: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=800&q=80',
+    projectId: 'demo-barbearia-kings',
+  },
+  {
+    id: 'banner-clinica',
+    segmento: 'Clínica & Saúde',
+    titulo: 'Credibilidade para sua clínica',
+    subtitulo: 'Design humanizado focado em especialidades e confiança.',
+    imagemUrl: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80',
+    projectId: 'demo-clinica-saude',
+  },
+  {
+    id: 'banner-imobiliaria',
+    segmento: 'Imobiliária & Imóveis',
+    titulo: 'Imóveis com visual imponente',
+    subtitulo: 'Vitrine exclusiva para corretores e imobiliárias de alto padrão.',
+    imagemUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
+    projectId: 'demo-imobiliaria-premium',
+  },
+  {
+    id: 'banner-engenharia',
+    segmento: 'Engenharia & Obras',
+    titulo: 'Solidez para sua construtora',
+    subtitulo: 'Apresentação técnica de projetos e autoridade no mercado.',
+    imagemUrl: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=800&q=80',
+    projectId: 'demo-engenharia-premium',
+  },
+  {
+    id: 'banner-loja',
+    segmento: 'Loja & Comércio',
+    titulo: 'Sua loja pronta para vender',
+    subtitulo: 'Vitrine moderna para coleções, marcas e produtos exclusivos.',
+    imagemUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80',
+    projectId: 'demo-loja-premium',
   },
 ];
+
+// Componente do Banner Principal com transição suave, swipe horizontal e troca automática lenta
+const MainHeroBanner = React.memo<{
+  allProjects: PortfolioProject[];
+  onSelectProject: (project: PortfolioProject) => void;
+  onNavigate: (tab: ViewTab) => void;
+}>(({ allProjects, onSelectProject, onNavigate }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+
+  const touchStartX = useRef<number>(0);
+  const touchStartY = useRef<number>(0);
+  const touchDeltaX = useRef<number>(0);
+  const isSwiping = useRef<boolean>(false);
+  const pauseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const isMouseDown = useRef<boolean>(false);
+  const mouseStartX = useRef<number>(0);
+  const mouseDeltaX = useRef<number>(0);
+
+  // Pausa temporariamente a rotação automática quando o usuário interage
+  const pauseTemporarily = useCallback(() => {
+    setIsPaused(true);
+    if (pauseTimeoutRef.current) {
+      clearTimeout(pauseTimeoutRef.current);
+    }
+    pauseTimeoutRef.current = setTimeout(() => {
+      setIsPaused(false);
+    }, 8000); // 8 segundos para leitura tranquila
+  }, []);
+
+  // Troca automática lenta e suave (a cada 5.5 segundos)
+  useEffect(() => {
+    if (isPaused) return;
+
+    const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
+      setCurrentIndex((prev) => (prev + 1) % BANNER_SLIDES.length);
+    }, 5500);
+
+    return () => clearInterval(interval);
+  }, [isPaused]);
+
+  // Cleanup do timer de pausa
+  useEffect(() => {
+    return () => {
+      if (pauseTimeoutRef.current) {
+        clearTimeout(pauseTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Handlers para gestos de toque no celular (Swipe horizontal suave)
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    touchDeltaX.current = 0;
+    isSwiping.current = false;
+    pauseTemporarily();
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
+    const deltaX = currentX - touchStartX.current;
+    const deltaY = currentY - touchStartY.current;
+
+    // Detecta intenção de deslize horizontal
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+      touchDeltaX.current = deltaX;
+      isSwiping.current = true;
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (isSwiping.current) {
+      if (touchDeltaX.current < -35) {
+        // Deslizar para a esquerda -> próximo
+        setCurrentIndex((prev) => (prev + 1) % BANNER_SLIDES.length);
+      } else if (touchDeltaX.current > 35) {
+        // Deslizar para a direita -> anterior
+        setCurrentIndex((prev) => (prev - 1 + BANNER_SLIDES.length) % BANNER_SLIDES.length);
+      }
+    }
+    setTimeout(() => {
+      isSwiping.current = false;
+    }, 60);
+  };
+
+  // Handlers para mouse (desktop preview)
+  const handleMouseDown = (e: React.MouseEvent) => {
+    isMouseDown.current = true;
+    mouseStartX.current = e.clientX;
+    mouseDeltaX.current = 0;
+    pauseTemporarily();
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isMouseDown.current) return;
+    mouseDeltaX.current = e.clientX - mouseStartX.current;
+    if (Math.abs(mouseDeltaX.current) > 10) {
+      isSwiping.current = true;
+    }
+  };
+
+  const handleMouseUp = () => {
+    if (!isMouseDown.current) return;
+    isMouseDown.current = false;
+    if (Math.abs(mouseDeltaX.current) > 35) {
+      if (mouseDeltaX.current < 0) {
+        setCurrentIndex((prev) => (prev + 1) % BANNER_SLIDES.length);
+      } else {
+        setCurrentIndex((prev) => (prev - 1 + BANNER_SLIDES.length) % BANNER_SLIDES.length);
+      }
+    }
+    setTimeout(() => {
+      isSwiping.current = false;
+    }, 60);
+  };
+
+  const handleSlideClick = (slide: BannerSlide) => {
+    if (isSwiping.current) return;
+    const project = allProjects.find((p) => p.id === slide.projectId);
+    if (project) {
+      onSelectProject(project);
+    } else {
+      onNavigate('portfolio');
+    }
+  };
+
+  return (
+    <section className="relative w-full overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-md">
+      {/* Contêiner de slides em carrossel */}
+      <div
+        className="relative w-full aspect-[16/9] sm:aspect-[21/9] max-h-56 overflow-hidden cursor-grab active:cursor-grabbing select-none"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+      >
+        <div
+          className="flex w-full h-full transition-transform duration-700 ease-out will-change-transform"
+          style={{ transform: `translate3d(-${currentIndex * 100}%, 0, 0)` }}
+        >
+          {BANNER_SLIDES.map((slide, idx) => (
+            <div
+              key={slide.id}
+              className="w-full h-full flex-shrink-0 relative overflow-hidden"
+              onClick={() => handleSlideClick(slide)}
+              title="Toque para ver detalhes deste segmento"
+            >
+              {/* Imagem do segmento */}
+              <img
+                src={slide.imagemUrl}
+                alt={slide.titulo}
+                loading={idx === 0 ? 'eager' : 'lazy'}
+                decoding="async"
+                className="w-full h-full object-cover select-none pointer-events-none transform scale-[1.02] transition-transform duration-1000"
+              />
+
+              {/* Overlays em gradiente para máxima legibilidade do texto */}
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/50 to-slate-950/20 pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-r from-slate-950/70 via-transparent to-transparent pointer-events-none" />
+
+              {/* Textos sobrepostos sobre a imagem */}
+              <div className="absolute inset-x-0 bottom-0 p-3.5 sm:p-4.5 flex flex-col justify-end pointer-events-none z-10">
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9.5px] font-bold uppercase tracking-wider bg-white/20 backdrop-blur-md text-cyan-300 border border-white/20 w-fit mb-1.5 shadow-sm">
+                  {slide.segmento}
+                </span>
+
+                <h2 className="text-sm sm:text-base font-extrabold text-white leading-tight line-clamp-1 drop-shadow-md">
+                  {slide.titulo}
+                </h2>
+
+                <p className="text-[11px] sm:text-xs text-slate-200 line-clamp-1 mt-0.5 leading-normal drop-shadow-sm">
+                  {slide.subtitulo}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Indicadores discretos (bolinhas) no canto inferior direito */}
+        <div className="absolute bottom-2.5 right-3.5 flex items-center gap-1.5 z-20 pointer-events-auto">
+          {BANNER_SLIDES.map((_, idx) => (
+            <button
+              key={idx}
+              type="button"
+              aria-label={`Ir para banner ${idx + 1}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setCurrentIndex(idx);
+                pauseTemporarily();
+              }}
+              className={`h-1.5 rounded-full transition-all duration-300 ${
+                idx === currentIndex
+                  ? 'bg-cyan-400 w-3.5 shadow-sm'
+                  : 'bg-white/40 hover:bg-white/70 w-1.5'
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+});
+
+MainHeroBanner.displayName = 'MainHeroBanner';
+
+// Card de destaque memorizado
+const FeaturedProjectCard = React.memo<{
+  project: PortfolioProject;
+  onSelectProject: (project: PortfolioProject) => void;
+}>(({ project, onSelectProject }) => {
+  const planBadge = project.planoId ? project.planoId.toUpperCase() : 'PROFISSIONAL';
+
+  return (
+    <div
+      onClick={() => onSelectProject(project)}
+      className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm hover:border-slate-700 transition-all duration-150 flex flex-col justify-between cursor-pointer active:scale-[0.98] group"
+    >
+      <div>
+        <ProjectCardImage
+          project={project}
+          aspectRatio="compact"
+          badge={planBadge}
+        />
+
+        <div className="p-2.5 space-y-0.5">
+          <span className="text-[10px] font-semibold text-cyan-400 block truncate">
+            {project.categoria}
+          </span>
+          <h3 className="text-xs font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-1">
+            {project.titulo}
+          </h3>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+FeaturedProjectCard.displayName = 'FeaturedProjectCard';
 
 interface HomeScreenProps {
   onNavigate: (tab: ViewTab) => void;
@@ -47,76 +354,58 @@ interface HomeScreenProps {
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({
   onNavigate,
-  recommendation,
   onOpenRecommendation,
   onSelectProject,
-  onSelectPlan,
-  onOpenContact,
   onStartQuiz,
 }) => {
   const { language } = useTranslation();
 
-  // Carrega apenas os 4 projetos em destaque com useMemo estável
-  const featuredProjects = useMemo(() => {
-    return getPortfolioProjects(language)
-      .filter((p) => p.destaqueHome)
-      .slice(0, 4);
+  // Carrega todos os projetos para o banner interativo
+  const allProjects = useMemo(() => {
+    return getPortfolioProjects(language);
   }, [language]);
 
-  const [currentHighlightIndex, setCurrentHighlightIndex] = useState(0);
+  // Seleciona exatamente 6 projetos de segmentos representativos para a seção compacta
+  const featuredProjects = useMemo(() => {
+    const desiredOrder = [
+      'demo-barbearia-kings',
+      'demo-academia-premium',
+      'demo-restaurante-premium',
+      'demo-clinica-saude',
+      'demo-imobiliaria-premium',
+      'demo-loja-premium',
+    ];
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentHighlightIndex((prev) => (prev + 1) % HIGHLIGHTS.length);
-    }, 4500);
-    return () => clearInterval(interval);
-  }, []);
+    const mapped = desiredOrder
+      .map((id) => allProjects.find((p) => p.id === id))
+      .filter(Boolean) as PortfolioProject[];
 
-  const activeHighlight = HIGHLIGHTS[currentHighlightIndex];
-  const HighlightIcon = activeHighlight.icon;
+    return mapped.length >= 4 ? mapped : allProjects.slice(0, 6);
+  }, [allProjects]);
 
   return (
     <div className="space-y-4 pb-20 animate-in fade-in duration-150">
       {/* 1. CABEÇALHO COMPACTO & AMIGÁVEL */}
-      <section className="pt-0.5">
-        <h1 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-1.5">
-          <span>Olá</span>
-          <span className="inline-block select-none">👋</span>
-        </h1>
-        <p className="text-xs text-slate-400 mt-0.5">
-          O que você quer fazer hoje?
-        </p>
-      </section>
-
-      {/* 2. BANNER COMPACTO ROTATIVO SUAVE */}
-      <section
-        onClick={() => setCurrentHighlightIndex((prev) => (prev + 1) % highlights.length)}
-        className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between gap-2.5 cursor-pointer active:scale-[0.99] transition-all"
-        title="Toque para alternar destaque"
-      >
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-7 h-7 rounded-lg bg-slate-800 flex items-center justify-center shrink-0">
-            <HighlightIcon className={`w-3.5 h-3.5 ${activeHighlight.color}`} />
-          </div>
-          <p className="text-[11.5px] font-semibold text-slate-200 truncate">
-            {activeHighlight.text}
+      <section className="pt-0.5 flex items-center justify-between">
+        <div>
+          <h1 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-1.5">
+            <span>Olá</span>
+            <span className="inline-block select-none">👋</span>
+          </h1>
+          <p className="text-xs text-slate-400 mt-0.5">
+            O que você quer fazer hoje?
           </p>
         </div>
-
-        {/* Indicadores discretos */}
-        <div className="flex items-center gap-1 shrink-0">
-          {highlights.map((_, idx) => (
-            <span
-              key={idx}
-              className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                idx === currentHighlightIndex ? 'bg-cyan-400 w-3' : 'bg-slate-700'
-              }`}
-            />
-          ))}
-        </div>
       </section>
 
-      {/* 3. AÇÃO PRINCIPAL / CTA: "Criar meu site" */}
+      {/* 2. BANNER PRINCIPAL COM IMAGENS REAIS DOS SEGMENTOS E SWIPE */}
+      <MainHeroBanner
+        allProjects={allProjects}
+        onSelectProject={onSelectProject}
+        onNavigate={onNavigate}
+      />
+
+      {/* 3. AÇÃO PRINCIPAL / CTA COMPACTO: "CRIAR MEU SITE" */}
       <section>
         <button
           type="button"
@@ -129,7 +418,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             </div>
             <div className="min-w-0">
               <span className="text-sm sm:text-base font-extrabold text-white block leading-snug">
-                Criar meu site
+                CRIAR MEU SITE
               </span>
               <span className="text-[11px] text-indigo-100/90 block truncate mt-0.5">
                 Inicie o briefing oficial em poucos passos
@@ -143,7 +432,56 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         </button>
       </section>
 
-      {/* 4. ATALHOS COMPACTOS (Encontrar clientes, Meus leads, Portfólio) */}
+      {/* 4. SEGMENTOS RÁPIDOS / ATALHOS EM FORMATO APP */}
+      <section className="space-y-1.5">
+        <div className="flex items-center justify-between px-0.5">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            Segmentos Populares
+          </span>
+          <button
+            type="button"
+            onClick={() => onNavigate('portfolio')}
+            className="text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 transition-colors"
+          >
+            Ver todos
+          </button>
+        </div>
+
+        {/* Chips compactos com ícones dos segmentos */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 -mx-1 px-1">
+          {[
+            { label: 'Barbearia', icon: Scissors, id: 'demo-barbearia-kings' },
+            { label: 'Academia', icon: Dumbbell, id: 'demo-academia-premium' },
+            { label: 'Restaurante', icon: UtensilsCrossed, id: 'demo-restaurante-premium' },
+            { label: 'Clínica', icon: Stethoscope, id: 'demo-clinica-saude' },
+            { label: 'Imóveis', icon: Building2, id: 'demo-imobiliaria-premium' },
+            { label: 'Engenharia', icon: HardHat, id: 'demo-engenharia-premium' },
+            { label: 'Loja', icon: ShoppingBag, id: 'demo-loja-premium' },
+          ].map((cat) => {
+            const Icon = cat.icon;
+            return (
+              <button
+                key={cat.label}
+                type="button"
+                onClick={() => {
+                  const proj = allProjects.find((p) => p.id === cat.id);
+                  if (proj) {
+                    onSelectProject(proj);
+                  } else {
+                    onNavigate('portfolio');
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 active:scale-95 text-slate-300 hover:text-white text-[11px] font-semibold shrink-0 transition-all"
+              >
+                <Icon className="w-3.5 h-3.5 text-cyan-400" />
+                <span>{cat.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* 5. ATALHOS COMPACTOS (Encontrar clientes, Meus leads, Portfólio) */}
       <section className="grid grid-cols-3 gap-2">
         {/* Atalho 1: Encontrar clientes */}
         <button
@@ -197,13 +535,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               Portfólio
             </span>
             <span className="text-[9.5px] text-slate-500 block truncate">
-              Ver demonstrações
+              Demonstrações
             </span>
           </div>
         </button>
       </section>
 
-      {/* 5. "ME AJUDA A ESCOLHER UM PLANO" (ÁREA SECUNDÁRIA) */}
+      {/* 6. "ME AJUDA A ESCOLHER UM PLANO" (ÁREA SECUNDÁRIA) */}
       <section>
         <button
           type="button"
@@ -230,7 +568,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         </button>
       </section>
 
-      {/* 6. PROJETOS EM DESTAQUE (CARD INTEIRO CLICÁVEL, MÁXIMO 4 CARDS) */}
+      {/* 7. PROJETOS EM DESTAQUE (COMPACTO, 6 PROJETOS, LINK "VER TODOS OS SITES") */}
       <section className="space-y-2.5 pt-0.5">
         <div className="flex items-center justify-between px-0.5">
           <h2 className="text-xs font-bold uppercase tracking-wider text-slate-300">
@@ -242,41 +580,32 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             onClick={() => onNavigate('portfolio')}
             className="text-xs font-semibold text-cyan-400 hover:text-cyan-300 flex items-center gap-0.5 transition-colors"
           >
-            <span>Ver todos</span>
+            <span>Ver todos os sites</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        {/* Grid de 2 colunas: Card inteiro é clicável sem botão interno */}
+        {/* Grid de 2 colunas compacto com 6 projetos */}
         <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-          {featuredProjects.map((project) => {
-            const planBadge = project.planoId ? project.planoId.toUpperCase() : 'PROFISSIONAL';
+          {featuredProjects.map((project) => (
+            <FeaturedProjectCard
+              key={project.id}
+              project={project}
+              onSelectProject={onSelectProject}
+            />
+          ))}
+        </div>
 
-            return (
-              <div
-                key={project.id}
-                onClick={() => onSelectProject(project)}
-                className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm hover:border-slate-700 transition-all duration-150 flex flex-col justify-between cursor-pointer active:scale-[0.98] group"
-              >
-                <div>
-                  <ProjectCardImage
-                    project={project}
-                    aspectRatio="compact"
-                    badge={planBadge}
-                  />
-
-                  <div className="p-2.5 space-y-0.5">
-                    <span className="text-[10px] font-semibold text-cyan-400 block truncate">
-                      {project.categoria}
-                    </span>
-                    <h3 className="text-xs font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-1">
-                      {project.titulo}
-                    </h3>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+        {/* Botão de rodapé "Ver todos os sites" levando ao Portfólio completo */}
+        <div className="pt-1">
+          <button
+            type="button"
+            onClick={() => onNavigate('portfolio')}
+            className="w-full py-2.5 px-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-center text-xs font-semibold text-slate-300 hover:text-white flex items-center justify-center gap-1.5 transition-all active:scale-[0.985]"
+          >
+            <span>Ver todos os sites no portfólio</span>
+            <ArrowRight className="w-3.5 h-3.5 text-cyan-400" />
+          </button>
         </div>
       </section>
     </div>

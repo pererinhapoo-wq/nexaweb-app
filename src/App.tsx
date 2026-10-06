@@ -86,13 +86,15 @@ function AppContent() {
   const selectedWebsiteLanguageForProject =
     currentEntry.selectedWebsiteLanguage || savedWebsiteLanguage;
 
-  // Restaura posição da lista ao fechar detalhes
+  // Restaura posição da lista ao fechar detalhes (sem conflito com smooth scroll)
   useEffect(() => {
     if (!selectedProjectDetail && portfolioScrollPosRef.current > 0) {
       const savedPos = portfolioScrollPosRef.current;
-      setTimeout(() => {
+      portfolioScrollPosRef.current = 0;
+      const timer = setTimeout(() => {
         window.scrollTo({ top: savedPos, behavior: 'instant' as ScrollBehavior });
       }, 20);
+      return () => clearTimeout(timer);
     }
   }, [selectedProjectDetail]);
 
@@ -109,25 +111,10 @@ function AppContent() {
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState<boolean>(false);
   const [recommendation, setRecommendation] = useState<ProjectRecommendation | null>(null);
 
-  // Inicialização nativa segura (Status Bar e Splash Screen do Android)
+  // Esconde splash screen uma única vez ao montar (ThemeContext gerencia a StatusBar)
   useEffect(() => {
-    async function initNativePlatform() {
-      try {
-        await StatusBar.setStyle({ style: resolvedTheme === 'dark' ? Style.Dark : Style.Light });
-        await StatusBar.setBackgroundColor({ color: resolvedTheme === 'dark' ? '#020617' : '#f8fafc' });
-      } catch {
-        // Ignorado em ambiente web
-      }
-
-      try {
-        await SplashScreen.hide();
-      } catch {
-        // Ignorado em ambiente web
-      }
-    }
-
-    initNativePlatform();
-  }, [resolvedTheme]);
+    SplashScreen.hide().catch(() => {});
+  }, []);
 
   // Verificação de primeira abertura e carregamento de respostas salvas
   useEffect(() => {
@@ -264,8 +251,11 @@ function AppContent() {
       return prev;
     });
 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [currentTab]);
+    // Se estiver saindo do detalhe do projeto com posição de rolagem salva, não força scroll(0)
+    if (!selectedProjectDetail) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [currentTab, selectedProjectDetail]);
 
   // Suporte aprimorado e intuitivo ao botão físico/gestual de voltar do Android
   const handleAndroidBack = useCallback(() => {
@@ -439,6 +429,7 @@ function AppContent() {
                 <ServicesScreen
                   onSelectPlan={handleSelectPlan}
                   onNavigate={handleNavigate}
+                  onBack={handleGoBack}
                   onSelectProjectForBriefing={handleSelectProjectForBriefing}
                 />
               )}

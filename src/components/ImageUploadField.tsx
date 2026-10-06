@@ -1,6 +1,68 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Upload, X, Image as ImageIcon, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { UPLOAD_RULES } from '../data/commercialRules';
+
+interface FilePreviewItemProps {
+  file: File;
+  index: number;
+  onRemove: (index: number) => void;
+  formatFileSize: (bytes: number) => string;
+}
+
+// Subcomponente de preview com ciclo de vida seguro de Object URL (0 memory leaks)
+const FilePreviewItem: React.FC<FilePreviewItemProps> = React.memo(({
+  file,
+  index,
+  onRemove,
+  formatFileSize,
+}) => {
+  const [previewUrl, setPreviewUrl] = useState<string>('');
+
+  useEffect(() => {
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    return () => {
+      URL.revokeObjectURL(url);
+    };
+  }, [file]);
+
+  return (
+    <div className="relative rounded-xl overflow-hidden bg-slate-950 border border-slate-800 group shadow-sm flex flex-col justify-between animate-in fade-in zoom-in-95 duration-150">
+      <div className="aspect-[4/3] w-full bg-slate-900 relative overflow-hidden">
+        {previewUrl ? (
+          <img
+            src={previewUrl}
+            alt={`Anexo ${index + 1}`}
+            className="w-full h-full object-cover transition-opacity duration-150"
+          />
+        ) : (
+          <div className="w-full h-full bg-slate-900 flex items-center justify-center">
+            <ImageIcon className="w-6 h-6 text-slate-600" />
+          </div>
+        )}
+        <button
+          type="button"
+          onClick={() => onRemove(index)}
+          className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/70 hover:bg-rose-600 text-white flex items-center justify-center transition-all active:scale-90 shadow-md"
+          title="Remover imagem"
+          aria-label={`Remover imagem ${file.name}`}
+        >
+          <X className="w-3.5 h-3.5" />
+        </button>
+      </div>
+      <div className="p-2 bg-slate-900/90 border-t border-slate-800 text-[10px]">
+        <p className="font-semibold text-slate-300 truncate" title={file.name}>
+          {file.name}
+        </p>
+        <p className="text-slate-500 font-mono">
+          {formatFileSize(file.size)}
+        </p>
+      </div>
+    </div>
+  );
+});
+
+FilePreviewItem.displayName = 'FilePreviewItem';
 
 interface ImageUploadFieldProps {
   files: File[];
@@ -132,41 +194,15 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
       {/* Grid de Previews de Imagens Selecionadas */}
       {files.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1">
-          {files.map((file, idx) => {
-            const previewUrl = URL.createObjectURL(file);
-            return (
-              <div
-                key={`${file.name}-${idx}`}
-                className="relative rounded-xl overflow-hidden bg-slate-950 border border-slate-800 group shadow-sm flex flex-col justify-between animate-in fade-in zoom-in-95 duration-150"
-              >
-                <div className="aspect-[4/3] w-full bg-slate-900 relative overflow-hidden">
-                  <img
-                    src={previewUrl}
-                    alt={`Anexo ${idx + 1}`}
-                    className="w-full h-full object-cover transition-opacity duration-150"
-                    onLoad={() => URL.revokeObjectURL(previewUrl)}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveFile(idx)}
-                    className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/70 hover:bg-rose-600 text-white flex items-center justify-center transition-all active:scale-90 shadow-md"
-                    title="Remover imagem"
-                    aria-label={`Remover imagem ${file.name}`}
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-                <div className="p-2 bg-slate-900/90 border-t border-slate-800 text-[10px]">
-                  <p className="font-semibold text-slate-300 truncate" title={file.name}>
-                    {file.name}
-                  </p>
-                  <p className="text-slate-500 font-mono">
-                    {formatFileSize(file.size)}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
+          {files.map((file, idx) => (
+            <FilePreviewItem
+              key={`${file.name}-${file.size}-${file.lastModified}-${idx}`}
+              file={file}
+              index={idx}
+              onRemove={handleRemoveFile}
+              formatFileSize={formatFileSize}
+            />
+          ))}
         </div>
       )}
     </div>

@@ -74,20 +74,31 @@ export async function getBriefingDraft(planId: string): Promise<BriefingDraftDat
   return null;
 }
 
+// Cache em memória do último rascunho salvo por plano para evitar I/O redundante em disco e bridge nativa
+const lastSavedDraftMap: Record<string, string> = {};
+
 export async function saveBriefingDraft(planId: string, draft: BriefingDraftData): Promise<void> {
   const key = getBriefingDraftKey(planId);
+  const draftContentKey = JSON.stringify(draft);
+
+  // Se o conteúdo do rascunho não mudou, evita nova escrita em disco/Preferences
+  if (lastSavedDraftMap[planId] === draftContentKey) {
+    return;
+  }
+  lastSavedDraftMap[planId] = draftContentKey;
+
   const dataToSave = { ...draft, updatedAt: Date.now() };
   try {
     const str = JSON.stringify(dataToSave);
     sessionStorage.setItem(key, str);
-    localStorage.setItem(key, str);
-    await setStorageItem(key, str);
+    await setStorageItem(key, str); // setStorageItem já persiste em Preferences e localStorage
   } catch {
     // Ignora possíveis erros de quota
   }
 }
 
 export async function clearBriefingDraft(planId: string): Promise<void> {
+  delete lastSavedDraftMap[planId];
   const key = getBriefingDraftKey(planId);
   try {
     sessionStorage.removeItem(key);

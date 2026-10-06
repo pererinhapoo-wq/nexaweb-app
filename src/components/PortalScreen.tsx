@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ClientProject, ClientRequest } from '../types';
 import {
   loginClientPortal,
@@ -38,6 +38,13 @@ export const PortalScreen: React.FC = () => {
   const [reqMessage, setReqMessage] = useState('');
   const [submittingReq, setSubmittingReq] = useState(false);
   const [reqSuccessMsg, setReqSuccessMsg] = useState<string | null>(null);
+  const reqSuccessTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (reqSuccessTimerRef.current) clearTimeout(reqSuccessTimerRef.current);
+    };
+  }, []);
 
   // Carrega sessão salva
   useEffect(() => {
@@ -95,7 +102,8 @@ export const PortalScreen: React.FC = () => {
       setReqMessage('');
       setIsRequestModalOpen(false);
       setReqSuccessMsg('Solicitação enviada com sucesso para a equipe NexaWeb!');
-      setTimeout(() => setReqSuccessMsg(null), 3500);
+      if (reqSuccessTimerRef.current) clearTimeout(reqSuccessTimerRef.current);
+      reqSuccessTimerRef.current = setTimeout(() => setReqSuccessMsg(null), 3500);
     } catch {
       // erro
     } finally {
