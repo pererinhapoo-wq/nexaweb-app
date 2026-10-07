@@ -24,7 +24,7 @@ export const Step3Segment: React.FC<Step3SegmentProps> = ({
             Segmento de Atuação
           </span>
           <span className="text-xs font-mono font-bold text-cyan-400">
-            {segmentConfig.name}
+            {selectedSegment ? segmentConfig.name : 'A selecionar'}
           </span>
         </div>
         <h2 className="text-sm sm:text-base font-extrabold text-white">

@@ -36,15 +36,15 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
   onNavigate,
   onBack,
   onSelectProject,
-  selectedPlan = 'profissional',
+  selectedPlan,
   onContinueToBriefing,
 }) => {
   const { language, t } = useTranslation();
   const plans = getNexawebPlans(language);
   const allProjects = getPortfolioProjects(language);
 
-  // Plano ativo selecionado localmente e sincronizado com o fluxo
-  const [selectedPlanId, setSelectedPlanId] = useState<string>(selectedPlan);
+  // Plano ativo selecionado localmente (inicia null para que nenhum plano comece marcado automaticamente)
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(selectedPlan || null);
 
   useEffect(() => {
     if (selectedPlan) {
@@ -68,18 +68,20 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
 
   // Limite oficial de funcionalidades avançadas do plano atualmente selecionado (0 / 3 / 5 / 8)
   const advancedFeaturesLimit = useMemo(() => {
+    if (!selectedPlanId) return 0;
     return getPlanAdvancedFeaturesLimit(selectedPlanId);
   }, [selectedPlanId]);
 
   // Lista de funcionalidades para exploração do plano ativo
   const availableFeaturesGrouped = useMemo(() => {
+    if (!selectedPlanId) return [];
     return getAdvancedFeaturesGroupedBySegment('geral', selectedPlanId);
   }, [selectedPlanId]);
 
   // Reseta seleção de funcionalidades ao trocar de plano se exceder o novo limite
   useEffect(() => {
     setFeatureLimitMessage(null);
-    if (advancedFeaturesLimit === 0) {
+    if (!selectedPlanId || advancedFeaturesLimit === 0) {
       setSelectedFeatures([]);
     } else {
       setSelectedFeatures((prev) => prev.slice(0, advancedFeaturesLimit));
@@ -88,6 +90,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
 
   // Alternar seleção de funcionalidade avançada respeitando os limites oficiais 0/3/5/8
   const handleToggleFeature = (feat: AdvancedFeatureItem) => {
+    if (!selectedPlanId) return;
     setFeatureLimitMessage(null);
     const isChecked = selectedFeatures.includes(feat.id);
 
@@ -211,6 +214,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
 
   // Ação explícita para iniciar o Briefing com o plano escolhido
   const handleContinue = () => {
+    if (!selectedPlanId) return;
     if (onContinueToBriefing) {
       onContinueToBriefing(selectedPlanId);
     } else {
@@ -218,8 +222,10 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
     }
   };
 
-  const activePlanObj = plans.find((p) => p.id === selectedPlanId) || plans[0];
-  const activePlanTheme = getThemeStyles(selectedPlanId, true);
+  const activePlanObj = selectedPlanId
+    ? plans.find((p) => p.id === selectedPlanId) || null
+    : null;
+  const activePlanTheme = selectedPlanId ? getThemeStyles(selectedPlanId, true) : null;
 
   return (
     <div className="space-y-4 pb-6 animate-in fade-in duration-150 overflow-x-hidden">
@@ -437,139 +443,153 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
       {/* =========================================================================
           SEÇÃO DE FUNCIONALIDADES AVANÇADAS & LIMITES OFICIAIS (0 / 3 / 5 / 8)
           ========================================================================= */}
-      <section className="rounded-2xl bg-slate-900 border border-slate-800 p-4 space-y-3 shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 pb-2 border-b border-slate-800/80">
-          <div>
-            <h3 className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
-              <Layers className="w-4 h-4 text-cyan-400" />
-              <span>{language === 'en' ? 'Advanced Features' : 'Funcionalidades Avançadas'}</span>
-            </h3>
-            <span className="text-[10.5px] text-slate-400 block mt-0.5">
-              {language === 'en' ? `Scope of ${activePlanObj.nome} Plan` : `Escopo do Plano ${activePlanObj.nome}`}
-            </span>
-          </div>
-
-          {/* Contador Oficial em Tempo Real (Regra 5) */}
-          <div className="self-start sm:self-auto">
-            <div
-              className={`px-3 py-1 rounded-xl text-xs font-mono font-bold border transition-colors ${
-                advancedFeaturesLimit === 0
-                  ? 'bg-blue-500/10 text-blue-400 border-blue-500/30'
-                  : selectedFeatures.length >= advancedFeaturesLimit
-                  ? 'bg-amber-500/15 text-amber-300 border-amber-500/40'
-                  : 'bg-slate-950 text-cyan-400 border-slate-800'
-              }`}
-            >
-              <span>
-                {advancedFeaturesLimit === 0
-                  ? (language === 'en' ? '0 of 0 selected (Fixed Scope)' : '0 de 0 selecionadas (Escopo Fechado)')
-                  : (language === 'en' ? `${selectedFeatures.length} of ${advancedFeaturesLimit} selected` : `${selectedFeatures.length} de ${advancedFeaturesLimit} selecionadas`)}
+      {activePlanObj && activePlanTheme ? (
+        <section className="rounded-2xl bg-slate-900 border border-slate-800 p-4 space-y-3 shadow-sm animate-in fade-in duration-150">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 pb-2 border-b border-slate-800/80">
+            <div>
+              <h3 className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
+                <Layers className="w-4 h-4 text-cyan-400" />
+                <span>{language === 'en' ? 'Advanced Features' : 'Funcionalidades Avançadas'}</span>
+              </h3>
+              <span className="text-[10.5px] text-slate-400 block mt-0.5">
+                {language === 'en' ? `Scope of ${activePlanObj.nome} Plan` : `Escopo do Plano ${activePlanObj.nome}`}
               </span>
             </div>
-          </div>
-        </div>
 
-        {/* Aviso do Plano Essencial (Limite 0) */}
-        {advancedFeaturesLimit === 0 && (
-          <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/25 text-[11px] text-blue-300 space-y-1">
-            <p className="font-semibold flex items-center gap-1.5">
-              <AlertCircle className="w-4 h-4 shrink-0 text-blue-400" />
-              <span>{language === 'en' ? 'Essential Plan · Fixed Scope (0 advanced features)' : 'Plano Essencial · Escopo Fechado (0 funcionalidades avançadas)'}</span>
-            </p>
-            <p className="text-slate-300 leading-relaxed">
-              {language === 'en'
-                ? 'The Essential Plan includes the complete business structure, essential pages, WhatsApp, and basic SEO. To select additional features, choose the Professional (up to 5), Custom (up to 3), or Premium Plan (up to 8).'
-                : 'O Plano Essencial já inclui a estrutura completa do negócio, páginas essenciais, WhatsApp e SEO básico. Para selecionar funcionalidades adicionais, escolha o Plano Profissional (até 5), Personalizado (até 3) ou Premium (até 8).'}
-            </p>
-          </div>
-        )}
-
-        {/* Mensagem Discreta de Limite Atingido (Regra 5) */}
-        {featureLimitMessage && (
-          <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300 flex items-center gap-2 animate-in fade-in duration-150">
-            <AlertCircle className="w-4 h-4 shrink-0 text-amber-400" />
-            <span className="leading-tight">{featureLimitMessage}</span>
-          </div>
-        )}
-
-        {/* Grade de Funcionalidades Disponíveis */}
-        {advancedFeaturesLimit > 0 && (
-          <div className="space-y-2 pt-1">
-            {availableFeaturesGrouped.slice(0, 3).map(({ category, items }) => (
-              <div key={category} className="space-y-1.5 p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/70">
-                <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider block">
-                  {category}
+            {/* Contador Oficial em Tempo Real (Regra 5) */}
+            <div className="self-start sm:self-auto">
+              <div
+                className={`px-3 py-1 rounded-xl text-xs font-mono font-bold border transition-colors ${
+                  advancedFeaturesLimit === 0
+                    ? 'bg-blue-500/10 text-blue-400 border-blue-500/30'
+                    : selectedFeatures.length >= advancedFeaturesLimit
+                    ? 'bg-amber-500/15 text-amber-300 border-amber-500/40'
+                    : 'bg-slate-950 text-cyan-400 border-slate-800'
+                }`}
+              >
+                <span>
+                  {advancedFeaturesLimit === 0
+                    ? (language === 'en' ? '0 of 0 selected (Fixed Scope)' : '0 de 0 selecionadas (Escopo Fechado)')
+                    : (language === 'en' ? `${selectedFeatures.length} of ${advancedFeaturesLimit} selected` : `${selectedFeatures.length} de ${advancedFeaturesLimit} selecionadas`)}
                 </span>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {items.map((feat) => {
-                    const isChecked = selectedFeatures.includes(feat.id);
-                    const isLimitReached =
-                      !isChecked && selectedFeatures.length >= advancedFeaturesLimit;
-
-                    return (
-                      <div
-                        key={feat.id}
-                        onClick={() => handleToggleFeature(feat)}
-                        className={`p-2.5 rounded-xl border text-left transition-all active:scale-[0.99] flex flex-col justify-between ${
-                          isChecked
-                            ? 'bg-cyan-500/15 border-cyan-500 text-white shadow-sm ring-1 ring-cyan-500/30 cursor-pointer'
-                            : isLimitReached
-                            ? 'bg-slate-950/40 border-slate-850 opacity-50 cursor-not-allowed text-slate-400'
-                            : 'bg-slate-950 border-slate-800/80 hover:border-slate-700 text-slate-300 cursor-pointer'
-                        }`}
-                      >
-                        <div>
-                          <div className="flex items-start justify-between gap-1.5 mb-0.5">
-                            <span className="text-xs font-bold leading-snug">
-                              {feat.nome}
-                            </span>
-                            <span
-                              className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0 mt-0.5 ${
-                                isChecked
-                                  ? 'border-cyan-400 bg-cyan-400 text-slate-950'
-                                  : 'border-slate-700'
-                              }`}
-                            >
-                              {isChecked && <Check className="w-2.5 h-2.5 stroke-[3]" />}
-                            </span>
-                          </div>
-
-                          <p className="text-[10.5px] text-slate-400 leading-snug">
-                            {feat.descricao}
-                          </p>
-                        </div>
-
-                        {/* Tag Oficial de Recurso Complexo (Regra 6) */}
-                        {feat.isComplex && (
-                          <div className="pt-1.5 mt-1 border-t border-slate-800/50 flex items-center justify-between gap-1">
-                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[9px] font-bold">
-                              <Sparkles className="w-2.5 h-2.5 text-amber-400 shrink-0" />
-                              <span>{language === 'en' ? 'Advanced / evaluation' : 'Avançado / avaliação'}</span>
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
               </div>
-            ))}
+            </div>
           </div>
-        )}
 
-        {/* Botão Explícito de Avanço para o Briefing (Regra 4) */}
-        <div className="pt-2">
-          <button
-            type="button"
-            onClick={handleContinue}
-            className={`min-h-[44px] w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2 active:scale-[0.985] ${activePlanTheme.btnAction}`}
-          >
-            <span>{language === 'en' ? `Start Briefing with ${activePlanObj.nome} Plan` : `Iniciar Briefing com Plano ${activePlanObj.nome}`}</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
-      </section>
+          {/* Aviso do Plano Essencial (Limite 0) */}
+          {advancedFeaturesLimit === 0 && (
+            <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/25 text-[11px] text-blue-300 space-y-1">
+              <p className="font-semibold flex items-center gap-1.5">
+                <AlertCircle className="w-4 h-4 shrink-0 text-blue-400" />
+                <span>{language === 'en' ? 'Essential Plan · Fixed Scope (0 advanced features)' : 'Plano Essencial · Escopo Fechado (0 funcionalidades avançadas)'}</span>
+              </p>
+              <p className="text-slate-300 leading-relaxed">
+                {language === 'en'
+                  ? 'The Essential Plan includes the complete business structure, essential pages, WhatsApp, and basic SEO. To select additional features, choose the Professional (up to 5), Custom (up to 3), or Premium Plan (up to 8).'
+                  : 'O Plano Essencial já inclui a estrutura completa do negócio, páginas essenciais, WhatsApp e SEO básico. Para selecionar funcionalidades adicionais, escolha o Plano Profissional (até 5), Personalizado (até 3) ou Premium (até 8).'}
+              </p>
+            </div>
+          )}
+
+          {/* Mensagem Discreta de Limite Atingido (Regra 5) */}
+          {featureLimitMessage && (
+            <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300 flex items-center gap-2 animate-in fade-in duration-150">
+              <AlertCircle className="w-4 h-4 shrink-0 text-amber-400" />
+              <span className="leading-tight">{featureLimitMessage}</span>
+            </div>
+          )}
+
+          {/* Grade de Funcionalidades Disponíveis */}
+          {advancedFeaturesLimit > 0 && (
+            <div className="space-y-2 pt-1">
+              {availableFeaturesGrouped.slice(0, 3).map(({ category, items }) => (
+                <div key={category} className="space-y-1.5 p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/70">
+                  <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider block">
+                    {category}
+                  </span>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {items.map((feat) => {
+                      const isChecked = selectedFeatures.includes(feat.id);
+                      const isLimitReached =
+                        !isChecked && selectedFeatures.length >= advancedFeaturesLimit;
+
+                      return (
+                        <div
+                          key={feat.id}
+                          onClick={() => handleToggleFeature(feat)}
+                          className={`p-2.5 rounded-xl border text-left transition-all active:scale-[0.99] flex flex-col justify-between ${
+                            isChecked
+                              ? 'bg-cyan-500/15 border-cyan-500 text-white shadow-sm ring-1 ring-cyan-500/30 cursor-pointer'
+                              : isLimitReached
+                              ? 'bg-slate-950/40 border-slate-850 opacity-50 cursor-not-allowed text-slate-400'
+                              : 'bg-slate-950 border-slate-800/80 hover:border-slate-700 text-slate-300 cursor-pointer'
+                          }`}
+                        >
+                          <div>
+                            <div className="flex items-start justify-between gap-1.5 mb-0.5">
+                              <span className="text-xs font-bold leading-snug">
+                                {feat.nome}
+                              </span>
+                              <span
+                                className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0 mt-0.5 ${
+                                  isChecked
+                                    ? 'border-cyan-400 bg-cyan-400 text-slate-950'
+                                    : 'border-slate-700'
+                                }`}
+                              >
+                                {isChecked && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                              </span>
+                            </div>
+
+                            <p className="text-[10.5px] text-slate-400 leading-snug">
+                              {feat.descricao}
+                            </p>
+                          </div>
+
+                          {/* Tag Oficial de Recurso Complexo (Regra 6) */}
+                          {feat.isComplex && (
+                            <div className="pt-1.5 mt-1 border-t border-slate-800/50 flex items-center justify-between gap-1">
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[9px] font-bold">
+                                <Sparkles className="w-2.5 h-2.5 text-amber-400 shrink-0" />
+                                <span>{language === 'en' ? 'Advanced / evaluation' : 'Avançado / avaliação'}</span>
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Botão Explícito de Avanço para o Briefing (Regra 4) */}
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={handleContinue}
+              className={`min-h-[44px] w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2 active:scale-[0.985] ${activePlanTheme.btnAction}`}
+            >
+              <span>{language === 'en' ? `Start Briefing with ${activePlanObj.nome} Plan` : `Iniciar Briefing com Plano ${activePlanObj.nome}`}</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </section>
+      ) : (
+        <section className="rounded-2xl bg-slate-900 border border-slate-800 p-4 text-center space-y-1.5 shadow-sm">
+          <div className="flex items-center justify-center gap-2 text-slate-300 font-bold text-xs sm:text-sm">
+            <Layers className="w-4 h-4 text-cyan-400" />
+            <span>{language === 'en' ? 'Select a plan above' : 'Toque em um dos planos acima'}</span>
+          </div>
+          <p className="text-[11px] text-slate-400 max-w-sm mx-auto">
+            {language === 'en'
+              ? 'Choose Essential, Professional, Custom, or Premium to see scope details and start the briefing.'
+              : 'Selecione Essencial, Profissional, Personalizado ou Premium para conferir o escopo e iniciar o briefing.'}
+          </p>
+        </section>
+      )}
 
       {/* Caixa de Garantia & Dúvidas NexaWeb */}
       <div className="rounded-2xl bg-slate-900 border border-slate-800 p-3.5 sm:p-4 space-y-1 shadow-sm">

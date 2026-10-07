@@ -62,8 +62,8 @@ function AppContent() {
     { tab: 'home', projectDetail: null },
   ]);
 
-  // Estados padrão salvos para inicializações
-  const [savedPlan, setSavedPlan] = useState<string>('profissional');
+  // Estados padrão salvos para inicializações (sem forçar plano por padrão)
+  const [savedPlan, setSavedPlan] = useState<string | undefined>(undefined);
   const [savedModel, setSavedModel] = useState<string | undefined>(undefined);
   const [savedModelApproach, setSavedModelApproach] = useState<'exact' | 'inspiration'>('exact');
   const [savedWebsiteLanguage, setSavedWebsiteLanguage] = useState<WebsiteLanguage | undefined>(undefined);
@@ -80,9 +80,9 @@ function AppContent() {
   const currentEntry = history[history.length - 1] || { tab: 'home', projectDetail: null };
   const currentTab = currentEntry.tab;
   const selectedProjectDetail = currentEntry.projectDetail || null;
-  const selectedPlanForProject = currentEntry.selectedPlan || savedPlan;
+  const selectedPlanForProject = currentEntry.selectedPlan;
   const selectedModelForProject =
-    currentEntry.selectedModel !== undefined ? currentEntry.selectedModel : savedModel;
+    currentEntry.selectedModel !== undefined ? currentEntry.selectedModel : undefined;
   const selectedModelApproachForProject =
     currentEntry.modelApproach || savedModelApproach;
   const selectedWebsiteLanguageForProject =
@@ -178,8 +178,11 @@ function AppContent() {
         canStepBackInProjectRef.current = false;
       }
 
-      if (options?.selectedPlan) setSavedPlan(options.selectedPlan);
-      if (options?.selectedModel !== undefined) setSavedModel(options.selectedModel);
+      if (options?.selectedPlan !== undefined) {
+        setSavedPlan(options.selectedPlan);
+      } else if (tab === 'project') {
+        setSavedPlan(undefined);
+      }
       if (options?.modelApproach) setSavedModelApproach(options.modelApproach);
       if (options?.selectedWebsiteLanguage) setSavedWebsiteLanguage(options.selectedWebsiteLanguage);
 
@@ -493,7 +496,7 @@ function AppContent() {
               onStartBriefing={(proj, approach) => {
                 navigateTo('project', {
                   selectedModel: proj.titulo,
-                  selectedPlan: proj.planoId || 'profissional',
+                  selectedPlan: proj.planoId || undefined,
                   modelApproach: approach,
                 });
               }}
@@ -514,7 +517,14 @@ function AppContent() {
 
               {currentTab === 'services' && (
                 <ServicesScreen
-                  onSelectPlan={handleSelectPlan}
+                  selectedPlan={currentEntry.selectedPlan}
+                  onSelectPlan={(planId) => {
+                    setSavedPlan(planId);
+                  }}
+                  onContinueToBriefing={(planId) => {
+                    setSavedPlan(planId);
+                    navigateTo('project', { selectedPlan: planId });
+                  }}
                   onNavigate={handleNavigate}
                   onSelectProject={handleSelectProject}
                   onSelectProjectForBriefing={handleSelectProjectForBriefing}

@@ -5,7 +5,7 @@ import { VISUAL_STYLES } from './briefingTypes';
 interface Step6VisualProps {
   visualStyle: string;
   setVisualStyle: (val: string) => void;
-  colorMode: 'suggest' | 'brand' | 'custom';
+  colorMode: 'suggest' | 'brand' | 'custom' | '';
   setColorMode: (val: 'suggest' | 'brand' | 'custom') => void;
   customColorDetails: string;
   setCustomColorDetails: (val: string) => void;
@@ -125,7 +125,7 @@ export const Step6Visual: React.FC<Step6VisualProps> = ({
             </button>
           </div>
 
-          {colorMode !== 'suggest' && (
+          {Boolean(colorMode && colorMode !== 'suggest') && (
             <input
               type="text"
               value={customColorDetails}

@@ -66,12 +66,20 @@ export const BriefingStepHeader: React.FC<BriefingStepHeaderProps> = ({
         </div>
 
         <div className="text-right shrink-0">
-          <span className="text-[9.5px] font-mono text-slate-400 block uppercase">
-            {language === 'en' ? `Plan ${planName}` : `Plano ${planName}`}
-          </span>
-          <span className="text-xs font-mono font-bold text-cyan-400">
-            {planPrice}
-          </span>
+          {planPrice ? (
+            <>
+              <span className="text-[9.5px] font-mono text-slate-400 block uppercase">
+                {language === 'en' ? `Plan ${planName}` : `Plano ${planName}`}
+              </span>
+              <span className="text-xs font-mono font-bold text-cyan-400">
+                {planPrice}
+              </span>
+            </>
+          ) : (
+            <span className="text-[10px] text-slate-400 font-medium">
+              {language === 'en' ? 'No plan selected' : 'Sem plano selecionado'}
+            </span>
+          )}
         </div>
       </div>
 

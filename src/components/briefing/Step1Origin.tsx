@@ -20,6 +20,8 @@ interface Step1OriginProps {
   selectedProjectObj: PortfolioProject | null;
   handleSelectDemo: (proj: PortfolioProject) => void;
   hasInitialPlan: boolean;
+  hasSavedData?: boolean;
+  onResetBriefing?: () => void;
   onNext: () => void;
 }
 
@@ -39,12 +41,27 @@ export const Step1Origin: React.FC<Step1OriginProps> = ({
   selectedProjectObj,
   handleSelectDemo,
   hasInitialPlan,
+  hasSavedData,
+  onResetBriefing,
   onNext,
 }) => {
   const [showPlanGrid, setShowPlanGrid] = useState<boolean>(!hasInitialPlan);
 
   return (
     <div className="space-y-4 animate-in fade-in duration-150">
+      {hasSavedData && onResetBriefing && (
+        <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs">
+          <span className="text-slate-400">Existe um rascunho em andamento para este plano.</span>
+          <button
+            type="button"
+            onClick={onResetBriefing}
+            className="text-cyan-400 hover:text-cyan-300 font-bold underline transition-colors"
+          >
+            Começar novo do zero
+          </button>
+        </div>
+      )}
+
       {/* Cabeçalho da Etapa 1 */}
       <div className="rounded-2xl p-4 sm:p-5 bg-gradient-to-br from-indigo-950/70 via-slate-900 to-slate-950 border border-indigo-900/40 shadow-sm space-y-1">
         <h2 className="text-base sm:text-lg font-black text-white tracking-tight">
@@ -320,7 +337,7 @@ export const Step1Origin: React.FC<Step1OriginProps> = ({
 
       {startMode === 'plano' && (
         <div className="rounded-2xl p-4 bg-slate-900 border border-slate-800 space-y-3 shadow-sm">
-          {hasInitialPlan && !showPlanGrid ? (
+          {hasInitialPlan && selectedPlan && !showPlanGrid ? (
             <div className="p-3.5 rounded-xl bg-indigo-950/40 border border-indigo-500/30 space-y-2">
               <div className="flex items-center justify-between">
                 <div>

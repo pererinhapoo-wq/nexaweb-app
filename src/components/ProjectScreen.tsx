@@ -100,15 +100,13 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     initialModelApproach || 'exact'
   );
 
-  // Plano selecionado
-  const [selectedPlan, setSelectedPlan] = useState<string>(initialPlan || 'profissional');
+  // Plano selecionado (inicia vazio caso nenhum plano tenha sido passado como ponto de partida)
+  const [selectedPlan, setSelectedPlan] = useState<string>(initialPlan || '');
 
-  // Segmento dinâmico selecionado
+  // Segmento dinâmico selecionado: inicia vazio para o usuário escolher
   const [selectedSegment, setSelectedSegment] = useState<string>(() => {
     if (initialModel) return normalizeSegmentKey(initialModel);
-    if (initialPlan === 'essencial') return 'barbearia';
-    if (initialPlan === 'premium') return 'academia';
-    return 'academia';
+    return '';
   });
 
   // Filtro de amostras por categoria na Etapa 1
@@ -152,17 +150,25 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
 
   // Limite oficial de funcionalidades avançadas do plano selecionado (0 / 3 / 5 / 8)
   const advancedFeaturesLimit = useMemo(() => {
-    return getPlanAdvancedFeaturesLimit(selectedPlan);
-  }, [selectedPlan]);
+    const activePlanId = selectedPlan || initialPlan;
+    if (!activePlanId) return 0;
+    return getPlanAdvancedFeaturesLimit(activePlanId);
+  }, [selectedPlan, initialPlan]);
 
   // Funcionalidades agrupadas pelas 13 categorias filtradas para o segmento atual e plano ativo
   const groupedAdvancedFeatures = useMemo(() => {
-    return getAdvancedFeaturesGroupedBySegment(selectedSegment, selectedPlan);
-  }, [selectedSegment, selectedPlan]);
+    const activePlanId = selectedPlan || initialPlan;
+    return getAdvancedFeaturesGroupedBySegment(
+      selectedSegment,
+      activePlanId || 'profissional'
+    );
+  }, [selectedSegment, selectedPlan, initialPlan]);
 
   // Ajusta seleção caso o usuário troque para um plano com limite menor
   useEffect(() => {
-    const limit = getPlanAdvancedFeaturesLimit(selectedPlan);
+    const activePlanId = selectedPlan || initialPlan;
+    if (!activePlanId) return;
+    const limit = getPlanAdvancedFeaturesLimit(activePlanId);
     setSelectedAdvancedFeatures((prev) => {
       if (prev.length > limit) {
         return prev.slice(0, limit);
@@ -170,11 +176,11 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
       return prev;
     });
     setFeatureLimitMessage(null);
-  }, [selectedPlan]);
+  }, [selectedPlan, initialPlan]);
 
   // --- ETAPA 6: VISUAL ---
-  const [visualStyle, setVisualStyle] = useState<string>('Moderno');
-  const [colorMode, setColorMode] = useState<'suggest' | 'brand' | 'custom'>('suggest');
+  const [visualStyle, setVisualStyle] = useState<string>('');
+  const [colorMode, setColorMode] = useState<'suggest' | 'brand' | 'custom' | ''>('');
   const [customColorDetails, setCustomColorDetails] = useState('');
 
   // --- ETAPA 7: CONTEÚDO, INSPIRAÇÕES & CONTATO ---
@@ -200,12 +206,15 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
   } | null>(null);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
 
-  // Inicializa opções do segmento ao trocar de segmento
+  // Limpa seleções de nicho caso o usuário altere o segmento explicitamente na Etapa 3
+  const prevSegmentRef = useRef(selectedSegment);
   useEffect(() => {
-    const config = getSegmentConfig(selectedSegment);
-    setSelectedPrimaryOptions((prev) => (prev.length > 0 ? prev : config.primaryOptions.slice(0, 3)));
-    setSelectedSecondaryOptions((prev) => (prev.length > 0 ? prev : config.secondaryOptions.slice(0, 2)));
-    setSelectedFeatures((prev) => (prev.length > 0 ? prev : config.features.slice(0, 2)));
+    if (prevSegmentRef.current && prevSegmentRef.current !== selectedSegment) {
+      setSelectedPrimaryOptions([]);
+      setSelectedSecondaryOptions([]);
+      setSelectedFeatures([]);
+    }
+    prevSegmentRef.current = selectedSegment;
   }, [selectedSegment]);
 
   // Suporte ao teclado virtual Android: assegura que qualquer campo focado permaneça visível sem cortes
@@ -306,14 +315,30 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     }
   }, [initialModel, initialPlan, portfolioProjects]);
 
+  const [hasSavedDraftData, setHasSavedDraftData] = useState<boolean>(false);
+
   // Carrega rascunho salvo do armazenamento local
   useEffect(() => {
     async function loadDraft() {
+      const planToLoad = selectedPlan || initialPlan;
+      if (!planToLoad) return;
       try {
-        const draft = getBriefingDraftSync(selectedPlan) || (await getBriefingDraft(selectedPlan));
+        const draft = getBriefingDraftSync(planToLoad) || (await getBriefingDraft(planToLoad));
         if (draft) {
+          const hasData = Boolean(
+            draft.businessName ||
+              draft.siteObjective ||
+              draft.selectedSegment ||
+              draft.visualStyle ||
+              draft.contactName ||
+              (draft.selectedAdvancedFeatures && draft.selectedAdvancedFeatures.length > 0) ||
+              (draft.selectedFeatureIds && draft.selectedFeatureIds.length > 0)
+          );
+          setHasSavedDraftData(hasData);
+
           if (draft.businessName && !businessName) setBusinessName(draft.businessName);
           if (draft.siteObjective && !siteObjective) setSiteObjective(draft.siteObjective);
+          if (draft.selectedSegment && !selectedSegment) setSelectedSegment(draft.selectedSegment);
           if (draft.businessLocation && !businessLocation) setBusinessLocation(draft.businessLocation);
           if (draft.googleMapsLink && !googleMapsLink) setGoogleMapsLink(draft.googleMapsLink);
           if (draft.visualStyle && !visualStyle) setVisualStyle(draft.visualStyle);
@@ -326,15 +351,34 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
       }
     }
     loadDraft();
-  }, [selectedPlan]);
+  }, [selectedPlan, initialPlan]);
 
-  // Salva rascunho automaticamente a cada alteração
+  // Salva rascunho automaticamente SOMENTE após interação real do usuário
   useEffect(() => {
+    const hasUserMadeAnyChoice = Boolean(
+      businessName.trim() ||
+        siteObjective ||
+        selectedSegment ||
+        selectedPrimaryOptions.length > 0 ||
+        selectedSecondaryOptions.length > 0 ||
+        selectedFeatures.length > 0 ||
+        selectedAdvancedFeatures.length > 0 ||
+        visualStyle ||
+        colorMode ||
+        contactName.trim() ||
+        contactPhone.trim()
+    );
+
+    if (!hasUserMadeAnyChoice) return;
+    const planToSave = selectedPlan || initialPlan;
+    if (!planToSave) return;
+
     const timer = setTimeout(() => {
-      saveBriefingDraft(selectedPlan, {
-        selectedPlan,
+      saveBriefingDraft(planToSave, {
+        selectedPlan: planToSave,
         businessName,
         siteObjective,
+        selectedSegment,
         businessLocation,
         googleMapsLink,
         selectedFeatureIds: selectedFeatures,
@@ -350,16 +394,52 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     return () => clearTimeout(timer);
   }, [
     selectedPlan,
+    initialPlan,
     businessName,
     siteObjective,
+    selectedSegment,
     businessLocation,
     googleMapsLink,
     selectedFeatures,
+    selectedAdvancedFeatures,
     visualStyle,
+    colorMode,
     contactName,
     contactPhone,
     contactEmail,
   ]);
+
+  // Reinicia o briefing do zero e limpa qualquer rascunho persistido
+  const handleResetBriefing = useCallback(async () => {
+    await clearBriefingDraft(selectedPlan);
+    setHasSavedDraftData(false);
+    setCurrentStep(1);
+    setSelectedModel('');
+    setBusinessName('');
+    setSiteObjective('');
+    setBusinessLocation('');
+    setBusinessBranches('');
+    setGoogleMapsLink('');
+    setSelectedSegment('');
+    setSelectedPrimaryOptions([]);
+    setSelectedSecondaryOptions([]);
+    setSelectedFeatures([]);
+    setSelectedAdvancedFeatures([]);
+    setOperatingSchedule('');
+    setTeamDescription('');
+    setFreeServicesText('');
+    setVisualStyle('');
+    setColorMode('');
+    setCustomColorDetails('');
+    setCustomProjectIdea('');
+    setCustomReferenceLink('');
+    setContactName('');
+    setContactPhone('');
+    setContactEmail('');
+    setSpecificNotes('');
+    setAttachedFiles([]);
+    setStepError(null);
+  }, [selectedPlan]);
 
   // Retorno de etapa unificado
   const handlePrevStep = useCallback(() => {
@@ -391,8 +471,11 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
 
   // Plano ativo
   const activePlanObj: NexawebPlan = useMemo(() => {
-    return plans.find((p) => p.id === selectedPlan) || plans[1];
-  }, [plans, selectedPlan]);
+    const targetPlan = (selectedPlan || initialPlan || '').toLowerCase().trim();
+    const found = plans.find((p) => p.id.toLowerCase() === targetPlan);
+    if (found) return found;
+    return plans.find((p) => p.id === 'profissional') || plans[1] || plans[0];
+  }, [plans, selectedPlan, initialPlan]);
 
   // Amostra atualmente selecionada (se houver)
   const selectedProjectObj = useMemo(() => {
@@ -488,6 +571,13 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
         setStepError('Por favor, selecione uma das demonstrações abaixo para continuar.');
         return;
       }
+      if (startMode === 'plano' && !selectedPlan) {
+        setStepError('Por favor, selecione um dos 4 planos oficiais para continuar.');
+        return;
+      }
+      if (startMode === 'propria' && !selectedPlan) {
+        setSelectedPlan('personalizado');
+      }
       setCurrentStep(2);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
@@ -510,6 +600,10 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
 
     // Etapa 3: Segmento
     if (currentStep === 3) {
+      if (!selectedSegment) {
+        setStepError('Por favor, selecione o Segmento de atuação do seu negócio para prosseguir.');
+        return;
+      }
       setCurrentStep(4);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
@@ -531,6 +625,10 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
 
     // Etapa 6: Visual
     if (currentStep === 6) {
+      if (!visualStyle) {
+        setStepError('Por favor, selecione o Estilo Visual desejado para o seu site.');
+        return;
+      }
       setCurrentStep(7);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
@@ -648,15 +746,19 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
       lines.push(`📝 *Detalhes dos Serviços:* ${freeServicesText}`);
     }
 
-    lines.push('');
-    lines.push(`🎨 *Estilo Visual:* ${visualStyle}`);
-    lines.push(
-      colorMode === 'suggest'
-        ? '🎨 *Identidade Visual:* Sugestão NexaWeb (Harmonia visual)'
-        : colorMode === 'brand'
-        ? `🎨 *Cores da Marca:* ${customColorDetails || 'Cores da identidade visual existente'}`
-        : `🎨 *Cores Escolhidas:* ${customColorDetails || 'Tons específicos indicados'}`
-    );
+    if (visualStyle) {
+      lines.push('');
+      lines.push(`🎨 *Estilo Visual:* ${visualStyle}`);
+    }
+    if (colorMode) {
+      lines.push(
+        colorMode === 'suggest'
+          ? '🎨 *Identidade Visual:* Sugestão NexaWeb (Harmonia visual)'
+          : colorMode === 'brand'
+          ? `🎨 *Cores da Marca:* ${customColorDetails || 'Cores da identidade visual existente'}`
+          : `🎨 *Cores Escolhidas:* ${customColorDetails || 'Tons específicos indicados'}`
+      );
+    }
 
     if (customProjectIdea) {
       lines.push(`💡 *Descrição / Ideia do Projeto:* ${customProjectIdea}`);
@@ -817,8 +919,8 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
       <BriefingStepHeader
         currentStep={currentStep}
         totalSteps={9}
-        planName={activePlanObj.nome}
-        planPrice={activePlanObj.preco}
+        planName={selectedPlan || initialPlan ? activePlanObj.nome : ''}
+        planPrice={selectedPlan || initialPlan ? activePlanObj.preco : ''}
         canGoBack={currentStep > 1 || !!onBack}
         onBackAction={currentStep > 1 ? handlePrevStep : (onBack || (() => onNavigate('home')))}
       />
@@ -849,7 +951,9 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
           setSampleFilter={setSampleFilter}
           selectedProjectObj={selectedProjectObj}
           handleSelectDemo={handleSelectDemo}
-          hasInitialPlan={!!initialPlan}
+          hasInitialPlan={Boolean(initialPlan && selectedPlan)}
+          hasSavedData={hasSavedDraftData}
+          onResetBriefing={handleResetBriefing}
           onNext={handleNextStep}
         />
       )}
@@ -1004,6 +1108,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
           onOfflineProtocol={handleGenerateOfflineProtocol}
           onEditStep={handleEditStep}
           onNavigate={onNavigate}
+          onResetBriefing={handleResetBriefing}
         />
       )}
     </div>

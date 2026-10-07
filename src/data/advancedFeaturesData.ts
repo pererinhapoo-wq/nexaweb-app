@@ -56,12 +56,13 @@ export const PLAN_ADVANCED_FEATURES_LIMITS: Record<string, number> = {
   premium: 8,
 };
 
-export function getPlanAdvancedFeaturesLimit(planId: string): number {
-  const norm = planId ? planId.toLowerCase() : 'profissional';
+export function getPlanAdvancedFeaturesLimit(planId?: string): number {
+  if (!planId) return 0;
+  const norm = planId.toLowerCase().trim();
   if (norm in PLAN_ADVANCED_FEATURES_LIMITS) {
     return PLAN_ADVANCED_FEATURES_LIMITS[norm];
   }
-  return 5;
+  return 0;
 }
 
 export interface SegmentPlanFeatureRaw {

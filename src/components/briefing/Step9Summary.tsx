@@ -36,7 +36,7 @@ interface Step9SummaryProps {
   selectedAdvancedFeatures: string[];
   advancedFeaturesLimit: number;
   visualStyle: string;
-  colorMode: 'suggest' | 'brand' | 'custom';
+  colorMode: 'suggest' | 'brand' | 'custom' | '';
   customColorDetails: string;
   customProjectIdea: string;
   customReferenceLink: string;
@@ -59,6 +59,7 @@ interface Step9SummaryProps {
   onOfflineProtocol: () => void;
   onEditStep: (step: number) => void;
   onNavigate: (tab: any) => void;
+  onResetBriefing?: () => void;
 }
 
 export const Step9Summary: React.FC<Step9SummaryProps> = ({
@@ -100,6 +101,7 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
   onOfflineProtocol,
   onEditStep,
   onNavigate,
+  onResetBriefing,
 }) => {
   const objectiveLabel =
     SITE_OBJECTIVES.find((o) => o.id === siteObjective)?.label || siteObjective;
@@ -387,7 +389,7 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
 
           <div className="flex items-center justify-between">
             <span className="text-slate-400">Estilo:</span>
-            <span className="font-semibold text-white text-right">{visualStyle}</span>
+            <span className="font-semibold text-white text-right">{visualStyle || 'A definir'}</span>
           </div>
 
           <div className="flex items-center justify-between">
@@ -397,7 +399,9 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
                 ? 'Sugestão NexaWeb'
                 : colorMode === 'brand'
                 ? 'Minhas Cores'
-                : `Tons Específicos: ${customColorDetails || 'Definidos'}`}
+                : colorMode === 'custom'
+                ? `Tons Específicos: ${customColorDetails || 'Definidos'}`
+                : 'A definir pela equipe'}
             </span>
           </div>
         </div>
@@ -522,6 +526,15 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
             >
               Voltar ao Início
             </button>
+            {onResetBriefing && (
+              <button
+                type="button"
+                onClick={onResetBriefing}
+                className="min-h-[44px] py-2 px-3 rounded-xl bg-slate-900 border border-cyan-800/60 text-cyan-300 hover:text-white text-xs font-semibold"
+              >
+                Iniciar Novo Briefing
+              </button>
+            )}
           </div>
         </div>
       )}
