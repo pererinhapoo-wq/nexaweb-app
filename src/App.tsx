@@ -470,7 +470,11 @@ function AppContent() {
   return (
     <div
       className={`min-h-screen flex flex-col font-sans selection:bg-indigo-500 selection:text-white transition-colors duration-200 ${
-        resolvedTheme === 'light' ? 'bg-slate-50 text-slate-900' : 'bg-slate-950 text-slate-100'
+        resolvedTheme === 'light'
+          ? 'bg-slate-50 text-slate-900'
+          : resolvedTheme === 'dark'
+          ? 'bg-black text-white'
+          : 'bg-slate-950 text-slate-100'
       }`}
     >
       {/* Intro splash suave e não intrusiva */}

@@ -327,7 +327,7 @@ const MainHeroBanner = React.memo<{
                 <div className="absolute inset-0 bg-gradient-to-r from-slate-950/70 via-transparent to-transparent pointer-events-none" />
 
                 {/* Textos sobrepostos sobre a imagem */}
-                <div className="absolute inset-x-0 bottom-0 p-3.5 sm:p-4.5 flex flex-col justify-end pointer-events-none z-10">
+                <div className="absolute inset-x-0 bottom-0 p-3.5 sm:p-4.5 flex flex-col justify-end pointer-events-none z-10 hero-banner-content">
                   <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9.5px] font-bold uppercase tracking-wider bg-white/20 backdrop-blur-md text-cyan-300 border border-white/20 w-fit mb-1.5 shadow-sm">
                     {slide.segmento}
                   </span>

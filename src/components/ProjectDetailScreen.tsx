@@ -254,7 +254,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
           ) : (
             /* Fallback elegante caso a imagem falhe */
             <div
-              className={`absolute inset-0 w-full h-full bg-gradient-to-br ${project.corDestaque} p-4 flex flex-col justify-between overflow-hidden select-none`}
+              className={`absolute inset-0 w-full h-full bg-gradient-to-br ${project.corDestaque} p-4 flex flex-col justify-between overflow-hidden select-none media-fallback-content`}
             >
               <div className="flex items-center justify-between relative z-10">
                 <div className="flex items-center gap-1.5 bg-black/45 px-2.5 py-1 rounded-full border border-white/15">
@@ -285,7 +285,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
           {/* Badge discreto de contagem quando houver múltiplas imagens */}
           {hasMultipleImages && (
             <div className="absolute top-2.5 right-2.5 z-20 pointer-events-none">
-              <span className="text-[9.5px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-950/80 backdrop-blur-md text-white border border-slate-700/80 shadow-md">
+              <span className="text-[9.5px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-950/80 backdrop-blur-md text-white border border-slate-700/80 shadow-md media-badge">
                 {currentImageIndex + 1}/{imageList.length}
               </span>
             </div>

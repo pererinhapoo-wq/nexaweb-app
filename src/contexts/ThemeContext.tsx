@@ -8,12 +8,12 @@ import {
 } from '../utils/storage';
 import { StatusBar, Style } from '@capacitor/status-bar';
 
-export type ThemeOption = 'system' | 'light' | 'dark';
+export type ThemeOption = 'original' | 'light' | 'dark';
 
 interface ThemeContextType {
   themeMode: ThemeOption;
   setThemeMode: (mode: ThemeOption) => Promise<void>;
-  resolvedTheme: 'dark' | 'light';
+  resolvedTheme: ThemeOption;
   animationMode: AnimationMode;
   setAnimationMode: (mode: AnimationMode) => Promise<void>;
 }
@@ -21,53 +21,12 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Detecta o tema dinâmico do sistema (Android / Browser)
-  const [isSystemDark, setIsSystemDark] = useState<boolean>(() => {
-    if (typeof window !== 'undefined' && window.matchMedia) {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches;
-    }
-    return true; // Padrão seguro para fallback
-  });
-
-  // Modo de tema configurado pelo usuário: 'system' | 'light' | 'dark'
-  const [themeMode, setThemeModeState] = useState<ThemeOption>('system');
+  // Modo de tema configurado pelo usuário: exatamente 3 temas independentes
+  const [themeMode, setThemeModeState] = useState<ThemeOption>('original');
   const [animationMode, setAnimationModeState] = useState<AnimationMode>('enabled');
 
-  // Tema final resolvido: se 'system', acompanha Android; se 'light' ou 'dark', força a escolha
-  const resolvedTheme: 'dark' | 'light' =
-    themeMode === 'system'
-      ? isSystemDark
-        ? 'dark'
-        : 'light'
-      : themeMode === 'light'
-      ? 'light'
-      : 'dark';
-
-  // Monitora alterações dinâmicas do tema do sistema em tempo real
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return;
-
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const updateThemeFromSystem = (e?: MediaQueryListEvent) => {
-      if (e && typeof e.matches === 'boolean') {
-        setIsSystemDark(e.matches);
-      } else {
-        setIsSystemDark(mediaQuery.matches);
-      }
-    };
-
-    // Sincroniza estado inicial exato
-    setIsSystemDark(mediaQuery.matches);
-
-    // Suporte moderno e fallback para WebViews Android
-    if (mediaQuery.addEventListener) {
-      mediaQuery.addEventListener('change', updateThemeFromSystem);
-      return () => mediaQuery.removeEventListener('change', updateThemeFromSystem);
-    } else if ((mediaQuery as any).addListener) {
-      (mediaQuery as any).addListener(updateThemeFromSystem);
-      return () => (mediaQuery as any).removeListener(updateThemeFromSystem);
-    }
-  }, []);
+  // Tema resolvido é diretamente a escolha do usuário ('original' | 'light' | 'dark')
+  const resolvedTheme: ThemeOption = themeMode;
 
   // Carrega preferências salvas de tema e animação na inicialização
   useEffect(() => {
@@ -78,13 +37,14 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           getSavedTheme(),
         ]);
         setAnimationModeState(savedAnim);
-        if (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'system') {
+        if (savedTheme === 'original' || savedTheme === 'light' || savedTheme === 'dark') {
           setThemeModeState(savedTheme as ThemeOption);
         } else {
-          setThemeModeState('system');
+          setThemeModeState('original');
         }
       } catch {
-        // Fallback seguro
+        // Fallback seguro para o tema Original
+        setThemeModeState('original');
       }
     }
 
@@ -96,26 +56,31 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const root = document.documentElement;
 
     root.setAttribute('data-theme', resolvedTheme);
-    if (resolvedTheme === 'dark') {
-      root.classList.add('dark');
-      root.classList.remove('light');
-    } else {
-      root.classList.add('light');
-      root.classList.remove('dark');
-    }
 
-    // Remove classes de personalizações manuais legadas
-    root.classList.remove('theme-pitch-black', 'theme-official');
+    // Remove todas as classes de temas para garantir que não haja herança residual de estilos
+    root.classList.remove('original', 'light', 'dark', 'theme-pitch-black', 'theme-official');
+
+    if (resolvedTheme === 'light') {
+      root.classList.add('light');
+    } else if (resolvedTheme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.add('original');
+    }
 
     // Sincroniza StatusBar nativa do Android via Capacitor
     async function updateStatusBar() {
       try {
-        if (resolvedTheme === 'dark') {
-          await StatusBar.setStyle({ style: Style.Dark });
-          await StatusBar.setBackgroundColor({ color: '#020617' });
-        } else {
+        if (resolvedTheme === 'light') {
           await StatusBar.setStyle({ style: Style.Light });
           await StatusBar.setBackgroundColor({ color: '#f8fafc' });
+        } else if (resolvedTheme === 'dark') {
+          await StatusBar.setStyle({ style: Style.Dark });
+          await StatusBar.setBackgroundColor({ color: '#000000' });
+        } else {
+          // Original: Slate 950 oficial NexaWeb
+          await StatusBar.setStyle({ style: Style.Dark });
+          await StatusBar.setBackgroundColor({ color: '#020617' });
         }
       } catch {
         // Ignorado em ambiente web preview

@@ -252,7 +252,7 @@ export const ProjectCardImage: React.FC<ProjectCardImageProps> = React.memo(({
         <div
           className={`absolute inset-0 w-full h-full bg-gradient-to-br ${
             project.corDestaque || segmentConfig.gradient
-          } p-3.5 flex flex-col justify-between overflow-hidden select-none`}
+          } p-3.5 flex flex-col justify-between overflow-hidden select-none media-fallback-content`}
         >
           <div className="flex items-center justify-between relative z-10">
             <div className="flex items-center gap-1.5 bg-black/45 px-2 py-0.5 rounded-full border border-white/15">
@@ -286,7 +286,7 @@ export const ProjectCardImage: React.FC<ProjectCardImageProps> = React.memo(({
       {/* 3. Badge do plano quando a imagem está visível */}
       {badge && !hasFatalError && (
         <div className="absolute top-2 right-2 z-10 flex items-center gap-1 pointer-events-none">
-          <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-950/85 backdrop-blur-sm text-cyan-300 border border-cyan-500/30 shadow-md">
+          <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-950/85 backdrop-blur-sm text-cyan-300 border border-cyan-500/30 shadow-md media-badge">
             {badge}
           </span>
         </div>

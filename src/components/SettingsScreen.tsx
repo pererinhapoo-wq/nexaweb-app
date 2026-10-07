@@ -13,7 +13,7 @@ import {
   ArrowLeft,
   Sun,
   Moon,
-  Smartphone,
+  Sparkles,
 } from 'lucide-react';
 
 interface SettingsScreenProps {
@@ -75,19 +75,19 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           : 'Tema claro aplicado!'
         : mode === 'dark'
         ? language === 'en'
-          ? 'Dark theme applied!'
+          ? 'AMOLED Dark theme applied!'
           : language === 'es'
-          ? '¡Tema oscuro aplicado!'
+          ? '¡Tema oscuro AMOLED aplicado!'
           : language === 'fr'
-          ? 'Thème sombre appliqué !'
-          : 'Tema escuro aplicado!'
+          ? 'Thème sombre AMOLED appliqué !'
+          : 'Tema escuro AMOLED aplicado!'
         : language === 'en'
-        ? 'System theme applied!'
+        ? 'Original theme applied!'
         : language === 'es'
-        ? '¡Tema del sistema aplicado!'
+        ? '¡Tema original aplicado!'
         : language === 'fr'
-        ? 'Thème du système appliqué !'
-        : 'Tema do sistema aplicado!';
+        ? 'Thème original appliqué !'
+        : 'Tema original aplicado!';
     showToast(toast);
   };
 
@@ -100,43 +100,43 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     if (language === 'en') {
       return {
         title: 'App Theme',
-        desc: 'Choose between following the system theme, light mode, or dark mode.',
+        desc: 'Choose between the 3 independent official visual themes.',
         options: [
-          { id: 'system' as ThemeOption, label: 'System', badge: 'Automatic', icon: Smartphone, iconColor: 'text-cyan-400' },
+          { id: 'original' as ThemeOption, label: 'Original', badge: 'Brand Slate', icon: Sparkles, iconColor: 'text-indigo-400' },
           { id: 'light' as ThemeOption, label: 'Light', badge: 'Day mode', icon: Sun, iconColor: 'text-amber-400' },
-          { id: 'dark' as ThemeOption, label: 'Dark', badge: 'Night mode', icon: Moon, iconColor: 'text-indigo-400' },
+          { id: 'dark' as ThemeOption, label: 'Dark', badge: 'AMOLED Black', icon: Moon, iconColor: 'text-cyan-400' },
         ],
       };
     }
     if (language === 'es') {
       return {
         title: 'Tema de la Aplicación',
-        desc: 'Elige entre seguir el tema del sistema, modo claro o modo oscuro.',
+        desc: 'Elige entre los 3 temas visuales independientes oficiales.',
         options: [
-          { id: 'system' as ThemeOption, label: 'Sistema', badge: 'Automático', icon: Smartphone, iconColor: 'text-cyan-400' },
+          { id: 'original' as ThemeOption, label: 'Original', badge: 'Identidad Nexa', icon: Sparkles, iconColor: 'text-indigo-400' },
           { id: 'light' as ThemeOption, label: 'Claro', badge: 'Modo día', icon: Sun, iconColor: 'text-amber-400' },
-          { id: 'dark' as ThemeOption, label: 'Oscuro', badge: 'Modo noche', icon: Moon, iconColor: 'text-indigo-400' },
+          { id: 'dark' as ThemeOption, label: 'Oscuro', badge: 'AMOLED Black', icon: Moon, iconColor: 'text-cyan-400' },
         ],
       };
     }
     if (language === 'fr') {
       return {
         title: "Thème de l'Application",
-        desc: 'Choisissez entre suivre le thème du système, mode clair ou mode sombre.',
+        desc: 'Choisissez parmi les 3 thèmes visuels officiels et indépendants.',
         options: [
-          { id: 'system' as ThemeOption, label: 'Système', badge: 'Automatique', icon: Smartphone, iconColor: 'text-cyan-400' },
+          { id: 'original' as ThemeOption, label: 'Original', badge: 'Identité Nexa', icon: Sparkles, iconColor: 'text-indigo-400' },
           { id: 'light' as ThemeOption, label: 'Clair', badge: 'Mode jour', icon: Sun, iconColor: 'text-amber-400' },
-          { id: 'dark' as ThemeOption, label: 'Sombre', badge: 'Mode nuit', icon: Moon, iconColor: 'text-indigo-400' },
+          { id: 'dark' as ThemeOption, label: 'Sombre', badge: 'AMOLED Black', icon: Moon, iconColor: 'text-cyan-400' },
         ],
       };
     }
     return {
       title: 'Tema da Interface',
-      desc: 'Escolha entre acompanhar o tema do Android, forçar tema claro ou escuro.',
+      desc: 'Alterne livremente entre os 3 temas oficiais e independentes da aplicação.',
       options: [
-        { id: 'system' as ThemeOption, label: 'Sistema', badge: 'Automático', icon: Smartphone, iconColor: 'text-cyan-400' },
+        { id: 'original' as ThemeOption, label: 'Original', badge: 'Identidade Nexa', icon: Sparkles, iconColor: 'text-indigo-400' },
         { id: 'light' as ThemeOption, label: 'Claro', badge: 'Modo dia', icon: Sun, iconColor: 'text-amber-400' },
-        { id: 'dark' as ThemeOption, label: 'Escuro', badge: 'Modo noite', icon: Moon, iconColor: 'text-indigo-400' },
+        { id: 'dark' as ThemeOption, label: 'Escuro', badge: 'AMOLED Black', icon: Moon, iconColor: 'text-cyan-400' },
       ],
     };
   }, [language]);
@@ -248,9 +248,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           {themeMode === 'light' ? (
             <Sun className="w-4 h-4 text-amber-400" />
           ) : themeMode === 'dark' ? (
-            <Moon className="w-4 h-4 text-indigo-400" />
+            <Moon className="w-4 h-4 text-cyan-400" />
           ) : (
-            <Smartphone className="w-4 h-4 text-cyan-400" />
+            <Sparkles className="w-4 h-4 text-indigo-400" />
           )}
           <h2 className="text-xs sm:text-[13px] font-bold uppercase tracking-wider text-white">
             {themeTexts.title}

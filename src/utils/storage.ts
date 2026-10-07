@@ -202,9 +202,10 @@ export async function toggleFavoriteProject(projectId: string): Promise<string[]
 
 export async function getSavedTheme(): Promise<ThemeMode> {
   const val = await getStorageItem(KEYS.THEME);
-  if (val === 'light' || val === 'dark' || val === 'system') return val;
-  if (val === 'auto' || val === 'official') return 'system';
-  return 'system'; // Padrão Oficial: Sistema
+  if (val === 'original' || val === 'light' || val === 'dark') return val;
+  if (val === 'official') return 'original';
+  if (val === 'auto' || val === 'system') return 'original';
+  return 'original'; // Padrão Oficial: Original
 }
 
 export async function saveTheme(theme: ThemeMode): Promise<void> {

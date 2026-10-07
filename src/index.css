@@ -15,6 +15,22 @@
   --input-text: #f8fafc;
 }
 
+html[data-theme="original"],
+html.original {
+  --bg-app: #020617;
+  --bg-surface: #0f172a;
+  --bg-surface-elevated: #1e293b;
+  --bg-secondary: #020617;
+  --border-default: #1e293b;
+  --border-subtle: #334155;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --input-bg: #020617;
+  --input-border: #334155;
+  --input-text: #f8fafc;
+}
+
 html[data-theme="light"],
 html.light {
   --bg-app: #f8fafc;
@@ -29,6 +45,22 @@ html.light {
   --input-bg: #ffffff;
   --input-border: #cbd5e1;
   --input-text: #0f172a;
+}
+
+html[data-theme="dark"],
+html.dark {
+  --bg-app: #000000;
+  --bg-surface: #09090b;
+  --bg-surface-elevated: #121215;
+  --bg-secondary: #050507;
+  --border-default: #1f2026;
+  --border-subtle: #2b2c34;
+  --text-primary: #ffffff;
+  --text-secondary: #e4e4e7;
+  --text-muted: #a1a1aa;
+  --input-bg: #050507;
+  --input-border: #272830;
+  --input-text: #ffffff;
 }
 
 @layer utilities {
@@ -114,18 +146,281 @@ html.reduced-motion *::after {
 }
 
 /* ==================================================
-   TEMA ESCURO AMOLED (PITCH BLACK)
+   SISTEMA DE TEMA ESCURO AMOLED (PITCH BLACK / TRUE DARK)
    ================================================== */
-html.theme-pitch-black body,
-html[data-theme="dark"].theme-pitch-black body {
+
+/* 1. Base e Fundo Principal: 100% Preto Puro */
+html.dark body,
+html[data-theme="dark"] body {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+html.dark .min-h-screen,
+html[data-theme="dark"] .min-h-screen {
   background-color: #000000 !important;
 }
-html.theme-pitch-black .min-h-screen.bg-slate-950,
-html[data-theme="dark"].theme-pitch-black .min-h-screen.bg-slate-950 {
+
+html.dark .bg-slate-950,
+html.dark .bg-slate-950\/95,
+html.dark .bg-slate-950\/90,
+html.dark .bg-slate-950\/85,
+html.dark .bg-slate-950\/80,
+html.dark .bg-slate-950\/70,
+html.dark .bg-slate-950\/60,
+html.dark .bg-slate-950\/50,
+html.dark .bg-slate-950\/40,
+html.dark .bg-slate-950\/30,
+html[data-theme="dark"] .bg-slate-950,
+html[data-theme="dark"] .bg-slate-950\/95,
+html[data-theme="dark"] .bg-slate-950\/90,
+html[data-theme="dark"] .bg-slate-950\/85,
+html[data-theme="dark"] .bg-slate-950\/80,
+html[data-theme="dark"] .bg-slate-950\/70,
+html[data-theme="dark"] .bg-slate-950\/60,
+html[data-theme="dark"] .bg-slate-950\/50,
+html[data-theme="dark"] .bg-slate-950\/40,
+html[data-theme="dark"] .bg-slate-950\/30 {
   background-color: #000000 !important;
+  border-color: #1f2026 !important;
 }
-html.theme-pitch-black .bg-slate-950 {
-  background-color: #000000 !important;
+
+/* 2. Header e Barra de Navegação */
+html.dark header,
+html[data-theme="dark"] header {
+  background-color: rgba(0, 0, 0, 0.95) !important;
+  border-color: #1f2026 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.6);
+}
+
+html.dark nav,
+html[data-theme="dark"] nav {
+  background-color: rgba(0, 0, 0, 0.98) !important;
+  border-color: #1f2026 !important;
+  box-shadow: 0 -4px 16px -2px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* 3. BottomNav no Tema Escuro AMOLED */
+html.dark .nav-pill-active,
+html[data-theme="dark"] .nav-pill-active {
+  background-color: rgba(34, 211, 238, 0.12) !important;
+  border-color: rgba(34, 211, 238, 0.4) !important;
+  color: #22d3ee !important;
+}
+
+html.dark .nav-label-active,
+html[data-theme="dark"] .nav-label-active {
+  color: #22d3ee !important;
+  font-weight: 700 !important;
+}
+
+/* 4. Drawer / Menu Lateral no Tema Escuro AMOLED */
+html.dark .drawer-panel,
+html[data-theme="dark"] .drawer-panel {
+  background-color: #050507 !important;
+  border-color: #1f2026 !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.8) !important;
+}
+
+html.dark .drawer-header,
+html[data-theme="dark"] .drawer-header {
+  background-color: #09090b !important;
+  border-color: #1f2026 !important;
+}
+
+html.dark .drawer-title,
+html[data-theme="dark"] .drawer-title {
+  color: #ffffff !important;
+}
+
+html.dark .drawer-close-btn,
+html[data-theme="dark"] .drawer-close-btn {
+  background-color: #121215 !important;
+  color: #e4e4e7 !important;
+  border: 1px solid #272830 !important;
+}
+
+html.dark .drawer-close-btn:hover,
+html[data-theme="dark"] .drawer-close-btn:hover {
+  background-color: #1f2026 !important;
+  color: #ffffff !important;
+}
+
+html.dark .drawer-item-active,
+html[data-theme="dark"] .drawer-item-active {
+  background-color: rgba(34, 211, 238, 0.12) !important;
+  border-color: rgba(34, 211, 238, 0.4) !important;
+  color: #22d3ee !important;
+  font-weight: 700 !important;
+}
+
+html.dark .drawer-icon-active,
+html[data-theme="dark"] .drawer-icon-active,
+html.dark .drawer-dot-active,
+html[data-theme="dark"] .drawer-dot-active {
+  color: #22d3ee !important;
+  background-color: #22d3ee !important;
+}
+
+html.dark .drawer-item-inactive,
+html[data-theme="dark"] .drawer-item-inactive {
+  color: #a1a1aa !important;
+}
+
+html.dark .drawer-item-inactive:hover,
+html[data-theme="dark"] .drawer-item-inactive:hover {
+  background-color: #121215 !important;
+  color: #ffffff !important;
+}
+
+html.dark .drawer-footer,
+html[data-theme="dark"] .drawer-footer {
+  background-color: #09090b !important;
+  border-color: #1f2026 !important;
+}
+
+/* 5. Scrims e Backdrops */
+html.dark .drawer-scrim,
+html.dark .modal-scrim,
+html[data-theme="dark"] .drawer-scrim,
+html[data-theme="dark"] .modal-scrim,
+html.dark [role="dialog"] ~ div,
+html[data-theme="dark"] [role="dialog"] ~ div {
+  background-color: rgba(0, 0, 0, 0.85) !important;
+}
+
+/* 6. Superfícies Principais (Cards, Sheets, Modais): Preto Ônix Profundo */
+html.dark .bg-slate-900,
+html.dark .bg-slate-900\/95,
+html.dark .bg-slate-900\/90,
+html.dark .bg-slate-900\/80,
+html.dark .bg-slate-900\/70,
+html.dark .bg-slate-900\/60,
+html[data-theme="dark"] .bg-slate-900,
+html[data-theme="dark"] .bg-slate-900\/95,
+html[data-theme="dark"] .bg-slate-900\/90,
+html[data-theme="dark"] .bg-slate-900\/80,
+html[data-theme="dark"] .bg-slate-900\/70,
+html[data-theme="dark"] .bg-slate-900\/60 {
+  background-color: #09090b !important;
+  border-color: #1f2026 !important;
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.6);
+}
+
+/* Gradientes Estruturais no Tema Escuro AMOLED */
+html.dark [class*="from-indigo-950"],
+html[data-theme="dark"] [class*="from-indigo-950"],
+html.dark [class*="from-slate-900"][class*="to-slate-950"],
+html[data-theme="dark"] [class*="from-slate-900"][class*="to-slate-950"] {
+  background-image: linear-gradient(to bottom right, #0e0f14, #000000) !important;
+  border-color: #1f2026 !important;
+}
+
+/* 7. Superfícies Secundárias e Tags */
+html.dark .bg-slate-800,
+html.dark .bg-slate-800\/90,
+html.dark .bg-slate-800\/80,
+html.dark .bg-slate-800\/70,
+html.dark .bg-slate-850,
+html[data-theme="dark"] .bg-slate-800,
+html[data-theme="dark"] .bg-slate-800\/90,
+html[data-theme="dark"] .bg-slate-800\/80,
+html[data-theme="dark"] .bg-slate-800\/70,
+html[data-theme="dark"] .bg-slate-850 {
+  background-color: #121216 !important;
+  border-color: #22232a !important;
+  color: #e4e4e7 !important;
+}
+
+html.dark .hover\:bg-slate-750:hover,
+html.dark .hover\:bg-slate-850:hover,
+html.dark .hover\:bg-slate-800:hover,
+html.dark .hover\:bg-slate-700:hover,
+html[data-theme="dark"] .hover\:bg-slate-750:hover,
+html[data-theme="dark"] .hover\:bg-slate-850:hover,
+html[data-theme="dark"] .hover\:bg-slate-800:hover,
+html[data-theme="dark"] .hover\:bg-slate-700:hover {
+  background-color: #1c1d24 !important;
+  color: #ffffff !important;
+}
+
+/* 8. Bordas Gerais */
+html.dark .border-slate-800,
+html.dark .border-slate-800\/80,
+html.dark .border-slate-800\/90,
+html.dark .border-slate-800\/70,
+html.dark .border-slate-800\/60,
+html.dark .border-slate-800\/50,
+html.dark .border-slate-800\/40,
+html.dark .border-slate-800\/30,
+html.dark .border-slate-850,
+html.dark .border-slate-700,
+html.dark .border-slate-700\/80,
+html.dark .border-slate-700\/60,
+html.dark .divide-slate-800 > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-slate-800\/80 > :not([hidden]) ~ :not([hidden]),
+html[data-theme="dark"] .border-slate-800,
+html[data-theme="dark"] .border-slate-800\/80,
+html[data-theme="dark"] .border-slate-800\/90,
+html[data-theme="dark"] .border-slate-800\/70,
+html[data-theme="dark"] .border-slate-800\/60,
+html[data-theme="dark"] .border-slate-800\/50,
+html[data-theme="dark"] .border-slate-800\/40,
+html[data-theme="dark"] .border-slate-800\/30,
+html[data-theme="dark"] .border-slate-850,
+html[data-theme="dark"] .border-slate-700,
+html[data-theme="dark"] .border-slate-700\/80,
+html[data-theme="dark"] .border-slate-700\/60,
+html[data-theme="dark"] .divide-slate-800 > :not([hidden]) ~ :not([hidden]),
+html[data-theme="dark"] .divide-slate-800\/80 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #1f2026 !important;
+}
+
+/* 9. Formulários e Entradas no Tema Escuro AMOLED */
+html.dark input,
+html.dark textarea,
+html.dark select,
+html[data-theme="dark"] input,
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] select {
+  background-color: #050507 !important;
+  color: #ffffff !important;
+  border-color: #272830 !important;
+}
+
+html.dark select option,
+html[data-theme="dark"] select option {
+  background-color: #09090b !important;
+  color: #ffffff !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder,
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder {
+  color: #71717a !important;
+}
+
+/* 10. Tipografia de Alto Contraste no Tema Escuro AMOLED */
+html.dark .text-white,
+html[data-theme="dark"] .text-white {
+  color: #ffffff !important;
+}
+
+html.dark .text-slate-100,
+html.dark .text-slate-200,
+html.dark .text-slate-300,
+html[data-theme="dark"] .text-slate-100,
+html[data-theme="dark"] .text-slate-200,
+html[data-theme="dark"] .text-slate-300 {
+  color: #e4e4e7 !important;
+}
+
+html.dark .text-slate-400,
+html.dark .text-slate-500,
+html[data-theme="dark"] .text-slate-400,
+html[data-theme="dark"] .text-slate-500 {
+  color: #a1a1aa !important;
 }
 
 /* ==================================================
@@ -276,22 +571,94 @@ html[data-theme="light"] .bg-slate-900\/70,
 html[data-theme="light"] .bg-slate-900\/60 {
   background-color: #ffffff !important;
   border-color: #e2e8f0 !important;
-  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.05);
+}
+
+/* 4.1 Gradientes Estruturais Adaptados para o Tema Claro (Cards de Briefing, Portal, Modais) */
+html.light [class*="from-indigo-950"],
+html[data-theme="light"] [class*="from-indigo-950"] {
+  background-image: linear-gradient(to bottom right, #f8fafc, #ffffff) !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light [class*="from-slate-900"][class*="to-slate-950"],
+html[data-theme="light"] [class*="from-slate-900"][class*="to-slate-950"] {
+  background-image: linear-gradient(to bottom right, #f8fafc, #ffffff) !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light [class*="from-amber-950"],
+html[data-theme="light"] [class*="from-amber-950"] {
+  background-image: linear-gradient(to bottom right, #fffbeb, #ffffff) !important;
+  border-color: #fde68a !important;
 }
 
 /* 5. Superfícies Secundárias / Contêineres Internos */
 html.light .bg-slate-950,
+html.light .bg-slate-950\/95,
 html.light .bg-slate-950\/90,
+html.light .bg-slate-950\/85,
+html.light .bg-slate-950\/80,
 html.light .bg-slate-950\/70,
+html.light .bg-slate-950\/60,
 html.light .bg-slate-950\/50,
 html.light .bg-slate-950\/40,
+html.light .bg-slate-950\/30,
 html[data-theme="light"] .bg-slate-950,
+html[data-theme="light"] .bg-slate-950\/95,
 html[data-theme="light"] .bg-slate-950\/90,
+html[data-theme="light"] .bg-slate-950\/85,
+html[data-theme="light"] .bg-slate-950\/80,
 html[data-theme="light"] .bg-slate-950\/70,
+html[data-theme="light"] .bg-slate-950\/60,
 html[data-theme="light"] .bg-slate-950\/50,
-html[data-theme="light"] .bg-slate-950\/40 {
+html[data-theme="light"] .bg-slate-950\/40,
+html[data-theme="light"] .bg-slate-950\/30 {
   background-color: #f8fafc !important;
   border-color: #e2e8f0 !important;
+}
+
+/* 5.1 Contêineres e Badges Coloridos de Tom 950 no Tema Claro */
+html.light [class*="bg-indigo-950"],
+html[data-theme="light"] [class*="bg-indigo-950"] {
+  background-color: #eef2ff !important;
+  border-color: #c7d2fe !important;
+  color: #3730a3 !important;
+}
+
+html.light [class*="bg-cyan-950"],
+html[data-theme="light"] [class*="bg-cyan-950"] {
+  background-color: #f0f9ff !important;
+  border-color: #bae6fd !important;
+  color: #0369a1 !important;
+}
+
+html.light [class*="bg-purple-950"],
+html[data-theme="light"] [class*="bg-purple-950"] {
+  background-color: #faf5ff !important;
+  border-color: #e9d5ff !important;
+  color: #6b21a8 !important;
+}
+
+html.light [class*="bg-emerald-950"],
+html[data-theme="light"] [class*="bg-emerald-950"] {
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+  color: #065f46 !important;
+}
+
+html.light [class*="bg-rose-950"],
+html[data-theme="light"] [class*="bg-rose-950"] {
+  background-color: #fff1f2 !important;
+  border-color: #fecdd3 !important;
+  color: #9f1239 !important;
+}
+
+html.light [class*="bg-amber-950"],
+html[data-theme="light"] [class*="bg-amber-950"] {
+  background-color: #fffbeb !important;
+  border-color: #fde68a !important;
+  color: #92400e !important;
 }
 
 /* 6. Botões Secundários e Tags Cinzas */
@@ -299,10 +666,12 @@ html.light .bg-slate-800,
 html.light .bg-slate-800\/90,
 html.light .bg-slate-800\/80,
 html.light .bg-slate-800\/70,
+html.light .bg-slate-850,
 html[data-theme="light"] .bg-slate-800,
 html[data-theme="light"] .bg-slate-800\/90,
 html[data-theme="light"] .bg-slate-800\/80,
-html[data-theme="light"] .bg-slate-800\/70 {
+html[data-theme="light"] .bg-slate-800\/70,
+html[data-theme="light"] .bg-slate-850 {
   background-color: #f1f5f9 !important;
   border-color: #e2e8f0 !important;
   color: #1e293b !important;
@@ -310,8 +679,12 @@ html[data-theme="light"] .bg-slate-800\/70 {
 
 html.light .hover\:bg-slate-750:hover,
 html.light .hover\:bg-slate-850:hover,
+html.light .hover\:bg-slate-800:hover,
+html.light .hover\:bg-slate-700:hover,
 html[data-theme="light"] .hover\:bg-slate-750:hover,
-html[data-theme="light"] .hover\:bg-slate-850:hover {
+html[data-theme="light"] .hover\:bg-slate-850:hover,
+html[data-theme="light"] .hover\:bg-slate-800:hover,
+html[data-theme="light"] .hover\:bg-slate-700:hover {
   background-color: #e2e8f0 !important;
   color: #0f172a !important;
 }
@@ -320,20 +693,30 @@ html[data-theme="light"] .hover\:bg-slate-850:hover {
 html.light .border-slate-800,
 html.light .border-slate-800\/80,
 html.light .border-slate-800\/90,
-html.light .border-slate-800\/60,
 html.light .border-slate-800\/70,
+html.light .border-slate-800\/60,
+html.light .border-slate-800\/50,
+html.light .border-slate-800\/40,
+html.light .border-slate-800\/30,
+html.light .border-slate-850,
 html.light .border-slate-700,
 html.light .border-slate-700\/80,
 html.light .border-slate-700\/60,
+html.light .divide-slate-800 > :not([hidden]) ~ :not([hidden]),
 html.light .divide-slate-800\/80 > :not([hidden]) ~ :not([hidden]),
 html[data-theme="light"] .border-slate-800,
 html[data-theme="light"] .border-slate-800\/80,
 html[data-theme="light"] .border-slate-800\/90,
-html[data-theme="light"] .border-slate-800\/60,
 html[data-theme="light"] .border-slate-800\/70,
+html[data-theme="light"] .border-slate-800\/60,
+html[data-theme="light"] .border-slate-800\/50,
+html[data-theme="light"] .border-slate-800\/40,
+html[data-theme="light"] .border-slate-800\/30,
+html[data-theme="light"] .border-slate-850,
 html[data-theme="light"] .border-slate-700,
 html[data-theme="light"] .border-slate-700\/80,
 html[data-theme="light"] .border-slate-700\/60,
+html[data-theme="light"] .divide-slate-800 > :not([hidden]) ~ :not([hidden]),
 html[data-theme="light"] .divide-slate-800\/80 > :not([hidden]) ~ :not([hidden]) {
   border-color: #e2e8f0 !important;
 }
@@ -526,6 +909,12 @@ html[data-theme="light"] select {
   border-color: #cbd5e1 !important;
 }
 
+html.light select option,
+html[data-theme="light"] select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
 html.light input::placeholder,
 html.light textarea::placeholder,
 html[data-theme="light"] input::placeholder,
@@ -554,6 +943,10 @@ html.light button.bg-blue-600,
 html.light a.bg-blue-600,
 html.light .bg-blue-600,
 html.light .bg-blue-600 *,
+html.light button.bg-purple-600,
+html.light a.bg-purple-600,
+html.light .bg-purple-600,
+html.light .bg-purple-600 *,
 html[data-theme="light"] button.bg-indigo-600,
 html[data-theme="light"] a.bg-indigo-600,
 html[data-theme="light"] .bg-indigo-600,
@@ -573,7 +966,11 @@ html[data-theme="light"] .bg-rose-600 *,
 html[data-theme="light"] button.bg-blue-600,
 html[data-theme="light"] a.bg-blue-600,
 html[data-theme="light"] .bg-blue-600,
-html[data-theme="light"] .bg-blue-600 * {
+html[data-theme="light"] .bg-blue-600 *,
+html[data-theme="light"] button.bg-purple-600,
+html[data-theme="light"] a.bg-purple-600,
+html[data-theme="light"] .bg-purple-600,
+html[data-theme="light"] .bg-purple-600 * {
   color: #ffffff !important;
 }
 
@@ -594,4 +991,35 @@ html.light [class*="from-amber"] *,
 html[data-theme="light"] [class*="from-amber"],
 html[data-theme="light"] [class*="from-amber"] * {
   color: #0f172a !important;
+}
+
+/* 14. Isolamento de Mídia e Banners: Preservar Texto Claro sobre Fotografias e Overlays de Mídia */
+html.light .hero-banner-content *,
+html[data-theme="light"] .hero-banner-content *,
+html.light .media-overlay-content *,
+html[data-theme="light"] .media-overlay-content *,
+html.light .media-fallback-content *,
+html[data-theme="light"] .media-fallback-content * {
+  color: #ffffff !important;
+}
+
+html.light .hero-banner-content .text-slate-200,
+html[data-theme="light"] .hero-banner-content .text-slate-200,
+html.light .media-overlay-content .text-slate-200,
+html[data-theme="light"] .media-overlay-content .text-slate-200 {
+  color: #e2e8f0 !important;
+}
+
+html.light .hero-banner-content .text-cyan-300,
+html[data-theme="light"] .hero-banner-content .text-cyan-300,
+html.light .media-overlay-content .text-cyan-300,
+html[data-theme="light"] .media-overlay-content .text-cyan-300 {
+  color: #67e8f9 !important;
+}
+
+html.light .media-badge,
+html[data-theme="light"] .media-badge {
+  background-color: rgba(15, 23, 42, 0.85) !important;
+  border-color: rgba(56, 189, 248, 0.4) !important;
+  color: #67e8f9 !important;
 }
