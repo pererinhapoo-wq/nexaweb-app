@@ -364,14 +364,22 @@ export async function submitClientRequest(
   };
 
   const projects = await getAllProjects();
-  const target = projects.find((p) => p.id === projectId);
+  const cleanId = projectId.trim().toUpperCase();
+  const target = projects.find(
+    (p) => p.id === projectId || p.chaveAcesso.toUpperCase() === cleanId
+  );
   if (target) {
     if (!target.solicitacoes) target.solicitacoes = [];
     target.solicitacoes.unshift(newReq);
     saveAllProjects(projects);
     // Atualiza sessão ativa se for o mesmo projeto
     const currentSession = await getSavedClientSession();
-    if (currentSession && currentSession.id === projectId) {
+    if (
+      currentSession &&
+      (currentSession.id === projectId ||
+        currentSession.chaveAcesso.toUpperCase() === cleanId)
+    ) {
+      if (!currentSession.solicitacoes) currentSession.solicitacoes = [];
       currentSession.solicitacoes.unshift(newReq);
       saveClientSession(currentSession.chaveAcesso, currentSession);
     }

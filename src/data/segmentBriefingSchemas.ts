@@ -419,6 +419,157 @@ export const CANONICAL_SEGMENTS: Record<string, SegmentBriefingConfig> = {
     specialCalloutLabel: 'Briefing Flexível',
     specialCalloutDesc: 'Espaço aberto para detalhar sua visão sem restrições ou formulários complexos.',
   },
+
+  prestador: {
+    segmentKey: 'prestador',
+    name: 'Prestador de Serviços',
+    icon: '🛠️',
+    tagline: 'Profissionais autônomos, assistências, manutenções e serviços em geral',
+    defaultServicesPlaceholder: 'Ex: Instalações, manutenções preventivas, consultoria técnica, reparos e suporte...',
+    primaryOptionsLabel: 'Serviços Prestados',
+    primaryOptions: [
+      'Manutenção Preventiva & Corretiva',
+      'Instalação & Montagem Técnica',
+      'Consultoria & Diagnóstico Especializado',
+      'Atendimento Residencial & Corporativo',
+      'Visita Técnica com Avaliação no Local',
+      'Contratos Mensais de Manutenção',
+      'Plantão de Emergência / Chamados Ágeis',
+      'Reformas & Pequenos Reparos',
+    ],
+    secondaryOptionsLabel: 'Forma de Atendimento & Cobertura',
+    secondaryOptions: [
+      'Solicitação de Orçamento pelo WhatsApp',
+      'Atendimento em Domicílio / Empresa',
+      'Emissão de Nota Fiscal & Laudo Técnico',
+      'Garantia Estendida dos Serviços',
+      'Pagamento Facilitado no Cartão ou Pix',
+    ],
+    featuresLabel: 'Diferenciais do Prestador',
+    features: [
+      'Técnicos Certificados e Identificados',
+      'Pontualidade e Compromisso de Horário',
+      'Orçamento Transparente sem Surpresas',
+      'Equipamentos e Ferramental Próprio',
+    ],
+    schedulePlaceholder: 'Ex: Seg a Sex: 08h às 18h | Sáb: 08h às 13h (Plantão sob consulta)',
+    teamPlaceholder: 'Ex: Equipe de técnicos especializados com treinamento contínuo',
+    specialCalloutLabel: 'Solicitação Rápida de Orçamento',
+    specialCalloutDesc: 'Canal direto para o cliente descrever o problema e receber proposta.',
+  },
+
+  petshop: {
+    segmentKey: 'petshop',
+    name: 'Pet Shop & Veterinária',
+    icon: '🐾',
+    tagline: 'Pet shops, clínicas veterinárias, banho e tosa e cuidados animais',
+    defaultServicesPlaceholder: 'Ex: Banho e tosa higiênica, hidratação de pelos, consultas veterinárias, vacinas...',
+    primaryOptionsLabel: 'Serviços para Pets',
+    primaryOptions: [
+      'Banho Tradicional & Especial',
+      'Tosa Higiênica, Máquina & Tesoura',
+      'Hidratação & Cauterização de Pelagem',
+      'Consultas Veterinárias de Rotina',
+      'Vacinação & Aplicação de Vermífugos',
+      'Táxi Dog / Leva e Traz com Segurança',
+      'Hospedagem & Creche / Day Care Pet',
+      'Petiscos, Rações & Acessórios',
+    ],
+    secondaryOptionsLabel: 'Cuidados & Facilidades',
+    secondaryOptions: [
+      'Agendamento Online com Hora Marcada',
+      'Planos Mensais de Banhos com Desconto',
+      'Ambiente com Monitoramento e Cuidado',
+      'Toalhas Esterilizadas Individuais',
+      'Atendimento Veterinário Preventivo',
+    ],
+    featuresLabel: 'Estrutura & Conforto Pet',
+    features: [
+      'Profissionais Apaixonados por Animais',
+      'Cosméticos Veterinários Hipoalergênicos',
+      'Espaço Climatizado e Anti-Estresse',
+      'Salas Separadas para Cães e Gatos',
+    ],
+    schedulePlaceholder: 'Ex: Seg a Sáb das 08h às 18h',
+    teamPlaceholder: 'Ex: Médicos veterinários, tosadores e banhistas certificados',
+    specialCalloutLabel: 'Agendamento de Banho & Tosa',
+    specialCalloutDesc: 'Formulário ágil para o tutor garantir o horário do pet sem filas.',
+  },
+
+  portfolio: {
+    segmentKey: 'portfolio',
+    name: 'Portfólio Profissional',
+    icon: '💼',
+    tagline: 'Portfólios autorais, criadores, designers, consultores e especialistas',
+    defaultServicesPlaceholder: 'Ex: Projetos autorais, cases de clientes, consultorias de marca, palestras...',
+    primaryOptionsLabel: 'Foco da Atuação Profissional',
+    primaryOptions: [
+      'Projetos Autorais & Design',
+      'Consultorias Estratégicas & Mentoria',
+      'Desenvolvimento de Software & Tech',
+      'Fotografia & Produção Audiovisual',
+      'Arquitetura & Design de Interiores',
+      'Comunicação, Redação & Conteúdo',
+      'Aulas, Palestras & Treinamentos',
+      'Cases de Sucesso & Resultados Comprovados',
+    ],
+    secondaryOptionsLabel: 'Seções do Portfólio',
+    secondaryOptions: [
+      'Galeria de Projetos em Alta Resolução',
+      'Estudos de Caso com Problema e Solução',
+      'Biografia / Trajetória Profissional',
+      'Depoimentos e Avaliações de Clientes',
+      'Formulário para Contratação e Proposta',
+    ],
+    featuresLabel: 'Diferenciais de Autoridade',
+    features: [
+      'Visual Moderno de Alto Nível Estético',
+      'Currículo e Habilidades em Destaque',
+      'Carregamento Instantâneo das Imagens',
+      'Links para Redes Sociais e LinkedIn',
+    ],
+    schedulePlaceholder: 'Ex: Atendimento comercial de Segunda a Sexta das 09h às 18h',
+    teamPlaceholder: 'Ex: Profissional titular e parceiros estratégicos',
+    specialCalloutLabel: 'Apresentação de Projetos & Contato',
+    specialCalloutDesc: 'Vitrine de autoridade para atrair clientes de alto ticket e parcerias.',
+  },
+
+  landing_page: {
+    segmentKey: 'landing_page',
+    name: 'Landing Page de Alta Conversão',
+    icon: '🎯',
+    tagline: 'Páginas únicas focadas em conversão rápida de leads, vendas e lançamentos',
+    defaultServicesPlaceholder: 'Ex: Oferta principal, benefícios exclusivos, garantia, depoimentos, botão de compra...',
+    primaryOptionsLabel: 'Objetivo da Landing Page',
+    primaryOptions: [
+      'Captação de Leads Qualificados para Vendas',
+      'Venda Direta de Produto ou Infoproduto',
+      'Inscrição em Evento, Workshop ou Webinar',
+      'Lançamento de Novo Produto ou Negócio',
+      'Download de Material / Isca Digital',
+      'Agendamento Direto no WhatsApp Comercial',
+    ],
+    secondaryOptionsLabel: 'Estrutura de Conversão',
+    secondaryOptions: [
+      'Dobra de Abertura com Headline e CTA Forte',
+      'Benefícios Claros com Ícones em Destaque',
+      'Depoimentos em Vídeo e Prints Reais',
+      'Garantia Incondicional e Selos de Confiança',
+      'Perguntas Frequentes em Acordeão (FAQ)',
+      'Formulário Limpo e Otimizado para Mobile',
+    ],
+    featuresLabel: 'Diferenciais Técnicos',
+    features: [
+      'Velocidade Máxima de Carregamento no 4G/5G',
+      'Copywriting Focado em Conversão e Persuasão',
+      'Tags de Rastreamento (Google e Meta Pixel)',
+      'Design Responsivo Perfeito no Smartphone',
+    ],
+    schedulePlaceholder: 'Ex: Página no ar 24h por dia gerando leads contínuos',
+    teamPlaceholder: 'Ex: Equipe de vendas e atendimento via WhatsApp',
+    specialCalloutLabel: 'Foco Total em Conversão',
+    specialCalloutDesc: 'Design sem distrações, direcionando o visitante para a ação desejada.',
+  },
 };
 
 /**
@@ -433,7 +584,19 @@ export function normalizeSegmentKey(segOrModel: string): string {
   if (s.includes('restaurante') || s.includes('gastronom') || s.includes('pizza') || s.includes('burger') || s.includes('food') || s.includes('bistr')) {
     return 'restaurante';
   }
-  if (s.includes('clinic') || s.includes('clínic') || s.includes('saude') || s.includes('saúde') || s.includes('medic') || s.includes('médic') || s.includes('odonto') || s.includes('vet') || s.includes('pet')) {
+  if (s.includes('pet') || s.includes('vet') || s.includes('banho')) {
+    return 'petshop';
+  }
+  if (s.includes('prestad') || s.includes('servico') || s.includes('serviço') || s.includes('oficina') || s.includes('assistenc')) {
+    return 'prestador';
+  }
+  if (s.includes('landing') || s.includes('conversao') || s.includes('conversão')) {
+    return 'landing_page';
+  }
+  if (s.includes('portfolio') || s.includes('portfólio') || s.includes('curriculo') || s.includes('case')) {
+    return 'portfolio';
+  }
+  if (s.includes('clinic') || s.includes('clínic') || s.includes('saude') || s.includes('saúde') || s.includes('medic') || s.includes('médic') || s.includes('odonto')) {
     return 'clinica';
   }
   if (s.includes('imobil') || s.includes('imóve') || s.includes('imove') || s.includes('corretor') || s.includes('realestate')) {

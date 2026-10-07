@@ -12,7 +12,7 @@ function buildNexawebPlans(lang: Language = 'pt-BR'): ServicePlan[] {
         preco: 'R$ 1.000',
         prazo: '3–5 days',
         corIdentidade: 'azul',
-        descricao: 'Professional website to get started. Ideal for small businesses and independent professionals.',
+        descricao: 'For those who are just getting started.',
         recursos: [
           'Professional presentation',
           'Essential structure & sections',
@@ -29,12 +29,11 @@ function buildNexawebPlans(lang: Language = 'pt-BR'): ServicePlan[] {
       {
         id: 'profissional',
         nome: 'PROFISSIONAL',
-        tagline: 'More features for your business',
+        tagline: 'More features and authority for your brand',
         preco: 'R$ 1.700',
         prazo: '5–8 days',
         corIdentidade: 'dourado',
-        destaque: true,
-        descricao: 'More resources and strategic impact for established businesses looking to stand out and generate contacts.',
+        descricao: 'For businesses that need more features and a strong professional presence.',
         recursos: [
           'More complete site structure',
           'Strategic conversion sections',
@@ -51,11 +50,11 @@ function buildNexawebPlans(lang: Language = 'pt-BR'): ServicePlan[] {
       {
         id: 'personalizado',
         nome: 'PERSONALIZADO',
-        tagline: 'A project crafted for you',
+        tagline: 'Project scope dependent',
         preco: 'Starting from R$ 2.800',
         prazo: 'Custom scope',
         corIdentidade: 'roxo',
-        descricao: 'A tailor-made project designed exclusively for your unique brand identity and goals.',
+        descricao: 'For those who need a tailor-made project.',
         recursos: [
           'Custom visual design',
           'Distinctive brand identity',
@@ -70,11 +69,11 @@ function buildNexawebPlans(lang: Language = 'pt-BR'): ServicePlan[] {
       {
         id: 'premium',
         nome: 'PREMIUM',
-        tagline: 'High-impact digital experience',
+        tagline: 'VIP / custom scope',
         preco: 'Starting from R$ 4.500',
         prazo: 'VIP delivery',
         corIdentidade: 'dourado',
-        descricao: 'High-impact digital experience featuring top-tier art direction, micro-interactions, and VIP support.',
+        descricao: 'For advanced projects and more complete digital experiences.',
         recursos: [
           'Master art direction & luxury styling',
           'Premium visual presentation',
@@ -98,7 +97,7 @@ function buildNexawebPlans(lang: Language = 'pt-BR'): ServicePlan[] {
         preco: 'R$ 1.000',
         prazo: '3–5 días',
         corIdentidade: 'azul',
-        descricao: 'Sitio profesional para comenzar. Ideal para pequeños negocios y profesionales autónomos.',
+        descricao: 'Para quienes están comenzando.',
         recursos: [
           'Presentación profesional',
           'Estructura esencial de alta conversión',
@@ -115,12 +114,11 @@ function buildNexawebPlans(lang: Language = 'pt-BR'): ServicePlan[] {
       {
         id: 'profissional',
         nome: 'PROFESIONAL',
-        tagline: 'Más recursos para su negocio',
+        tagline: 'Más recursos y autoridad para su negocio',
         preco: 'R$ 1.700',
         prazo: '5–8 días',
         corIdentidade: 'dourado',
-        destaque: true,
-        descricao: 'Más recursos y presencia sólida para negocios que buscan liderar su segmento y generar clientes.',
+        descricao: 'Para negocios que necesitan más recursos y presencia profesional.',
         recursos: [
           'Estructura más completa y secciones ricas',
           'Secciones estratégicas de conversión',
@@ -137,11 +135,11 @@ function buildNexawebPlans(lang: Language = 'pt-BR'): ServicePlan[] {
       {
         id: 'personalizado',
         nome: 'PERSONALIZADO',
-        tagline: 'Un proyecto hecho para usted',
+        tagline: 'Alcance dependiente del proyecto',
         preco: 'A partir de R$ 2.800',
         prazo: 'Según alcance',
         corIdentidade: 'roxo',
-        descricao: 'Un proyecto exclusivo hecho para su negocio, con arquitectura a medida y atención estratégica.',
+        descricao: 'Para quienes necesitan un proyecto a medida.',
         recursos: [
           'Diseño visual personalizado',
           'Identidad visual adaptada',
@@ -156,11 +154,11 @@ function buildNexawebPlans(lang: Language = 'pt-BR'): ServicePlan[] {
       {
         id: 'premium',
         nome: 'PREMIUM',
-        tagline: 'Experiencia digital de alto impacto',
+        tagline: 'VIP / según alcance',
         preco: 'A partir de R$ 4.500',
         prazo: 'Entrega VIP',
         corIdentidade: 'dourado',
-        descricao: 'Experiencia digital de alto impacto con dirección de arte exclusiva y nivel superior de sofisticación.',
+        descricao: 'Para proyectos avanzados y experiencias más completas.',
         recursos: [
           'Dirección de arte exclusiva de lujo',
           'Presentación premium de marca',
@@ -184,7 +182,7 @@ function buildNexawebPlans(lang: Language = 'pt-BR'): ServicePlan[] {
         preco: 'R$ 1.000',
         prazo: '3–5 jours',
         corIdentidade: 'azul',
-        descricao: 'Site professionnel pour démarrer. Idéal pour indépendants et petites entreprises.',
+        descricao: 'Pour ceux qui débutent.',
         recursos: [
           'Présentation professionnelle',
           'Structure essentielle claire',
@@ -201,12 +199,11 @@ function buildNexawebPlans(lang: Language = 'pt-BR'): ServicePlan[] {
       {
         id: 'profissional',
         nome: 'PROFESSIONNEL',
-        tagline: 'Davantage de fonctionnalités pour grandir',
+        tagline: 'Davantage de fonctionnalités et d’autorité',
         preco: 'R$ 1.700',
         prazo: '5–8 jours',
         corIdentidade: 'dourado',
-        destaque: true,
-        descricao: 'Davantage de ressources et d’impact pour les entreprises souhaitant affirmer leur crédibilité.',
+        descricao: 'Pour les entreprises nécessitant davantage de fonctionnalités et une présence professionnelle forte.',
         recursos: [
           'Structure approfondie et complète',
           'Sections stratégiques de conversion',
@@ -223,11 +220,11 @@ function buildNexawebPlans(lang: Language = 'pt-BR'): ServicePlan[] {
       {
         id: 'personalizado',
         nome: 'SUR MESURE',
-        tagline: 'Un projet conçu pour vous',
+        tagline: 'Périmètre selon le projet',
         preco: 'À partir de R$ 2.800',
         prazo: 'Selon cahier des charges',
         corIdentidade: 'roxo',
-        descricao: 'Un projet conçu sur mesure selon vos exigences et votre identité de marque.',
+        descricao: 'Pour ceux qui ont besoin d’un projet sur mesure.',
         recursos: [
           'Conception visuelle personnalisée',
           'Identité visuelle harmonisée',
@@ -242,11 +239,11 @@ function buildNexawebPlans(lang: Language = 'pt-BR'): ServicePlan[] {
       {
         id: 'premium',
         nome: 'PREMIUM',
-        tagline: 'Expérience digitale à fort impact',
+        tagline: 'VIP / selon périmètre',
         preco: 'À partir de R$ 4.500',
         prazo: 'Suivi VIP',
         corIdentidade: 'dourado',
-        descricao: 'Expérience digitale d’excellence avec direction artistique d’élite et suivi VIP.',
+        descricao: 'Pour les projets avancés et les expériences plus complètes.',
         recursos: [
           'Direction artistique de prestige',
           'Présentation graphique haut de gamme',
@@ -270,7 +267,7 @@ function buildNexawebPlans(lang: Language = 'pt-BR'): ServicePlan[] {
         preco: 'R$ 1.000',
         prazo: '3–5 dias',
         corIdentidade: 'azul',
-        descricao: 'Sítio profissional para começar. Ideal para pequenos negócios e profissionais liberais.',
+        descricao: 'Para quem está a começar.',
         recursos: [
           'Apresentação profissional',
           'Estrutura essencial focada',
@@ -287,12 +284,11 @@ function buildNexawebPlans(lang: Language = 'pt-BR'): ServicePlan[] {
       {
         id: 'profissional',
         nome: 'PROFISSIONAL',
-        tagline: 'Mais funcionalidades para o seu negócio',
+        tagline: 'Mais recursos e autoridade para fortalecer a sua marca no mercado',
         preco: 'R$ 1.700',
         prazo: '5–8 dias',
         corIdentidade: 'dourado',
-        destaque: true,
-        descricao: 'Mais recursos para o seu negócio. Ideal para marcas que procuram destacar diferenciais e gerar contactos.',
+        descricao: 'Para negócios que precisam de mais recursos e presença profissional.',
         recursos: [
           'Estrutura mais completa',
           'Secções estratégicas de conversão',
@@ -309,11 +305,11 @@ function buildNexawebPlans(lang: Language = 'pt-BR'): ServicePlan[] {
       {
         id: 'personalizado',
         nome: 'PERSONALIZADO',
-        tagline: 'Um projeto feito para si',
+        tagline: 'Âmbito dependente do projeto',
         preco: 'A partir de R$ 2.800',
         prazo: 'Sob consulta',
         corIdentidade: 'roxo',
-        descricao: 'Um projeto feito para si, com arquitetura própria e acompanhamento consultivo da NexaWeb.',
+        descricao: 'Para quem precisa de um projeto sob medida.',
         recursos: [
           'Visual personalizado',
           'Identidade visual à medida',
@@ -328,11 +324,11 @@ function buildNexawebPlans(lang: Language = 'pt-BR'): ServicePlan[] {
       {
         id: 'premium',
         nome: 'PREMIUM',
-        tagline: 'Experiência digital de alto impacto',
+        tagline: 'VIP / conforme o âmbito',
         preco: 'A partir de R$ 4.500',
         prazo: 'Acompanhamento VIP',
         corIdentidade: 'dourado',
-        descricao: 'Experiência digital de alto impacto com direção de arte de topo e microinterações de prestígio.',
+        descricao: 'Para projetos avançados e experiências mais completas.',
         recursos: [
           'Direção de arte e estilo de prestígio',
           'Apresentação premium exclusiva',
@@ -356,14 +352,14 @@ function buildNexawebPlans(lang: Language = 'pt-BR'): ServicePlan[] {
       preco: 'R$ 1.000',
       prazo: '3–5 dias',
       corIdentidade: 'azul',
-      descricao: 'Site profissional para começar. Ideal para pequenos negócios e profissionais autônomos.',
+      descricao: 'Para quem está começando.',
       recursos: [
         'Apresentação completa do negócio, serviços e diferenciais',
         'Estrutura Home, Sobre, Serviços, Informações e Contato',
         'Botão fixo de WhatsApp e links para redes sociais',
-        'Layout responsivo',
-        'SEO básico com título, descrição e meta',
-        'Hospedagem em nuvem + SSL',
+        'Layout 100% responsivo para celulares e computadores',
+        'SEO básico com título, descrição e meta tags',
+        'Hospedagem em nuvem de alta segurança + SSL',
         'Aprovação antes da publicação'
       ],
       projetosRelacionados: ['demo-barbearia-kings']
@@ -375,56 +371,53 @@ function buildNexawebPlans(lang: Language = 'pt-BR'): ServicePlan[] {
       preco: 'R$ 1.700',
       prazo: '5–8 dias',
       corIdentidade: 'dourado',
-      destaque: true,
-      descricao: 'Mais recursos e autoridade para fortalecer sua marca no mercado. A escolha mais procurada por empresas para gerar autoridade e atrair clientes.',
+      descricao: 'Para negócios que precisam de mais recursos e presença profissional.',
       recursos: [
-        'Estrutura mais completa',
-        'Seções estratégicas',
-        'CTAs otimizados',
-        'Destaques interativos',
-        'Core Web Vitals de alta velocidade',
-        'Redes sociais e e-mail corporativo',
-        'Formulários avançados de contato',
-        'Responsividade refinada para celular',
-        'Aprovação de projeto'
+        'Estrutura completa com seções estratégicas de alta conversão',
+        'Seções com chamadas de ação (CTAs) otimizadas',
+        'Destaques interativos de produtos ou serviços',
+        'Performance veloz otimizada para Core Web Vitals',
+        'Redes sociais conectadas e e-mail corporativo',
+        'Formulários avançados de contato e atendimento',
+        'Responsividade refinada e navegação fluida em smartphones',
+        'Aprovação de projeto em etapas'
       ],
       projetosRelacionados: ['demo-salao-premium', 'demo-academia-premium']
     },
     {
       id: 'personalizado',
       nome: 'PERSONALIZADO',
-      tagline: 'Um projeto sob medida criado de acordo com as necessidades do seu negócio',
+      tagline: 'Escopo dependente do projeto',
       preco: 'A partir de R$ 2.800',
       prazo: 'Conforme escopo',
       corIdentidade: 'roxo',
-      descricao: 'Um projeto sob medida criado de acordo com as necessidades do seu negócio. Estrutura sob medida, visual exclusivo e suporte consultivo da NexaWeb.',
+      descricao: 'Para quem precisa de um projeto sob medida.',
       recursos: [
-        'Visual personalizado',
-        'Identidade visual sob medida',
-        'Estrutura sob medida',
-        'Referências e moodboard alinhados',
-        'Recursos personalizados',
-        'Briefing interativo',
-        'Suporte consultivo'
+        'Identidade visual autoral sob medida para o negócio',
+        'Arquitetura e fluxo de navegação personalizados',
+        'Alinhamento detalhado de referências e moodboard visual',
+        'Recursos interativos desenvolvidos sob demanda',
+        'Briefing interativo e estruturado',
+        'Suporte consultivo dedicado da equipe NexaWeb'
       ],
       projetosRelacionados: ['demo-imobiliaria-premium', 'demo-restaurante-premium']
     },
     {
       id: 'premium',
       nome: 'PREMIUM',
-      tagline: 'A experiência máxima de sofisticação visual, tecnologia e exclusividade',
+      tagline: 'VIP / conforme escopo',
       preco: 'A partir de R$ 4.500',
       prazo: 'VIP / conforme escopo',
       corIdentidade: 'dourado',
-      descricao: 'A experiência máxima de sofisticação visual, tecnologia e exclusividade. Direção de arte exclusiva, microinterações e máxima autoridade de mercado.',
+      descricao: 'Para projetos avançados e experiências mais completas.',
       recursos: [
-        'Direção de arte refinada',
-        'Apresentação premium',
-        'Microinterações exclusivas',
-        'Experiências diferenciadas',
-        'Copywriting persuasivo e estratégico',
-        'Suporte VIP prioritário',
-        'Recursos conforme escopo'
+        'Direção de arte exclusiva e padrão visual refinado',
+        'Apresentação premium com máximo impacto e autoridade de marca',
+        'Microinterações fluidas e transições dinâmicas de interface',
+        'Experiências de navegação marcantes e imersivas',
+        'Copywriting persuasivo e direcionamento estratégico de conteúdo',
+        'Acompanhamento e suporte VIP prioritário',
+        'Módulos e recursos avançados conforme escopo do projeto'
       ],
       projetosRelacionados: ['demo-clinica-saude']
     }

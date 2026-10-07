@@ -360,6 +360,9 @@ export interface OfficialPlanCommercial {
   nome: string;
   precoBase: number;
   prazo: string;
+  tagline: string;
+  posicionamento: string;
+  advancedFeaturesLimit: number; // 0 para essencial, 3 para personalizado, 5 para profissional, 8 para premium
   isStartingFrom?: boolean; // Personalizado e Premium são "A partir de"
   allowExtras: boolean; // Essencial é fechado
   allowRealtime: boolean; // Realtime somente Personalizado e Premium
@@ -372,38 +375,50 @@ export const OFFICIAL_PLANS_COMMERCIAL: Record<string, OfficialPlanCommercial> =
     nome: 'ESSENCIAL',
     precoBase: 1000,
     prazo: '3–5 dias',
+    tagline: 'Site profissional para começar',
+    posicionamento: 'Para quem está começando.',
+    advancedFeaturesLimit: 0,
     allowExtras: false, // Plano fechado
     allowRealtime: false,
-    descricaoComercial: 'Plano enxuto com estrutura essencial fechada para início rápido.',
+    descricaoComercial: 'Para quem está começando.',
   },
   profissional: {
     id: 'profissional',
     nome: 'PROFISSIONAL',
     precoBase: 1700,
     prazo: '5–8 dias',
+    tagline: 'Mais recursos e autoridade para fortalecer sua marca no mercado',
+    posicionamento: 'Para negócios que precisam de mais recursos e presença profissional.',
+    advancedFeaturesLimit: 5,
     allowExtras: true, // Aceita extras normais
     allowRealtime: false, // Realtime requer Personalizado ou Premium
-    descricaoComercial: 'Estrutura completa com seções estratégicas e extras modulares.',
+    descricaoComercial: 'Para negócios que precisam de mais recursos e presença profissional.',
   },
   personalizado: {
     id: 'personalizado',
     nome: 'PERSONALIZADO',
     precoBase: 2800,
-    prazo: 'Sob consulta',
+    prazo: 'Conforme escopo',
     isStartingFrom: true,
+    tagline: 'Escopo dependente do projeto',
+    posicionamento: 'Para quem precisa de um projeto sob medida.',
+    advancedFeaturesLimit: 3,
     allowExtras: true,
     allowRealtime: true,
-    descricaoComercial: 'Projeto sob medida com arquitetura exclusiva e recursos realtime.',
+    descricaoComercial: 'Para quem precisa de um projeto sob medida.',
   },
   premium: {
     id: 'premium',
     nome: 'PREMIUM',
     precoBase: 4500,
-    prazo: 'Entrega VIP',
+    prazo: 'VIP / conforme escopo',
     isStartingFrom: true,
+    tagline: 'VIP / conforme escopo',
+    posicionamento: 'Para projetos avançados e experiências mais completas.',
+    advancedFeaturesLimit: 8,
     allowExtras: true,
     allowRealtime: true,
-    descricaoComercial: 'Experiência digital de altíssimo impacto com suporte VIP contínuo.',
+    descricaoComercial: 'Para projetos avançados e experiências mais completas.',
   },
 };
 

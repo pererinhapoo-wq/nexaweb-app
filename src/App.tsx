@@ -483,7 +483,9 @@ function AppContent() {
                 />
               )}
 
-              {currentTab === 'portal' && <PortalScreen />}
+              {currentTab === 'portal' && (
+                <PortalScreen onNavigate={handleNavigate} />
+              )}
 
               {currentTab === 'admin' && <AdminScreen />}
 

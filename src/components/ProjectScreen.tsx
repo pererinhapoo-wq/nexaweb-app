@@ -20,6 +20,12 @@ import {
   getSegmentConfig,
   normalizeSegmentKey,
 } from '../data/segmentBriefingSchemas';
+import {
+  getPlanAdvancedFeaturesLimit,
+  getAdvancedFeaturesGroupedBySegment,
+  findAdvancedFeatureById,
+  AdvancedFeatureItem,
+} from '../data/advancedFeaturesData';
 import { ImageUploadField } from './ImageUploadField';
 import {
   Sparkles,
@@ -31,7 +37,6 @@ import {
   Send,
   CheckCircle2,
   ChevronRight,
-  ChevronLeft,
   ArrowLeft,
   ExternalLink,
   Layers,
@@ -41,10 +46,48 @@ import {
   Loader2,
   RefreshCw,
   Lightbulb,
-  HelpCircle,
-  UserCheck,
+  Building2,
+  MapPin,
+  Target,
+  Palette,
+  FileText,
 } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
+
+// 8 Objetivos Canônicos Oficiais do Site (Regra 7)
+export interface SiteObjectiveOption {
+  id: string;
+  label: string;
+  desc: string;
+}
+
+export const SITE_OBJECTIVES: SiteObjectiveOption[] = [
+  { id: 'apresentar_negocio', label: 'Apresentar o negócio', desc: 'Fortalecer autoridade e presença institucional da marca' },
+  { id: 'receber_contatos', label: 'Receber contatos', desc: 'Canal direto para mensagens no WhatsApp e formulários' },
+  { id: 'receber_agendamentos', label: 'Receber agendamentos', desc: 'Facilitar marcação de horários para clientes' },
+  { id: 'receber_pedidos', label: 'Receber pedidos', desc: 'Cardápio ou catálogo com envio direto de pedidos' },
+  { id: 'vender_produtos', label: 'Vender produtos', desc: 'Vitrine comercial com direcionamento para compra' },
+  { id: 'captar_leads', label: 'Captar leads', desc: 'Formulários estratégicos para geração de oportunidades' },
+  { id: 'apresentar_portfolio', label: 'Apresentar portfólio', desc: 'Galeria visual com fotos de trabalhos e projetos' },
+  { id: 'solicitacoes_orcamento', label: 'Receber solicitações de orçamento', desc: 'Coleta de requisitos para propostas comerciais' },
+];
+
+// 5 Estilos Visuais Canônicos Oficiais (Regra 10)
+export interface VisualStyleOption {
+  id: string;
+  label: string;
+  desc: string;
+}
+
+export const VISUAL_STYLES: VisualStyleOption[] = [
+  { id: 'Moderno', label: 'Moderno', desc: 'Visual atual com tipografia limpa e espaçamentos equilibrados' },
+  { id: 'Minimalista', label: 'Minimalista', desc: 'Design direto ao ponto, foco no conteúdo essencial e sem excessos' },
+  { id: 'Elegante', label: 'Elegante', desc: 'Harmonia visual sofisticada com acabamentos sutis' },
+  { id: 'Luxuoso', label: 'Luxuoso', desc: 'Padrão premium com contrastes nobres e refinamento estético' },
+  { id: 'Criativo', label: 'Criativo', desc: 'Layout marcante com personalidade autoral e dinâmica diferenciada' },
+];
+
+export type BriefingStep = 1 | 2 | 3 | 4 | 5 | 6;
 
 interface ProjectScreenProps {
   initialPlan?: string;
@@ -65,17 +108,24 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
   onBack,
   onStepChange,
 }) => {
-  const { language, t } = useTranslation();
+  const { language } = useTranslation();
 
   const plans = getNexawebPlans(language);
   const portfolioProjects = getPortfolioProjects(language);
 
-  // Etapa atual: 1 = Ponto de Partida & Plano | 2 = Briefing Dinâmico | 3 = Contato | 4 = Revisão & Envio
-  const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
+  // Fluxo progressivo oficial em 6 etapas:
+  // 1: Ponto de Partida & Origem
+  // 2: Informações Principais & Objetivo
+  // 3: Necessidades do Negócio & Segmento
+  // 4: Funcionalidades do Projeto
+  // 5: Visual, Conteúdo & Arquivos
+  // 6: Resumo & Envio Oficial
+  const [currentStep, setCurrentStep] = useState<BriefingStep>(1);
 
   // Modo de início da Etapa 1: 'amostra' | 'propria' | 'plano'
   const [startMode, setStartMode] = useState<'amostra' | 'propria' | 'plano'>(() => {
     if (initialModel) return 'amostra';
+    if (initialPlan) return 'plano';
     return 'amostra';
   });
 
@@ -104,41 +154,73 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     return getSegmentConfig(selectedSegment);
   }, [selectedSegment]);
 
-  // --- ETAPA 2: DADOS DO BRIEFING ---
+  // --- ETAPA 2: INFORMAÇÕES PRINCIPAIS & OBJETIVO ---
   const [businessName, setBusinessName] = useState('');
+  const [siteObjective, setSiteObjective] = useState<string>(''); // Regra 7: Não selecionado automaticamente!
   const [siteLanguage, setSiteLanguage] = useState<WebsiteLanguage>(
-    initialWebsiteLanguage || (language === 'pt-PT' ? 'pt-PT' : language === 'en' ? 'en' : language === 'es' ? 'es' : language === 'fr' ? 'fr' : 'pt-BR')
+    initialWebsiteLanguage ||
+      (language === 'pt-PT'
+        ? 'pt-PT'
+        : language === 'en'
+        ? 'en'
+        : language === 'es'
+        ? 'es'
+        : language === 'fr'
+        ? 'fr'
+        : 'pt-BR')
   );
+  const [businessLocation, setBusinessLocation] = useState(''); // Regra 8: Opcional
+  const [businessBranches, setBusinessBranches] = useState(''); // Regra 8: Opcional
+  const [googleMapsLink, setGoogleMapsLink] = useState(''); // Regra 8: Opcional
 
-  // Campos dinâmicos do segmento
+  // --- ETAPA 3: NECESSIDADES DO NEGÓCIO & SEGMENTO ---
   const [selectedPrimaryOptions, setSelectedPrimaryOptions] = useState<string[]>([]);
   const [selectedSecondaryOptions, setSelectedSecondaryOptions] = useState<string[]>([]);
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
-  const [operatingSchedule, setOperatingSchedule] = useState('');
-  const [teamDescription, setTeamDescription] = useState('');
+  const [operatingSchedule, setOperatingSchedule] = useState(''); // Regra 8: Opcional
+  const [teamDescription, setTeamDescription] = useState(''); // Regra 8: Opcional
   const [freeServicesText, setFreeServicesText] = useState('');
-  const [specialCalloutActive, setSpecialCalloutActive] = useState(true);
 
-  // Campos específicos de Ideia Própria / Sob Medida
-  const [customBusinessType, setCustomBusinessType] = useState('');
-  const [customProjectIdea, setCustomProjectIdea] = useState('');
-  const [customObjective, setCustomObjective] = useState('');
-  const [customReferenceLink, setCustomReferenceLink] = useState('');
+  // --- ETAPA 4: FUNCIONALIDADES AVANÇADAS DO PROJETO ---
+  const [selectedAdvancedFeatures, setSelectedAdvancedFeatures] = useState<string[]>([]);
+  const [featureLimitMessage, setFeatureLimitMessage] = useState<string | null>(null);
 
-  // Identidade de Cores
+  // Limite oficial de funcionalidades avançadas do plano selecionado (0 / 3 / 5 / 8)
+  const advancedFeaturesLimit = useMemo(() => {
+    return getPlanAdvancedFeaturesLimit(selectedPlan);
+  }, [selectedPlan]);
+
+  // Funcionalidades agrupadas pelas 13 categorias filtradas para o segmento atual e plano ativo
+  const groupedAdvancedFeatures = useMemo(() => {
+    return getAdvancedFeaturesGroupedBySegment(selectedSegment, selectedPlan);
+  }, [selectedSegment, selectedPlan]);
+
+  // Ajusta seleção caso o usuário troque para um plano com limite menor
+  useEffect(() => {
+    const limit = getPlanAdvancedFeaturesLimit(selectedPlan);
+    setSelectedAdvancedFeatures((prev) => {
+      if (prev.length > limit) {
+        return prev.slice(0, limit);
+      }
+      return prev;
+    });
+    setFeatureLimitMessage(null);
+  }, [selectedPlan]);
+
+  // --- ETAPA 5: VISUAL, CONTEÚDO & ARQUIVOS ---
+  const [visualStyle, setVisualStyle] = useState<string>('Moderno'); // Regra 10: 5 estilos canônicos
   const [colorMode, setColorMode] = useState<'suggest' | 'brand' | 'custom'>('suggest');
   const [customColorDetails, setCustomColorDetails] = useState('');
-
-  // Anexos (até 6 imagens, máx 10 MB)
-  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
-
-  // --- ETAPA 3: CONTATO ---
+  const [customBusinessType, setCustomBusinessType] = useState('');
+  const [customProjectIdea, setCustomProjectIdea] = useState(''); // Regra 11: Descrição livre
+  const [customReferenceLink, setCustomReferenceLink] = useState('');
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]); // Regra 12: Até 6 arquivos
   const [contactName, setContactName] = useState('');
   const [contactPhone, setContactPhone] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [specificNotes, setSpecificNotes] = useState('');
 
-  // --- ETAPA 4: ENVIO & FEEDBACK ---
+  // --- ETAPA 6: RESUMO & ENVIO OFICIAL ---
   const [copied, setCopied] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
@@ -153,24 +235,27 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
   // Inicializa opções do segmento ao trocar de segmento
   useEffect(() => {
     const config = getSegmentConfig(selectedSegment);
-    // Pré-seleciona as duas primeiras opções como ponto de partida agradável
     setSelectedPrimaryOptions((prev) => (prev.length > 0 ? prev : config.primaryOptions.slice(0, 3)));
     setSelectedSecondaryOptions((prev) => (prev.length > 0 ? prev : config.secondaryOptions.slice(0, 2)));
     setSelectedFeatures((prev) => (prev.length > 0 ? prev : config.features.slice(0, 2)));
   }, [selectedSegment]);
 
-  // Se inicializado com modelo específico, seleciona o segmento automaticamente
+  // Se inicializado com modelo específico ou plano específico
   useEffect(() => {
     if (initialModel) {
       setSelectedModel(initialModel);
+      setStartMode('amostra');
       const mapped = normalizeSegmentKey(initialModel);
       setSelectedSegment(mapped);
       const proj = portfolioProjects.find((p) => p.titulo === initialModel);
       if (proj?.planoId) {
         setSelectedPlan(proj.planoId);
       }
+    } else if (initialPlan) {
+      setSelectedPlan(initialPlan);
+      setStartMode('plano');
     }
-  }, [initialModel, portfolioProjects]);
+  }, [initialModel, initialPlan, portfolioProjects]);
 
   // Carrega rascunho salvo do armazenamento local
   useEffect(() => {
@@ -179,9 +264,16 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
         const draft = getBriefingDraftSync(selectedPlan) || (await getBriefingDraft(selectedPlan));
         if (draft) {
           if (draft.businessName && !businessName) setBusinessName(draft.businessName);
+          if (draft.siteObjective && !siteObjective) setSiteObjective(draft.siteObjective);
+          if (draft.businessLocation && !businessLocation) setBusinessLocation(draft.businessLocation);
+          if (draft.googleMapsLink && !googleMapsLink) setGoogleMapsLink(draft.googleMapsLink);
+          if (draft.visualStyle && !visualStyle) setVisualStyle(draft.visualStyle);
           if (draft.contactName && !contactName) setContactName(draft.contactName);
           if (draft.contactPhone && !contactPhone) setContactPhone(draft.contactPhone);
           if (draft.contactEmail && !contactEmail) setContactEmail(draft.contactEmail);
+          if (draft.selectedAdvancedFeatures && selectedAdvancedFeatures.length === 0) {
+            setSelectedAdvancedFeatures(draft.selectedAdvancedFeatures);
+          }
         }
       } catch {
         // Fallback silencioso
@@ -196,23 +288,42 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
       saveBriefingDraft(selectedPlan, {
         selectedPlan,
         businessName,
+        siteObjective,
+        businessLocation,
+        googleMapsLink,
+        visualStyle,
         contactName,
         contactPhone,
         contactEmail,
         specificNotes,
         selectedSegment,
+        selectedAdvancedFeatures,
       }).catch(() => {});
     }, 400);
     return () => clearTimeout(timer);
-  }, [selectedPlan, businessName, contactName, contactPhone, contactEmail, specificNotes, selectedSegment]);
+  }, [
+    selectedPlan,
+    businessName,
+    siteObjective,
+    businessLocation,
+    googleMapsLink,
+    visualStyle,
+    contactName,
+    contactPhone,
+    contactEmail,
+    specificNotes,
+    selectedSegment,
+    selectedAdvancedFeatures,
+  ]);
 
   // Sincroniza coordenação de passo com o componente pai (App.tsx / Header / Botão voltar físico)
   useEffect(() => {
     if (onStepChange) {
+      // Na etapa 1 não permite recuar etapa interna (conforme Regra 4)
       const canGoBackStep = currentStep > 1;
       const goBackStep = () => {
         setStepError(null);
-        setCurrentStep((prev) => Math.max(1, prev - 1) as any);
+        setCurrentStep((prev) => (Math.max(1, prev - 1) as BriefingStep));
       };
       onStepChange(currentStep, canGoBackStep, goBackStep);
     }
@@ -222,11 +333,6 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
   const activePlanObj = useMemo(() => {
     return plans.find((p) => p.id === selectedPlan) || plans[1];
   }, [plans, selectedPlan]);
-
-  // Cálculo de orçamento oficial
-  const budget = useMemo(() => {
-    return calculateBudget(selectedPlan, [], selectedSegment);
-  }, [selectedPlan, selectedSegment]);
 
   // Amostra atualmente selecionada (se houver)
   const selectedProjectObj = useMemo(() => {
@@ -282,14 +388,44 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     );
   };
 
-  // Validação e avanço de etapa
+  // Alterna seleção de funcionalidade avançada respeitando os limites do plano
+  const handleToggleAdvancedFeature = (feature: AdvancedFeatureItem) => {
+    setFeatureLimitMessage(null);
+    const isAlreadySelected = selectedAdvancedFeatures.includes(feature.id);
+
+    if (isAlreadySelected) {
+      // Sempre permite desmarcar uma opção selecionada
+      setSelectedAdvancedFeatures((prev) => prev.filter((id) => id !== feature.id));
+      return;
+    }
+
+    // Essencial tem limite 0
+    if (advancedFeaturesLimit === 0) {
+      setFeatureLimitMessage(
+        'O plano Essencial possui escopo fechado (0 funcionalidades avançadas). Para incluir funcionalidades avançadas, selecione o plano Profissional (até 5), Personalizado (até 3) ou Premium (até 8).'
+      );
+      return;
+    }
+
+    // Bloqueia nova seleção ao atingir o limite
+    if (selectedAdvancedFeatures.length >= advancedFeaturesLimit) {
+      setFeatureLimitMessage(
+        `Limite de ${advancedFeaturesLimit} funcionalidades avançadas atingido para o plano ${activePlanObj.nome}. Desmarque uma opção para escolher outra.`
+      );
+      return;
+    }
+
+    setSelectedAdvancedFeatures((prev) => [...prev, feature.id]);
+  };
+
+  // Validação progressiva e avanço de etapa
   const handleNextStep = () => {
     setStepError(null);
 
+    // Etapa 1: Ponto de partida
     if (currentStep === 1) {
-      // Se escolheu amostra, precisa ter uma selecionada
       if (startMode === 'amostra' && !selectedModel) {
-        setStepError('Por favor, toque em uma das demonstrações abaixo para continuar.');
+        setStepError('Por favor, selecione uma das demonstrações abaixo para continuar.');
         return;
       }
       setCurrentStep(2);
@@ -297,9 +433,14 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
       return;
     }
 
+    // Etapa 2: Informações Principais & Objetivo (Regras 6, 7 e 8)
     if (currentStep === 2) {
       if (!businessName.trim()) {
         setStepError('Por favor, informe o Nome do seu negócio ou projeto para avançar.');
+        return;
+      }
+      if (!siteObjective) {
+        setStepError('Por favor, selecione o Objetivo Principal do site para prosseguir.');
         return;
       }
       setCurrentStep(3);
@@ -307,22 +448,42 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
       return;
     }
 
+    // Etapa 3: Necessidades do Negócio
     if (currentStep === 3) {
-      if (!contactName.trim() || !contactPhone.trim()) {
-        setStepError('Por favor, preencha o Nome do responsável e o WhatsApp de contato.');
-        return;
-      }
       setCurrentStep(4);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
+
+    // Etapa 4: Funcionalidades
+    if (currentStep === 4) {
+      setCurrentStep(5);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    // Etapa 5: Visual & Contato
+    if (currentStep === 5) {
+      if (!contactName.trim() || !contactPhone.trim()) {
+        setStepError('Por favor, preencha o Nome do responsável e o WhatsApp de contato para revisar o briefing.');
+        return;
+      }
+      setCurrentStep(6);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    // Etapa 6: Envio oficial
+    if (currentStep === 6) {
+      handleSubmitProject();
+    }
   };
 
-  // Retorno de etapa (preserva estritamente todos os dados)
+  // Retorno de etapa (Regra 4: preserva estritamente todos os dados)
   const handlePrevStep = () => {
     setStepError(null);
     if (currentStep > 1) {
-      setCurrentStep((prev) => Math.max(1, prev - 1) as any);
+      setCurrentStep((prev) => (Math.max(1, prev - 1) as BriefingStep));
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       if (onBack) {
@@ -333,11 +494,13 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     }
   };
 
-  // Texto amigável do botão de avançar
+  // Rótulos claros para o botão de ação principal
   const getNextButtonLabel = () => {
-    if (currentStep === 1) return 'Continuar para o Briefing';
-    if (currentStep === 2) return 'Avançar para Contato';
-    if (currentStep === 3) return 'Revisar Briefing Completo';
+    if (currentStep === 1) return 'Continuar para Informações';
+    if (currentStep === 2) return 'Avançar para Necessidades';
+    if (currentStep === 3) return 'Avançar para Funcionalidades';
+    if (currentStep === 4) return 'Avançar para Visual & Contato';
+    if (currentStep === 5) return 'Revisar Briefing Completo';
     return 'Enviar Briefing Oficial';
   };
 
@@ -360,14 +523,29 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     } else if (startMode === 'propria') {
       lines.push('🎯 *Ponto de Partida:* Ideia própria / Projeto sob medida');
       if (customBusinessType) lines.push(`🏷️ *Tipo de Negócio:* ${customBusinessType}`);
-      if (customObjective) lines.push(`🎯 *Objetivo Principal:* ${customObjective}`);
     } else {
       lines.push('🎯 *Ponto de Partida:* Escolha direta de plano');
     }
 
     lines.push(`🏢 *Nome do Negócio:* ${businessName || 'A definir'}`);
     lines.push(`🏷️ *Segmento Identificado:* ${segmentConfig.icon} ${segmentConfig.name}`);
+
+    if (siteObjective) {
+      const objItem = SITE_OBJECTIVES.find((o) => o.id === siteObjective);
+      lines.push(`🎯 *Objetivo Principal do Site:* ${objItem ? objItem.label : siteObjective}`);
+    }
+
     lines.push(`🌐 *Idioma do Site:* ${siteLanguage}`);
+
+    if (businessLocation) {
+      lines.push(`📍 *Localização / Região:* ${businessLocation}`);
+    }
+    if (businessBranches) {
+      lines.push(`🏢 *Unidades / Filiais:* ${businessBranches}`);
+    }
+    if (googleMapsLink) {
+      lines.push(`🗺️ *Google Maps:* ${googleMapsLink}`);
+    }
 
     lines.push('');
     lines.push(`📋 *${segmentConfig.primaryOptionsLabel}:*`);
@@ -389,6 +567,22 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
       lines.push(selectedFeatures.map((f) => `  • ${f}`).join('\n'));
     }
 
+    if (selectedAdvancedFeatures.length > 0) {
+      lines.push('');
+      lines.push(`🚀 *Funcionalidades Avançadas Selecionadas (${selectedAdvancedFeatures.length} de ${advancedFeaturesLimit}):*`);
+      selectedAdvancedFeatures.forEach((featId) => {
+        const feat = findAdvancedFeatureById(featId);
+        if (feat) {
+          const complexTag = feat.isComplex ? ' [Avançado / avaliação]' : '';
+          lines.push(`  • ${feat.nome} (${feat.categoria})${complexTag}`);
+        }
+      });
+      const hasComplex = selectedAdvancedFeatures.some((id) => findAdvancedFeatureById(id)?.isComplex);
+      if (hasComplex) {
+        lines.push('  ℹ️ *Nota:* Itens com [Avançado / avaliação] têm disponibilidade e viabilidade confirmadas durante a análise técnica da proposta.');
+      }
+    }
+
     if (operatingSchedule) {
       lines.push(`⏰ *Horários de Funcionamento:* ${operatingSchedule}`);
     }
@@ -398,14 +592,9 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     if (freeServicesText) {
       lines.push(`📝 *Detalhes dos Serviços:* ${freeServicesText}`);
     }
-    if (customProjectIdea) {
-      lines.push(`💡 *Ideia do Projeto:* ${customProjectIdea}`);
-    }
-    if (customReferenceLink) {
-      lines.push(`🔗 *Link de Referência:* ${customReferenceLink}`);
-    }
 
     lines.push('');
+    lines.push(`🎨 *Estilo Visual:* ${visualStyle}`);
     lines.push(
       colorMode === 'suggest'
         ? '🎨 *Identidade Visual:* Sugestão NexaWeb (Harmonia visual)'
@@ -413,6 +602,13 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
         ? `🎨 *Cores da Marca:* ${customColorDetails || 'Cores da identidade visual existente'}`
         : `🎨 *Cores Escolhidas:* ${customColorDetails || 'Tons específicos indicados'}`
     );
+
+    if (customProjectIdea) {
+      lines.push(`💡 *Descrição / Ideia do Projeto:* ${customProjectIdea}`);
+    }
+    if (customReferenceLink) {
+      lines.push(`🔗 *Link de Referência:* ${customReferenceLink}`);
+    }
 
     if (attachedFiles.length > 0) {
       lines.push(`📎 *Arquivos Selecionados:* ${attachedFiles.length} foto(s)/logo`);
@@ -462,10 +658,15 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
         idiomaSite: siteLanguage,
         necessidades: summary,
         clientNotes: specificNotes,
-        recursosSelecionados: [...selectedPrimaryOptions, ...selectedSecondaryOptions],
+        recursosSelecionados: [
+          ...selectedPrimaryOptions,
+          ...selectedSecondaryOptions,
+          ...selectedFeatures,
+          ...selectedAdvancedFeatures,
+        ],
         orcamentoEstimado: activePlanObj.preco,
         briefingSummary: summary,
-        origem: 'NexaWeb App · Parte 5',
+        origem: 'NexaWeb App · Parte 6',
       });
 
       if (res.success && res.projectId) {
@@ -473,7 +674,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
           try {
             await uploadBriefingImages(res.projectId, attachedFiles);
           } catch {
-            // Continua mesmo se upload de imagem falhar
+            // Continua mesmo se upload falhar
           }
         }
 
@@ -489,7 +690,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
             summary
           );
         } catch {
-          // fallback gracioso
+          // fallback silencioso
         }
 
         const message = res.message || 'Seu briefing foi registrado com sucesso. Nossa equipe entrará em contato!';
@@ -521,7 +722,6 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
       const res = generateOfflineBriefingProtocol();
       await clearBriefingDraft(selectedPlan);
 
-      // Registra no banco local para acompanhamento na Área do Cliente
       try {
         await registerClientProjectFromBriefing(
           res.projectId!,
@@ -548,19 +748,21 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
   return (
     <div className="space-y-4 pb-28 animate-in fade-in duration-150 overflow-x-hidden">
       {/* ============================================================== */}
-      {/* 1. INDICADOR DE PROGRESSO CLARO (01 a 04)                      */}
+      {/* 1. INDICADOR DE PROGRESSO DISCRETO E REAL (01 a 06)            */}
       {/* ============================================================== */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3 sm:p-4 shadow-sm space-y-2.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
-              Etapa {currentStep} de 4
+              Etapa {currentStep} de 6
             </span>
             <span className="text-xs sm:text-sm font-bold text-white truncate">
-              {currentStep === 1 && 'Escolha & Ponto de Partida'}
-              {currentStep === 2 && `Briefing Dinâmico · ${segmentConfig.name}`}
-              {currentStep === 3 && 'Informações de Contato'}
-              {currentStep === 4 && 'Revisão & Envio do Projeto'}
+              {currentStep === 1 && 'Ponto de Partida & Origem'}
+              {currentStep === 2 && 'Informações Principais & Objetivo'}
+              {currentStep === 3 && `Necessidades · ${segmentConfig.name}`}
+              {currentStep === 4 && 'Funcionalidades do Projeto'}
+              {currentStep === 5 && 'Visual, Conteúdo & Arquivos'}
+              {currentStep === 6 && 'Revisão & Envio do Projeto'}
             </span>
           </div>
 
@@ -569,21 +771,23 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
           </span>
         </div>
 
-        {/* Barra de Progresso */}
+        {/* Barra de Progresso Real */}
         <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800/80">
           <div
             className="h-full bg-gradient-to-r from-indigo-500 via-cyan-400 to-emerald-400 transition-all duration-300 rounded-full"
-            style={{ width: `${(currentStep / 4) * 100}%` }}
+            style={{ width: `${(currentStep / 6) * 100}%` }}
           />
         </div>
 
-        {/* Abas Superiores das Etapas */}
-        <div className="grid grid-cols-4 gap-1 text-center">
+        {/* Abas Discretas de Navegação das Etapas */}
+        <div className="grid grid-cols-6 gap-1 text-center">
           {[
-            { step: 1, label: '01 Escolha' },
-            { step: 2, label: '02 Briefing' },
-            { step: 3, label: '03 Contato' },
-            { step: 4, label: '04 Revisão' },
+            { step: 1, label: '01 Início' },
+            { step: 2, label: '02 Negócio' },
+            { step: 3, label: '03 Escopo' },
+            { step: 4, label: '04 Recursos' },
+            { step: 5, label: '05 Visual' },
+            { step: 6, label: '06 Envio' },
           ].map((item) => (
             <button
               key={item.step}
@@ -591,19 +795,20 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
               onClick={() => {
                 if (item.step < currentStep) {
                   setStepError(null);
-                  setCurrentStep(item.step as any);
+                  setCurrentStep(item.step as BriefingStep);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
               }}
-              className={`min-h-[38px] flex items-center justify-center py-1.5 px-1 rounded-xl text-[10px] sm:text-[11px] font-bold transition-all ${
+              className={`min-h-[34px] flex items-center justify-center py-1 px-0.5 rounded-lg text-[9.5px] sm:text-[10px] font-bold transition-all ${
                 currentStep === item.step
                   ? 'bg-indigo-600/25 text-cyan-300 border border-indigo-500/40 shadow-sm'
-                  : currentStep > item.step
-                  ? 'text-emerald-400 bg-emerald-950/20 border border-emerald-900/30 cursor-pointer'
-                  : 'text-slate-500 cursor-not-allowed'
+                  : item.step < currentStep
+                  ? 'bg-slate-950/80 text-slate-300 hover:text-white cursor-pointer border border-slate-800/60'
+                  : 'text-slate-600 cursor-not-allowed opacity-40'
               }`}
+              disabled={item.step > currentStep}
             >
-              {item.label}
+              <span className="truncate">{item.label}</span>
             </button>
           ))}
         </div>
@@ -618,11 +823,10 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
       )}
 
       {/* ============================================================== */}
-      {/* ETAPA 1: PONTO DE PARTIDA & PLANO                               */}
+      {/* ETAPA 1: PONTO DE PARTIDA & ORIGEM (3 OPÇÕES CANÔNICAS)        */}
       {/* ============================================================== */}
       {currentStep === 1 && (
         <div className="space-y-4 animate-in fade-in duration-150">
-          {/* Cabeçalho da Entrada Solicitada */}
           <div className="rounded-2xl p-4 sm:p-5 bg-gradient-to-br from-indigo-950/70 via-slate-900 to-slate-950 border border-indigo-900/40 shadow-sm space-y-1">
             <h2 className="text-base sm:text-lg font-black text-white tracking-tight">
               Como você deseja começar seu site?
@@ -632,7 +836,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
             </p>
           </div>
 
-          {/* 3 Opções de Entrada */}
+          {/* 3 Opções de Entrada Canônicas (Regra 1) */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             {/* Opção 1: Escolher a partir de uma amostra */}
             <button
@@ -736,9 +940,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
             </button>
           </div>
 
-          {/* ==================================================== */}
-          {/* SUB-FLUXO 1: ESCOLHA DE AMOSTRA                     */}
-          {/* ==================================================== */}
+          {/* Subfluxo 1: Amostra */}
           {startMode === 'amostra' && (
             <div className="rounded-2xl p-4 bg-slate-900 border border-slate-800 space-y-3.5 shadow-sm">
               <div className="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
@@ -896,9 +1098,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
             </div>
           )}
 
-          {/* ==================================================== */}
-          {/* SUB-FLUXO 2: TENHO UMA IDEIA PRÓPRIA / SOB MEDIDA   */}
-          {/* ==================================================== */}
+          {/* Subfluxo 2: Ideia própria / Sob medida */}
           {startMode === 'propria' && (
             <div className="rounded-2xl p-4 bg-slate-900 border border-slate-800 space-y-3.5 shadow-sm">
               <div className="border-b border-slate-800/80 pb-2.5">
@@ -906,7 +1106,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
                   Projeto Sob Medida
                 </h3>
                 <p className="text-[10.5px] text-slate-400">
-                  Estruture sua ideia do zero. Selecione o segmento e informe sua visão:
+                  Estruture sua ideia do zero. Selecione o segmento e defina sua proposta:
                 </p>
               </div>
 
@@ -953,7 +1153,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
                     }`}
                   >
                     <span className="block font-bold">Profissional (R$ 1.700)</span>
-                    <span className="block text-[10px] text-slate-500">Completo & Estratégico</span>
+                    <span className="block text-[10px] text-slate-500">Mais recursos e autoridade</span>
                   </button>
 
                   <button
@@ -966,16 +1166,14 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
                     }`}
                   >
                     <span className="block font-bold">Personalizado (R$ 2.800+)</span>
-                    <span className="block text-[10px] text-slate-500">Arquitetura sob demanda</span>
+                    <span className="block text-[10px] text-slate-500">Escopo dependente do projeto</span>
                   </button>
                 </div>
               </div>
             </div>
           )}
 
-          {/* ==================================================== */}
-          {/* SUB-FLUXO 3: ESCOLHER DIRETO UM DOS 4 PLANOS         */}
-          {/* ==================================================== */}
+          {/* Subfluxo 3: Escolher direto um dos 4 planos */}
           {startMode === 'plano' && (
             <div className="rounded-2xl p-4 bg-slate-900 border border-slate-800 space-y-3.5 shadow-sm">
               <div className="border-b border-slate-800/80 pb-2.5 flex items-center justify-between">
@@ -989,7 +1187,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
                 </div>
               </div>
 
-              {/* Grid dos 4 Planos Oficiais com Preços Preservados */}
+              {/* Grid dos 4 Planos Oficiais */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {plans.map((p) => {
                   const isSelected = selectedPlan === p.id;
@@ -1014,7 +1212,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
                         </div>
 
                         <p className="text-[11px] text-slate-300 leading-snug mb-2">
-                          {p.tagline}
+                          “{p.tagline}”
                         </p>
 
                         <div className="flex items-center gap-1.5 text-[10.5px] text-slate-400">
@@ -1058,35 +1256,12 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
             </div>
           )}
 
-          {/* Link para o Assistente de Escolha NexaWeb */}
-          <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 text-center flex items-center justify-center gap-1.5 text-xs text-slate-400">
-            <HelpCircle className="w-4 h-4 text-cyan-400" />
-            <span>Precisa de ajuda para decidir o plano ideal?</span>
-            <button
-              type="button"
-              onClick={() => onNavigate('home')}
-              className="text-cyan-300 hover:text-cyan-200 font-semibold underline underline-offset-2 ml-1"
-            >
-              Fazer o Quiz do Assistente
-            </button>
-          </div>
-
-          {/* Botões de Ação da Etapa 1 (Inline, sempre visíveis e confortáveis) */}
-          <div className="pt-2 flex items-center justify-between gap-2.5">
-            <button
-              type="button"
-              onClick={handlePrevStep}
-              className="min-h-[48px] min-w-[48px] px-4 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-850 text-slate-300 flex items-center justify-center transition-colors active:scale-95"
-              aria-label="Voltar"
-              title="Voltar"
-            >
-              <ArrowLeft className="w-5 h-5 text-slate-300" />
-            </button>
-
+          {/* Botão de Avançar da Etapa 1 (Regra 4: NA ETAPA 1 NÃO MOSTRAR BOTÃO DE VOLTAR) */}
+          <div className="pt-2 flex items-center justify-end">
             <button
               type="button"
               onClick={handleNextStep}
-              className="min-h-[48px] flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs shadow-md shadow-indigo-950/50 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+              className="min-h-[48px] w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs shadow-md shadow-indigo-950/50 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
             >
               <span>{getNextButtonLabel()}</span>
               <ChevronRight className="w-4 h-4" />
@@ -1096,26 +1271,24 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
       )}
 
       {/* ============================================================== */}
-      {/* ETAPA 2: BRIEFING DINÂMICO CONFORME O SEGMENTO                 */}
+      {/* ETAPA 2: INFORMAÇÕES PRINCIPAIS & OBJETIVO                     */}
       {/* ============================================================== */}
       {currentStep === 2 && (
         <div className="space-y-4 animate-in fade-in duration-150">
-          {/* Cabeçalho do Briefing Dinâmico */}
           <div className="rounded-2xl p-4 bg-gradient-to-br from-indigo-950/60 via-slate-900 to-slate-950 border border-indigo-900/40 shadow-sm space-y-1">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-mono uppercase text-cyan-300 font-bold">
-                Briefing Personalizado
+                Informações Principais
               </span>
               <span className="text-xs font-mono font-bold text-cyan-400">
                 Plano {activePlanObj.nome}
               </span>
             </div>
-            <h2 className="text-sm sm:text-base font-extrabold text-white flex items-center gap-2">
-              <span>{segmentConfig.icon}</span>
-              <span>Conteúdo para {segmentConfig.name}</span>
+            <h2 className="text-sm sm:text-base font-extrabold text-white">
+              Identificação & Propósito do Projeto
             </h2>
             <p className="text-[11px] text-slate-400">
-              {segmentConfig.tagline}
+              Defina o nome, objetivo principal e detalhes operacionais do seu negócio.
             </p>
           </div>
 
@@ -1137,10 +1310,61 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
               />
             </div>
 
-            {/* 2. Idioma do Futuro Site */}
-            <div>
+            {/* 2. Objetivo Principal do Site (Regra 7: O usuário escolhe, não auto-selecionado) */}
+            <div className="space-y-1.5 pt-2 border-t border-slate-800/80">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-bold text-cyan-300 uppercase tracking-wider block">
+                  2. Objetivo Principal do Site *
+                </label>
+                <span className="text-[10px] text-slate-400">Selecione uma opção</span>
+              </div>
+              <p className="text-[10.5px] text-slate-400">
+                Qual é a prioridade número 1 do site para o seu negócio?
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                {SITE_OBJECTIVES.map((obj) => {
+                  const isChecked = siteObjective === obj.id;
+                  return (
+                    <div
+                      key={obj.id}
+                      onClick={() => {
+                        setSiteObjective(obj.id);
+                        if (stepError) setStepError(null);
+                      }}
+                      className={`p-2.5 rounded-xl border text-left cursor-pointer transition-all active:scale-[0.99] flex items-start justify-between gap-2 ${
+                        isChecked
+                          ? 'bg-cyan-500/15 border-cyan-500 text-white shadow-sm ring-1 ring-cyan-500/30'
+                          : 'bg-slate-950 border-slate-800 hover:border-slate-700 text-slate-300'
+                      }`}
+                    >
+                      <div>
+                        <span className="text-xs font-bold block leading-snug">
+                          {obj.label}
+                        </span>
+                        <span className="text-[10px] text-slate-400 leading-tight block mt-0.5">
+                          {obj.desc}
+                        </span>
+                      </div>
+                      <span
+                        className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 mt-0.5 ${
+                          isChecked
+                            ? 'border-cyan-400 bg-cyan-400 text-slate-950'
+                            : 'border-slate-700'
+                        }`}
+                      >
+                        {isChecked && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 3. Idioma do Futuro Site */}
+            <div className="pt-2 border-t border-slate-800/80">
               <label className="text-[11px] font-bold text-white uppercase tracking-wider block mb-1">
-                2. Idioma do Futuro Site
+                3. Idioma do Futuro Site
               </label>
               <select
                 value={siteLanguage}
@@ -1156,13 +1380,106 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
               </select>
             </div>
 
-            {/* 3. OPÇÃO DINÂMICA PRIMÁRIA DO SEGMENTO */}
-            <div className="space-y-1.5 pt-2 border-t border-slate-800/80">
+            {/* 4. Informações do Negócio / Região (Regra 8: Opcionais) */}
+            <div className="pt-2 border-t border-slate-800/80 space-y-3">
+              <div>
+                <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block mb-1">
+                  4. Localização ou Região Atendida (opcional)
+                </label>
+                <input
+                  type="text"
+                  value={businessLocation}
+                  onChange={(e) => setBusinessLocation(e.target.value)}
+                  placeholder="Ex: São Paulo - SP, Brasil e exterior, ou Atendimento 100% online..."
+                  className="w-full min-h-[46px] bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                  <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block mb-1">
+                    Unidades / Filiais (opcional)
+                  </label>
+                  <input
+                    type="text"
+                    value={businessBranches}
+                    onChange={(e) => setBusinessBranches(e.target.value)}
+                    placeholder="Ex: 1 sede física, Matriz e filial..."
+                    className="w-full min-h-[46px] bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block mb-1">
+                    Google Maps / Link (opcional)
+                  </label>
+                  <input
+                    type="url"
+                    value={googleMapsLink}
+                    onChange={(e) => setGoogleMapsLink(e.target.value)}
+                    placeholder="https://maps.google.com/..."
+                    className="w-full min-h-[46px] bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Botões de Ação da Etapa 2 (Regra 4: somente ← sem a palavra "Voltar") */}
+          <div className="pt-2 flex items-center justify-between gap-2.5">
+            <button
+              type="button"
+              onClick={handlePrevStep}
+              className="min-h-[48px] min-w-[48px] px-4 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-850 text-slate-300 flex items-center justify-center transition-colors active:scale-95"
+              aria-label="←"
+              title="←"
+            >
+              <ArrowLeft className="w-5 h-5 text-slate-300" />
+            </button>
+
+            <button
+              type="button"
+              onClick={handleNextStep}
+              className="min-h-[48px] flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs shadow-md shadow-indigo-950/50 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+            >
+              <span>{getNextButtonLabel()}</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* ETAPA 3: NECESSIDADES DO NEGÓCIO & SEGMENTO                    */}
+      {/* ============================================================== */}
+      {currentStep === 3 && (
+        <div className="space-y-4 animate-in fade-in duration-150">
+          <div className="rounded-2xl p-4 bg-gradient-to-br from-indigo-950/60 via-slate-900 to-slate-950 border border-indigo-900/40 shadow-sm space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono uppercase text-cyan-300 font-bold">
+                Escopo do Segmento
+              </span>
+              <span className="text-xs font-mono font-bold text-cyan-400">
+                {segmentConfig.name}
+              </span>
+            </div>
+            <h2 className="text-sm sm:text-base font-extrabold text-white flex items-center gap-2">
+              <span>{segmentConfig.icon}</span>
+              <span>Conteúdo para {segmentConfig.name}</span>
+            </h2>
+            <p className="text-[11px] text-slate-400">
+              {segmentConfig.tagline}
+            </p>
+          </div>
+
+          <div className="rounded-2xl p-4 sm:p-5 bg-slate-900 border border-slate-800 space-y-4 shadow-sm">
+            {/* Opção Primária do Segmento */}
+            <div className="space-y-1.5">
               <label className="text-[11px] font-bold text-cyan-300 uppercase tracking-wider block">
-                3. {segmentConfig.primaryOptionsLabel}
+                1. {segmentConfig.primaryOptionsLabel}
               </label>
               <p className="text-[10.5px] text-slate-400">
-                Selecione as opções que farão parte do seu site:
+                Selecione as opções que farão parte da estrutura do site:
               </p>
               <div className="flex flex-wrap gap-1.5 pt-1">
                 {segmentConfig.primaryOptions.map((opt) => {
@@ -1172,7 +1489,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
                       key={opt}
                       type="button"
                       onClick={() => togglePrimaryOption(opt)}
-                      className={`min-h-[36px] px-3 py-1.5 rounded-xl text-xs font-semibold transition-all active:scale-95 flex items-center gap-1.5 ${
+                      className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-semibold transition-all active:scale-95 flex items-center gap-1.5 ${
                         isChecked
                           ? 'bg-cyan-500 text-slate-950 font-bold shadow-sm'
                           : 'bg-slate-950 text-slate-300 border border-slate-800 hover:border-slate-700'
@@ -1186,11 +1503,11 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
               </div>
             </div>
 
-            {/* 4. OPÇÃO DINÂMICA SECUNDÁRIA DO SEGMENTO */}
+            {/* Opção Secundária do Segmento */}
             {segmentConfig.secondaryOptions.length > 0 && (
               <div className="space-y-1.5 pt-2 border-t border-slate-800/80">
                 <label className="text-[11px] font-bold text-indigo-300 uppercase tracking-wider block">
-                  4. {segmentConfig.secondaryOptionsLabel}
+                  2. {segmentConfig.secondaryOptionsLabel}
                 </label>
                 <div className="flex flex-wrap gap-1.5 pt-1">
                   {segmentConfig.secondaryOptions.map((opt) => {
@@ -1200,7 +1517,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
                         key={opt}
                         type="button"
                         onClick={() => toggleSecondaryOption(opt)}
-                        className={`min-h-[36px] px-3 py-1.5 rounded-xl text-xs font-semibold transition-all active:scale-95 flex items-center gap-1.5 ${
+                        className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-semibold transition-all active:scale-95 flex items-center gap-1.5 ${
                           isChecked
                             ? 'bg-indigo-600 text-white font-bold shadow-sm'
                             : 'bg-slate-950 text-slate-300 border border-slate-800 hover:border-slate-700'
@@ -1215,11 +1532,11 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
               </div>
             )}
 
-            {/* 5. DIFERENCIAIS ESPECÍFICOS DO SEGMENTO */}
+            {/* Diferenciais Básicos da Estrutura */}
             {segmentConfig.features.length > 0 && (
               <div className="space-y-1.5 pt-2 border-t border-slate-800/80">
                 <label className="text-[11px] font-bold text-emerald-300 uppercase tracking-wider block">
-                  5. {segmentConfig.featuresLabel}
+                  3. {segmentConfig.featuresLabel}
                 </label>
                 <div className="flex flex-wrap gap-1.5 pt-1">
                   {segmentConfig.features.map((feat) => {
@@ -1229,7 +1546,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
                         key={feat}
                         type="button"
                         onClick={() => toggleFeature(feat)}
-                        className={`min-h-[36px] px-3 py-1.5 rounded-xl text-xs font-semibold transition-all active:scale-95 flex items-center gap-1.5 ${
+                        className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-semibold transition-all active:scale-95 flex items-center gap-1.5 ${
                           isChecked
                             ? 'bg-emerald-600 text-white font-bold shadow-sm'
                             : 'bg-slate-950 text-slate-300 border border-slate-800 hover:border-slate-700'
@@ -1244,10 +1561,10 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
               </div>
             )}
 
-            {/* 6. HORÁRIOS & ATENDIMENTO */}
+            {/* Horários & Atendimento */}
             <div className="pt-2 border-t border-slate-800/80">
               <label className="text-[11px] font-bold text-white uppercase tracking-wider block mb-1">
-                6. Horários de Funcionamento ou Atendimento
+                4. Horários de Funcionamento ou Atendimento (opcional)
               </label>
               <input
                 type="text"
@@ -1258,10 +1575,10 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
               />
             </div>
 
-            {/* 7. EQUIPE OU PROFISSIONAIS */}
+            {/* Equipe / Profissionais */}
             <div>
               <label className="text-[11px] font-bold text-white uppercase tracking-wider block mb-1">
-                7. Equipe / Professores / Profissionais
+                5. Equipe / Professores / Atendimento (opcional)
               </label>
               <input
                 type="text"
@@ -1272,10 +1589,10 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
               />
             </div>
 
-            {/* 8. SERVIÇOS OU PRODUTOS ESPECÍFICOS */}
+            {/* Detalhes Adicionais dos Serviços */}
             <div>
               <label className="text-[11px] font-bold text-white uppercase tracking-wider block mb-1">
-                8. Detalhes Adicionais dos Serviços ou Produtos
+                6. Detalhes Adicionais dos Serviços ou Produtos (opcional)
               </label>
               <textarea
                 value={freeServicesText}
@@ -1285,46 +1602,276 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 resize-none"
               />
             </div>
+          </div>
 
-            {/* Se for modo Sob Medida, exibe campos de ideia e objetivos */}
-            {startMode === 'propria' && (
-              <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
-                <label className="text-xs font-bold text-amber-300 uppercase tracking-wide block">
-                  Visão do Projeto Sob Medida
-                </label>
-                <div>
-                  <span className="text-[10.5px] text-slate-400 block mb-1">Ideia Central do Site:</span>
-                  <textarea
-                    value={customProjectIdea}
-                    onChange={(e) => setCustomProjectIdea(e.target.value)}
-                    rows={2}
-                    placeholder="Descreva o que não pode faltar no seu projeto sob medida..."
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 resize-none"
-                  />
+          {/* Botões de Ação da Etapa 3 */}
+          <div className="pt-2 flex items-center justify-between gap-2.5">
+            <button
+              type="button"
+              onClick={handlePrevStep}
+              className="min-h-[48px] min-w-[48px] px-4 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-850 text-slate-300 flex items-center justify-center transition-colors active:scale-95"
+              aria-label="←"
+              title="←"
+            >
+              <ArrowLeft className="w-5 h-5 text-slate-300" />
+            </button>
+
+            <button
+              type="button"
+              onClick={handleNextStep}
+              className="min-h-[48px] flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs shadow-md shadow-indigo-950/50 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+            >
+              <span>{getNextButtonLabel()}</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* ETAPA 4: FUNCIONALIDADES DO PROJETO (LIMITES 0 / 3 / 5 / 8)     */}
+      {/* ============================================================== */}
+      {currentStep === 4 && (
+        <div className="space-y-4 animate-in fade-in duration-150">
+          <div className="rounded-2xl p-4 bg-gradient-to-br from-indigo-950/60 via-slate-900 to-slate-950 border border-indigo-900/40 shadow-sm space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono uppercase text-cyan-300 font-bold">
+                Recursos Avançados
+              </span>
+              <span className="text-xs font-mono font-bold text-cyan-400">
+                Plano {activePlanObj.nome}
+              </span>
+            </div>
+            <h2 className="text-sm sm:text-base font-extrabold text-white">
+              Funcionalidades Adicionais do Projeto
+            </h2>
+            <p className="text-[11px] text-slate-400">
+              Selecione as funcionalidades que farão parte do escopo da proposta.
+            </p>
+          </div>
+
+          <div className="rounded-2xl p-4 sm:p-5 bg-slate-900 border border-slate-800 space-y-3.5 shadow-sm">
+            {/* Header com Contador Oficial (Regra 6) */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 pb-2 border-b border-slate-800/80">
+              <div>
+                <span className="text-xs font-bold text-white block">
+                  Seleção de Funcionalidades
+                </span>
+                <span className="text-[10.5px] text-slate-400">
+                  Limite correspondente ao Plano {activePlanObj.nome}
+                </span>
+              </div>
+
+              {/* Contador Oficial */}
+              <div className="self-start sm:self-auto">
+                <div
+                  className={`px-3 py-1 rounded-xl text-xs font-mono font-bold border transition-colors ${
+                    advancedFeaturesLimit === 0
+                      ? 'bg-blue-500/10 text-blue-400 border-blue-500/30'
+                      : selectedAdvancedFeatures.length >= advancedFeaturesLimit
+                      ? 'bg-amber-500/15 text-amber-300 border-amber-500/40 ring-1 ring-amber-500/20'
+                      : 'bg-slate-950 text-cyan-400 border-slate-800'
+                  }`}
+                >
+                  <span>
+                    {selectedAdvancedFeatures.length} de {advancedFeaturesLimit} selecionadas
+                  </span>
                 </div>
-                <div>
-                  <span className="text-[10.5px] text-slate-400 block mb-1">Link de Referência / Inspiração (opcional):</span>
-                  <input
-                    type="url"
-                    value={customReferenceLink}
-                    onChange={(e) => setCustomReferenceLink(e.target.value)}
-                    placeholder="https://exemplo.com.br"
-                    className="w-full min-h-[42px] bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500"
-                  />
-                </div>
+              </div>
+            </div>
+
+            {/* Aviso para o Plano Essencial */}
+            {advancedFeaturesLimit === 0 && (
+              <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/25 text-[11px] text-blue-300 space-y-1">
+                <p className="font-semibold flex items-center gap-1.5">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-blue-400" />
+                  <span>Plano Essencial · Escopo Fechado (0 funcionalidades avançadas)</span>
+                </p>
+                <p className="text-slate-300 leading-relaxed pl-5.5">
+                  O Plano Essencial já inclui a apresentação completa do negócio, páginas essenciais, WhatsApp e SEO básico. Para selecionar funcionalidades adicionais, escolha o Plano Profissional (até 5), Personalizado (até 3) ou Premium (até 8).
+                </p>
               </div>
             )}
 
-            {/* CORES & IDENTIDADE VISUAL */}
+            {/* Alerta de Limite Atingido */}
+            {featureLimitMessage && (
+              <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300 flex items-center gap-2 animate-in fade-in duration-150">
+                <AlertCircle className="w-4 h-4 shrink-0 text-amber-400" />
+                <span className="leading-tight">{featureLimitMessage}</span>
+              </div>
+            )}
+
+            {/* Categorias Dinâmicas (Regra 8: Apenas categorias com itens para o segmento) */}
+            <div className="space-y-3 pt-1">
+              {groupedAdvancedFeatures.map(({ category, items }) => (
+                <div
+                  key={category}
+                  className="space-y-2 p-3 rounded-xl bg-slate-950/60 border border-slate-800/70"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10.5px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+                      <span>{category}</span>
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-mono">
+                      {items.length} {items.length === 1 ? 'opção' : 'opções'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {items.map((feat) => {
+                      const isChecked = selectedAdvancedFeatures.includes(feat.id);
+                      const isLimitReached =
+                        !isChecked &&
+                        (advancedFeaturesLimit === 0 ||
+                          selectedAdvancedFeatures.length >= advancedFeaturesLimit);
+
+                      return (
+                        <div
+                          key={feat.id}
+                          onClick={() => handleToggleAdvancedFeature(feat)}
+                          className={`p-2.5 rounded-xl border text-left cursor-pointer transition-all active:scale-[0.99] flex flex-col justify-between ${
+                            isChecked
+                              ? 'bg-cyan-500/15 border-cyan-500 text-white shadow-sm ring-1 ring-cyan-500/30'
+                              : isLimitReached
+                              ? 'bg-slate-950/50 border-slate-850 opacity-65 hover:opacity-85'
+                              : 'bg-slate-950 border-slate-800/80 hover:border-slate-700 text-slate-300'
+                          }`}
+                        >
+                          <div>
+                            <div className="flex items-start justify-between gap-1.5 mb-1">
+                              <span className="text-xs font-bold leading-snug">
+                                {feat.nome}
+                              </span>
+                              <span
+                                className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 mt-0.5 ${
+                                  isChecked
+                                    ? 'border-cyan-400 bg-cyan-400 text-slate-950'
+                                    : 'border-slate-700'
+                                }`}
+                              >
+                                {isChecked && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                              </span>
+                            </div>
+
+                            <p className="text-[10.5px] text-slate-400 leading-snug">
+                              {feat.descricao}
+                            </p>
+                          </div>
+
+                          {/* Tag Oficial de Complexidade (Regra 7) */}
+                          {feat.isComplex && (
+                            <div className="pt-2 mt-1.5 border-t border-slate-800/50 flex flex-col gap-0.5">
+                              <div className="inline-flex items-center gap-1 self-start px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[9.5px] font-bold">
+                                <Sparkles className="w-2.5 h-2.5 text-amber-400 shrink-0" />
+                                <span>Avançado / avaliação</span>
+                              </div>
+                              <span className="text-[9px] text-amber-400/75 leading-tight">
+                                Disponibilidade conforme análise de viabilidade do projeto.
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Botões de Ação da Etapa 4 */}
+          <div className="pt-2 flex items-center justify-between gap-2.5">
+            <button
+              type="button"
+              onClick={handlePrevStep}
+              className="min-h-[48px] min-w-[48px] px-4 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-850 text-slate-300 flex items-center justify-center transition-colors active:scale-95"
+              aria-label="←"
+              title="←"
+            >
+              <ArrowLeft className="w-5 h-5 text-slate-300" />
+            </button>
+
+            <button
+              type="button"
+              onClick={handleNextStep}
+              className="min-h-[48px] flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs shadow-md shadow-indigo-950/50 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+            >
+              <span>{getNextButtonLabel()}</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* ETAPA 5: VISUAL, CONTEÚDO & ARQUIVOS                           */}
+      {/* ============================================================== */}
+      {currentStep === 5 && (
+        <div className="space-y-4 animate-in fade-in duration-150">
+          <div className="rounded-2xl p-4 bg-gradient-to-br from-indigo-950/60 via-slate-900 to-slate-950 border border-indigo-900/40 shadow-sm space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono uppercase text-cyan-300 font-bold">
+                Identidade & Arquivos
+              </span>
+              <span className="text-xs font-mono font-bold text-cyan-400">
+                Plano {activePlanObj.nome}
+              </span>
+            </div>
+            <h2 className="text-sm sm:text-base font-extrabold text-white">
+              Visual, Inspiração & Contato
+            </h2>
+            <p className="text-[11px] text-slate-400">
+              Escolha a estética desejada, anexe seus arquivos e informe os dados de contato.
+            </p>
+          </div>
+
+          <div className="rounded-2xl p-4 sm:p-5 bg-slate-900 border border-slate-800 space-y-4 shadow-sm">
+            {/* 1. Estilo Visual do Site (Regra 10: 5 estilos canônicos) */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-cyan-300 uppercase tracking-wider block">
+                1. Estilo Visual Desejado
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                {VISUAL_STYLES.map((st) => {
+                  const isChecked = visualStyle === st.id;
+                  return (
+                    <div
+                      key={st.id}
+                      onClick={() => setVisualStyle(st.id)}
+                      className={`p-2.5 rounded-xl border text-left cursor-pointer transition-all active:scale-[0.99] flex flex-col justify-between ${
+                        isChecked
+                          ? 'bg-cyan-500/15 border-cyan-500 text-white shadow-sm ring-1 ring-cyan-500/30'
+                          : 'bg-slate-950 border-slate-800 hover:border-slate-700 text-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-bold">{st.label}</span>
+                        {isChecked && (
+                          <span className="w-4 h-4 rounded-full bg-cyan-400 text-slate-950 flex items-center justify-center">
+                            <Check className="w-2.5 h-2.5 stroke-[3]" />
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[10px] text-slate-400 leading-tight">
+                        {st.desc}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 2. Cores & Identidade Visual */}
             <div className="pt-2 border-t border-slate-800/80 space-y-2">
               <label className="text-[11px] font-bold text-white uppercase tracking-wider block">
-                Cores & Identidade Visual
+                2. Paleta de Cores
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => setColorMode('suggest')}
-                  className={`min-h-[48px] p-2.5 rounded-xl border text-left text-xs transition-all ${
+                  className={`min-h-[46px] p-2.5 rounded-xl border text-left text-xs transition-all ${
                     colorMode === 'suggest'
                       ? 'bg-cyan-950/40 border-cyan-500 text-white font-bold ring-1 ring-cyan-500/40'
                       : 'bg-slate-950 border-slate-800 text-slate-400'
@@ -1337,7 +1884,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
                 <button
                   type="button"
                   onClick={() => setColorMode('brand')}
-                  className={`min-h-[48px] p-2.5 rounded-xl border text-left text-xs transition-all ${
+                  className={`min-h-[46px] p-2.5 rounded-xl border text-left text-xs transition-all ${
                     colorMode === 'brand'
                       ? 'bg-indigo-950/40 border-indigo-500 text-white font-bold ring-1 ring-indigo-500/40'
                       : 'bg-slate-950 border-slate-800 text-slate-400'
@@ -1350,7 +1897,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
                 <button
                   type="button"
                   onClick={() => setColorMode('custom')}
-                  className={`min-h-[48px] p-2.5 rounded-xl border text-left text-xs transition-all ${
+                  className={`min-h-[46px] p-2.5 rounded-xl border text-left text-xs transition-all ${
                     colorMode === 'custom'
                       ? 'bg-purple-950/40 border-purple-500 text-white font-bold ring-1 ring-purple-500/40'
                       : 'bg-slate-950 border-slate-800 text-slate-400'
@@ -1372,24 +1919,115 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
               )}
             </div>
 
-            {/* UPLOAD DE ARQUIVOS / LOGO / FOTOS */}
+            {/* 3. Descrição Livre / Inspirações (Regra 11) */}
+            <div className="pt-2 border-t border-slate-800/80 space-y-2">
+              <label className="text-[11px] font-bold text-white uppercase tracking-wider block">
+                3. Descrição Livre & Particularidades do Projeto (opcional)
+              </label>
+              <textarea
+                value={customProjectIdea}
+                onChange={(e) => setCustomProjectIdea(e.target.value)}
+                rows={3}
+                placeholder="Conte com suas palavras o que você imagina para o site, diferenciais ou pontos essenciais que não foram abordados..."
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 resize-none"
+              />
+
+              <div>
+                <span className="text-[10.5px] text-slate-400 block mb-1">
+                  Link de Referência ou Inspiração (opcional):
+                </span>
+                <input
+                  type="url"
+                  value={customReferenceLink}
+                  onChange={(e) => setCustomReferenceLink(e.target.value)}
+                  placeholder="https://exemplo.com.br"
+                  className="w-full min-h-[44px] bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+            </div>
+
+            {/* 4. Anexos / Arquivos (Regra 12: Até 6 arquivos) */}
             <div className="pt-2 border-t border-slate-800/80">
+              <label className="text-[11px] font-bold text-white uppercase tracking-wider block mb-1">
+                4. Logo & Fotos do Negócio (até 6 arquivos)
+              </label>
               <ImageUploadField
                 files={attachedFiles}
                 onChange={setAttachedFiles}
                 maxFiles={6}
               />
             </div>
+
+            {/* 5. Dados do Responsável pelo Projeto */}
+            <div className="pt-2 border-t border-slate-800/80 space-y-3">
+              <label className="text-[11px] font-bold text-cyan-300 uppercase tracking-wider block">
+                5. Dados do Responsável
+              </label>
+
+              <div>
+                <span className="text-[10.5px] text-slate-300 block mb-1">Seu Nome Completo *</span>
+                <input
+                  type="text"
+                  value={contactName}
+                  onChange={(e) => {
+                    setContactName(e.target.value);
+                    if (stepError) setStepError(null);
+                  }}
+                  placeholder="Ex: João da Silva"
+                  className="w-full min-h-[46px] bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                  <span className="text-[10.5px] text-slate-300 block mb-1">WhatsApp para Contato *</span>
+                  <input
+                    type="tel"
+                    inputMode="tel"
+                    value={contactPhone}
+                    onChange={(e) => {
+                      setContactPhone(e.target.value);
+                      if (stepError) setStepError(null);
+                    }}
+                    placeholder="Ex: (11) 99999-9999"
+                    className="w-full min-h-[46px] bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <span className="text-[10.5px] text-slate-300 block mb-1">E-mail (opcional)</span>
+                  <input
+                    type="email"
+                    inputMode="email"
+                    value={contactEmail}
+                    onChange={(e) => setContactEmail(e.target.value)}
+                    placeholder="Ex: contato@empresa.com.br"
+                    className="w-full min-h-[46px] bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <span className="text-[10.5px] text-slate-300 block mb-1">Observações Finais (opcional)</span>
+                <textarea
+                  value={specificNotes}
+                  onChange={(e) => setSpecificNotes(e.target.value)}
+                  rows={2}
+                  placeholder="Ex: Preferência de horário para contato ou detalhes adicionais..."
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 resize-none"
+                />
+              </div>
+            </div>
           </div>
 
-          {/* Botões de Ação da Etapa 2 (Inline, sempre visíveis e confortáveis) */}
+          {/* Botões de Ação da Etapa 5 */}
           <div className="pt-2 flex items-center justify-between gap-2.5">
             <button
               type="button"
               onClick={handlePrevStep}
               className="min-h-[48px] min-w-[48px] px-4 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-850 text-slate-300 flex items-center justify-center transition-colors active:scale-95"
-              aria-label="Voltar"
-              title="Voltar"
+              aria-label="←"
+              title="←"
             >
               <ArrowLeft className="w-5 h-5 text-slate-300" />
             </button>
@@ -1407,126 +2045,23 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
       )}
 
       {/* ============================================================== */}
-      {/* ETAPA 3: INFORMAÇÕES DE CONTATO DO RESPONSÁVEL                 */}
+      {/* ETAPA 6: RESUMO & ENVIO OFICIAL (REGRA 13 & 14)                 */}
       {/* ============================================================== */}
-      {currentStep === 3 && (
-        <div className="space-y-4 animate-in fade-in duration-150">
-          <div className="rounded-2xl p-4 bg-gradient-to-br from-indigo-950/60 via-slate-900 to-slate-950 border border-indigo-900/40 shadow-sm space-y-1">
-            <h2 className="text-base sm:text-lg font-black text-white tracking-tight">
-              Dados do Responsável pelo Projeto
-            </h2>
-            <p className="text-xs text-slate-300">
-              Informe seus dados para contato oficial e alinhamento da proposta:
-            </p>
-          </div>
-
-          <div className="rounded-2xl p-4 sm:p-5 bg-slate-900 border border-slate-800 space-y-3.5 shadow-sm">
-            <div>
-              <label className="text-[11px] font-bold text-white uppercase tracking-wider block mb-1">
-                Nome do Responsável *
-              </label>
-              <input
-                type="text"
-                autoComplete="name"
-                value={contactName}
-                onChange={(e) => {
-                  setContactName(e.target.value);
-                  if (stepError) setStepError(null);
-                }}
-                placeholder="Ex: Carlos Eduardo"
-                className="w-full min-h-[46px] bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500"
-              />
-            </div>
-
-            <div>
-              <label className="text-[11px] font-bold text-white uppercase tracking-wider block mb-1">
-                WhatsApp com DDD *
-              </label>
-              <input
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
-                value={contactPhone}
-                onChange={(e) => {
-                  setContactPhone(e.target.value);
-                  if (stepError) setStepError(null);
-                }}
-                placeholder="Ex: (11) 99999-9999"
-                className="w-full min-h-[46px] bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 font-mono"
-              />
-            </div>
-
-            <div>
-              <label className="text-[11px] font-bold text-white uppercase tracking-wider block mb-1">
-                E-mail (opcional)
-              </label>
-              <input
-                type="email"
-                inputMode="email"
-                autoComplete="email"
-                value={contactEmail}
-                onChange={(e) => setContactEmail(e.target.value)}
-                placeholder="Ex: contato@suaempresa.com.br"
-                className="w-full min-h-[46px] bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500"
-              />
-            </div>
-
-            <div>
-              <label className="text-[11px] font-bold text-white uppercase tracking-wider block mb-1">
-                Observações ou Pedidos Especiais
-              </label>
-              <textarea
-                value={specificNotes}
-                onChange={(e) => setSpecificNotes(e.target.value)}
-                rows={3}
-                placeholder="Ex: Desejo colocar meu site no ar com urgência, preciso de suporte com domínio próprio..."
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 resize-none"
-              />
-            </div>
-          </div>
-
-          {/* Botões de Ação da Etapa 3 (Inline, sempre visíveis e confortáveis) */}
-          <div className="pt-2 flex items-center justify-between gap-2.5">
-            <button
-              type="button"
-              onClick={handlePrevStep}
-              className="min-h-[48px] min-w-[48px] px-4 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-850 text-slate-300 flex items-center justify-center transition-colors active:scale-95"
-              aria-label="Voltar"
-              title="Voltar"
-            >
-              <ArrowLeft className="w-5 h-5 text-slate-300" />
-            </button>
-
-            <button
-              type="button"
-              onClick={handleNextStep}
-              className="min-h-[48px] flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs shadow-md shadow-indigo-950/50 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
-            >
-              <span>{getNextButtonLabel()}</span>
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ============================================================== */}
-      {/* ETAPA 4: REVISÃO & ENVIO OFICIAL DO PROJETO                     */}
-      {/* ============================================================== */}
-      {currentStep === 4 && (
+      {currentStep === 6 && (
         <div className="space-y-4 animate-in fade-in duration-150">
           <div className="rounded-2xl p-4 bg-gradient-to-br from-indigo-950/60 via-slate-900 to-slate-950 border border-indigo-900/40 shadow-sm space-y-1">
             <h2 className="text-base sm:text-lg font-black text-white tracking-tight">
               Revisão Final do Briefing
             </h2>
             <p className="text-xs text-slate-300">
-              Confira os dados do seu site antes do envio oficial para a equipe NexaWeb:
+              Confira os dados organizados do seu projeto antes do envio oficial:
             </p>
           </div>
 
-          {/* Card Resumo do Projeto */}
-          <div className="rounded-2xl p-4 sm:p-5 bg-slate-900 border border-slate-800 space-y-3.5 shadow-sm text-xs">
-            {/* Cabeçalho do Resumo */}
-            <div className="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
+          {/* Card Resumo Estruturado com Ações Rápidas de Edição */}
+          <div className="rounded-2xl p-4 sm:p-5 bg-slate-900 border border-slate-800 space-y-4 shadow-sm text-xs">
+            {/* Bloco 1: Plano & Origem */}
+            <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
               <div>
                 <span className="text-[10px] font-mono uppercase text-cyan-400 font-bold block">
                   Plano Selecionado
@@ -1534,45 +2069,93 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
                 <span className="text-sm font-bold text-white">
                   Plano {activePlanObj.nome}
                 </span>
+                <span className="text-[10.5px] text-slate-400 block mt-0.5">
+                  Prazo previsto: {activePlanObj.prazo}
+                </span>
               </div>
-              <div className="text-right">
+              <div className="text-right flex items-center gap-2">
                 <span className="text-sm font-mono font-bold text-cyan-300">
                   {activePlanObj.preco}
                 </span>
-                <span className="text-[10px] text-slate-400 block">
-                  Prazo: {activePlanObj.prazo}
-                </span>
+                <button
+                  type="button"
+                  onClick={() => setCurrentStep(1)}
+                  className="p-1.5 rounded-lg bg-slate-950 text-slate-400 hover:text-cyan-300 border border-slate-800 transition-colors"
+                  title="Editar plano"
+                >
+                  <Edit2 className="w-3.5 h-3.5" />
+                </button>
               </div>
             </div>
 
-            {/* Linhas de Dados */}
-            <div className="space-y-2 divide-y divide-slate-800/60">
-              <div className="flex items-center justify-between pt-1">
+            {/* Bloco 2: Negócio & Objetivo */}
+            <div className="space-y-2 border-b border-slate-800/80 pb-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Dados do Negócio
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setCurrentStep(2)}
+                  className="text-[10px] text-cyan-400 hover:text-cyan-300 font-semibold underline"
+                >
+                  Editar
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between">
                 <span className="text-slate-400">Negócio / Empresa:</span>
                 <span className="font-bold text-white text-right">{businessName}</span>
               </div>
 
-              <div className="flex items-center justify-between pt-2">
+              {siteObjective && (
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400">Objetivo Principal:</span>
+                  <span className="font-semibold text-cyan-300 text-right">
+                    {SITE_OBJECTIVES.find((o) => o.id === siteObjective)?.label || siteObjective}
+                  </span>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between">
                 <span className="text-slate-400">Segmento:</span>
-                <span className="font-semibold text-cyan-300 text-right">
+                <span className="text-white text-right font-medium">
                   {segmentConfig.icon} {segmentConfig.name}
                 </span>
               </div>
 
               {selectedModel && (
-                <div className="flex items-center justify-between pt-2">
+                <div className="flex items-center justify-between">
                   <span className="text-slate-400">Amostra de Referência:</span>
-                  <span className="text-white text-right font-medium">{selectedModel}</span>
+                  <span className="text-white text-right">{selectedModel}</span>
                 </div>
               )}
 
-              <div className="flex items-center justify-between pt-2">
-                <span className="text-slate-400">Idioma do Site:</span>
-                <span className="text-white text-right">{siteLanguage}</span>
+              {businessLocation && (
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400">Localização / Região:</span>
+                  <span className="text-white text-right">{businessLocation}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Bloco 3: Escopo do Segmento */}
+            <div className="space-y-2 border-b border-slate-800/80 pb-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Escopo & Necessidades
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setCurrentStep(3)}
+                  className="text-[10px] text-cyan-400 hover:text-cyan-300 font-semibold underline"
+                >
+                  Editar
+                </button>
               </div>
 
               {selectedPrimaryOptions.length > 0 && (
-                <div className="pt-2">
+                <div>
                   <span className="text-slate-400 block mb-1">
                     {segmentConfig.primaryOptionsLabel}:
                   </span>
@@ -1590,7 +2173,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
               )}
 
               {selectedSecondaryOptions.length > 0 && (
-                <div className="pt-2">
+                <div className="pt-1">
                   <span className="text-slate-400 block mb-1">
                     {segmentConfig.secondaryOptionsLabel}:
                   </span>
@@ -1606,211 +2189,218 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
                   </div>
                 </div>
               )}
+            </div>
 
-              {operatingSchedule && (
-                <div className="flex items-center justify-between pt-2">
-                  <span className="text-slate-400">Horários:</span>
-                  <span className="text-white text-right">{operatingSchedule}</span>
+            {/* Bloco 4: Funcionalidades Avançadas */}
+            <div className="space-y-2 border-b border-slate-800/80 pb-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Funcionalidades ({selectedAdvancedFeatures.length} de {advancedFeaturesLimit})
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setCurrentStep(4)}
+                  className="text-[10px] text-cyan-400 hover:text-cyan-300 font-semibold underline"
+                >
+                  Editar
+                </button>
+              </div>
+
+              {selectedAdvancedFeatures.length > 0 ? (
+                <div className="flex flex-wrap gap-1">
+                  {selectedAdvancedFeatures.map((featId) => {
+                    const feat = findAdvancedFeatureById(featId);
+                    return (
+                      <span
+                        key={featId}
+                        className="text-[10px] px-2 py-0.5 rounded-md bg-slate-950 text-amber-300 border border-slate-800 flex items-center gap-1"
+                      >
+                        <span>{feat ? feat.nome : featId}</span>
+                        {feat?.isComplex && (
+                          <span className="text-[8.5px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-300">
+                            avaliação
+                          </span>
+                        )}
+                      </span>
+                    );
+                  })}
+                </div>
+              ) : (
+                <span className="text-[11px] text-slate-500 italic block">
+                  {advancedFeaturesLimit === 0
+                    ? 'Plano Essencial · Escopo fechado'
+                    : 'Nenhuma funcionalidade adicional selecionada'}
+                </span>
+              )}
+            </div>
+
+            {/* Bloco 5: Visual, Conteúdo & Contato */}
+            <div className="space-y-2 pb-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Visual, Arquivos & Contato
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setCurrentStep(5)}
+                  className="text-[10px] text-cyan-400 hover:text-cyan-300 font-semibold underline"
+                >
+                  Editar
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">Estilo Visual:</span>
+                <span className="text-white text-right font-medium">{visualStyle}</span>
+              </div>
+
+              {customProjectIdea && (
+                <div>
+                  <span className="text-slate-400 block mb-0.5">Descrição Livre:</span>
+                  <p className="text-[11px] text-slate-300 bg-slate-950 p-2 rounded-lg border border-slate-800/80">
+                    {customProjectIdea}
+                  </p>
                 </div>
               )}
 
-              {teamDescription && (
-                <div className="flex items-center justify-between pt-2">
-                  <span className="text-slate-400">Equipe:</span>
-                  <span className="text-white text-right">{teamDescription}</span>
+              {attachedFiles.length > 0 && (
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400">Arquivos anexados:</span>
+                  <span className="font-mono text-cyan-300">{attachedFiles.length} foto(s)/logo</span>
                 </div>
               )}
 
-              <div className="flex items-center justify-between pt-2">
+              <div className="flex items-center justify-between pt-1 border-t border-slate-800/60">
                 <span className="text-slate-400">Responsável:</span>
                 <span className="font-bold text-white text-right">{contactName}</span>
               </div>
 
-              <div className="flex items-center justify-between pt-2">
+              <div className="flex items-center justify-between">
                 <span className="text-slate-400">WhatsApp:</span>
                 <span className="font-mono text-cyan-300 text-right">{contactPhone}</span>
               </div>
 
               {contactEmail && (
-                <div className="flex items-center justify-between pt-2">
+                <div className="flex items-center justify-between">
                   <span className="text-slate-400">E-mail:</span>
                   <span className="text-white text-right">{contactEmail}</span>
                 </div>
               )}
-
-              {attachedFiles.length > 0 && (
-                <div className="flex items-center justify-between pt-2">
-                  <span className="text-slate-400">Fotos/Logo anexados:</span>
-                  <span className="font-mono text-cyan-300">{attachedFiles.length} arquivo(s)</span>
-                </div>
-              )}
-            </div>
-
-            {/* Ações de Edição Rápida */}
-            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/80">
-              <button
-                type="button"
-                onClick={() => {
-                  setCurrentStep(2);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                className="min-h-[44px] p-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors active:scale-95"
-              >
-                <Edit2 className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Editar Briefing</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setCurrentStep(3);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                className="min-h-[44px] p-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors active:scale-95"
-              >
-                <Edit2 className="w-3.5 h-3.5 text-indigo-400" />
-                <span>Editar Contato</span>
-              </button>
             </div>
           </div>
 
-          {/* Mensagem de Sucesso Real ou Fallback Offline */}
+          {/* Feedback de Sucesso no Envio */}
           {submissionSuccess && (
-            <div
-              className={`p-4 rounded-2xl border text-xs space-y-2 animate-in fade-in ${
-                submissionSuccess.isOfflineFallback
-                  ? 'bg-amber-950/80 border-amber-500/50 text-amber-200'
-                  : 'bg-emerald-950/80 border-emerald-500/50 text-emerald-200'
-              }`}
-            >
-              <div className="flex items-center gap-2 font-bold text-sm">
-                {submissionSuccess.isOfflineFallback ? (
-                  <AlertCircle className="w-5 h-5 text-amber-400 shrink-0" />
-                ) : (
-                  <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-                )}
-                <span>
-                  {submissionSuccess.isOfflineFallback
-                    ? 'Código gerado em modo offline'
-                    : 'Briefing enviado com sucesso para a NexaWeb!'}
-                </span>
+            <div className="p-4 rounded-2xl bg-emerald-950/80 border border-emerald-500/50 space-y-2 animate-in fade-in">
+              <div className="flex items-center gap-2 text-emerald-300 font-bold text-sm">
+                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                <span>Briefing Registrado com Sucesso!</span>
               </div>
-              <p className="text-xs text-slate-300 leading-relaxed">
+              <p className="text-xs text-slate-200 leading-relaxed">
                 {submissionSuccess.message}
               </p>
-              <div className="p-2.5 rounded-xl bg-slate-950/80 border border-emerald-500/30 flex items-center justify-between">
-                <span className="text-[11px] text-slate-400">Código de Referência:</span>
-                <span className="font-mono font-bold text-emerald-300 text-xs">
+              <div className="p-2.5 rounded-xl bg-slate-950/80 border border-emerald-500/30 flex items-center justify-between text-xs">
+                <span className="text-slate-400">Protocolo do Projeto:</span>
+                <span className="font-mono font-bold text-emerald-400">
                   {submissionSuccess.projectId}
                 </span>
               </div>
-            </div>
-          )}
-
-          {/* Mensagem de Erro com Retry e Fallback Offline */}
-          {submissionError && (
-            <div className="p-3.5 rounded-2xl bg-rose-950/80 border border-rose-500/50 text-rose-300 text-xs flex flex-col gap-2.5 animate-in fade-in">
-              <div className="flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-                <span className="font-medium leading-snug">{submissionError}</span>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-rose-900/40">
-                <button
-                  type="button"
-                  disabled={isSubmitting}
-                  onClick={handleSubmitProject}
-                  className="px-3 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95"
-                >
-                  <RefreshCw className={`w-3.5 h-3.5 ${isSubmitting ? 'animate-spin' : ''}`} />
-                  <span>Tentar novamente</span>
-                </button>
-
-                <button
-                  type="button"
-                  disabled={isSubmitting}
-                  onClick={handleGenerateOfflineProtocol}
-                  className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-300 hover:text-white text-xs font-medium transition-colors"
-                >
-                  <span>Gerar código offline</span>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Botões Finais de Envio & Cópia */}
-          <div className="space-y-2 pt-1">
-            {!submissionSuccess ? (
-              <button
-                type="button"
-                disabled={isSubmitting}
-                onClick={handleSubmitProject}
-                className="min-h-[50px] w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 disabled:opacity-60 text-white font-extrabold text-xs shadow-lg shadow-indigo-950/50 transition-all active:scale-[0.98]"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin shrink-0" />
-                    <span>Enviando briefing para a NexaWeb...</span>
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-4 h-4 shrink-0" />
-                    <span>Enviar Briefing para NexaWeb</span>
-                  </>
-                )}
-              </button>
-            ) : (
-              <div className="space-y-2">
+              <div className="pt-2 flex flex-col sm:flex-row gap-2">
                 <button
                   type="button"
                   onClick={() => onNavigate('portal')}
-                  className="min-h-[48px] w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs transition-all flex items-center justify-center gap-2 active:scale-95 shadow-md shadow-indigo-950/40"
+                  className="min-h-[44px] flex-1 py-2 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-2"
                 >
-                  <UserCheck className="w-4 h-4" />
                   <span>Acompanhar na Área do Cliente</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onNavigate('home')}
+                  className="min-h-[44px] py-2 px-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white text-xs font-semibold"
+                >
+                  Voltar ao Início
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Erro de Envio com Opção de Protocolo Offline */}
+          {submissionError && !submissionSuccess && (
+            <div className="p-4 rounded-2xl bg-rose-950/80 border border-rose-500/50 space-y-2.5 animate-in fade-in">
+              <div className="flex items-center gap-2 text-rose-300 font-bold text-xs">
+                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                <span>Erro ao enviar proposta online</span>
+              </div>
+              <p className="text-xs text-slate-300">
+                {submissionError}
+              </p>
+              <div className="pt-1 flex flex-col sm:flex-row gap-2">
+                <button
+                  type="button"
+                  onClick={handleSubmitProject}
+                  disabled={isSubmitting}
+                  className="min-h-[42px] flex-1 py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center justify-center gap-2"
+                >
+                  {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                  <span>Tentar Novamente</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleGenerateOfflineProtocol}
+                  className="min-h-[42px] flex-1 py-2 px-3 rounded-xl bg-slate-900 border border-slate-700 text-cyan-300 font-semibold text-xs flex items-center justify-center gap-1.5"
+                >
+                  <span>Salvar Offline com Protocolo</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Botões de Ação da Etapa 6 (Copiar e Enviar) */}
+          {!submissionSuccess && (
+            <div className="space-y-2.5 pt-1">
+              <div className="flex items-center justify-between gap-2.5">
+                <button
+                  type="button"
+                  onClick={handlePrevStep}
+                  className="min-h-[48px] min-w-[48px] px-4 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-850 text-slate-300 flex items-center justify-center transition-colors active:scale-95"
+                  aria-label="←"
+                  title="←"
+                >
+                  <ArrowLeft className="w-5 h-5 text-slate-300" />
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => onNavigate('home')}
-                  className="min-h-[44px] w-full py-2 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 active:scale-95 border border-slate-700"
+                  onClick={handleSubmitProject}
+                  disabled={isSubmitting}
+                  className="min-h-[48px] flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black text-xs shadow-lg shadow-emerald-950/40 flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
                 >
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                  <span>Ir para a Página Inicial</span>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Registrando seu projeto...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      <span>Enviar Briefing Oficial</span>
+                    </>
+                  )}
                 </button>
               </div>
-            )}
 
-            <button
-              type="button"
-              onClick={handleCopyBriefing}
-              className={`min-h-[46px] w-full py-2.5 px-4 rounded-xl font-semibold text-xs border transition-all flex items-center justify-center gap-1.5 active:scale-[0.98] ${
-                copied
-                  ? 'bg-cyan-950/50 border-cyan-500 text-cyan-300'
-                  : 'bg-slate-900 hover:bg-slate-850 border-slate-700 text-slate-300'
-              }`}
-            >
-              {copied ? (
-                <>
-                  <Check className="w-4 h-4 text-cyan-400" />
-                  <span>Resumo Copiado para a Área de Transferência!</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-4 h-4" />
-                  <span>Copiar Resumo em Texto (WhatsApp / E-mail)</span>
-                </>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={handlePrevStep}
-              className="min-h-[44px] w-full py-2 px-4 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-white text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Editar Resumo</span>
-            </button>
-          </div>
+              {/* Botão para Copiar Briefing Formatado */}
+              <button
+                type="button"
+                onClick={handleCopyBriefing}
+                className="min-h-[44px] w-full py-2.5 px-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 text-xs font-semibold flex items-center justify-center gap-2 active:scale-[0.98] transition-colors"
+              >
+                {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-cyan-400" />}
+                <span>{copied ? 'Copiado para a área de transferência!' : 'Copiar resumo formatado para o WhatsApp'}</span>
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

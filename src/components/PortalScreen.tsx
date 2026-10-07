@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { ClientProject, ClientRequest, RequestCategory } from '../types';
+import { ClientProject, ClientRequest, RequestCategory, ViewTab } from '../types';
 import {
   loginClientPortal,
   getSavedClientSession,
@@ -31,6 +31,7 @@ import {
   Eye,
   Globe,
   Tag,
+  Loader2,
 } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 
@@ -53,7 +54,11 @@ const REQUEST_CATEGORIES: { id: RequestCategory; label: string; icon: string }[]
   { id: 'Outro', label: 'Outro', icon: '💬' },
 ];
 
-export const PortalScreen: React.FC = () => {
+interface PortalScreenProps {
+  onNavigate?: (tab: ViewTab) => void;
+}
+
+export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate }) => {
   const { t } = useTranslation();
   const [accessKey, setAccessKey] = useState('');
   const [loading, setLoading] = useState(false);
@@ -67,6 +72,7 @@ export const PortalScreen: React.FC = () => {
   const [reqMessage, setReqMessage] = useState('');
   const [submittingReq, setSubmittingReq] = useState(false);
   const [reqSuccessMsg, setReqSuccessMsg] = useState<string | null>(null);
+  const [reqErrorMsg, setReqErrorMsg] = useState<string | null>(null);
   const reqSuccessTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -75,21 +81,40 @@ export const PortalScreen: React.FC = () => {
     };
   }, []);
 
-  // Lock de scroll e tecla Escape para o modal de solicitação
+  const handleOpenRequestModal = () => {
+    setReqErrorMsg(null);
+    setReqCategory('Ajuste de Design');
+    setIsRequestModalOpen(true);
+  };
+
+  const handleCloseRequestModal = () => {
+    setIsRequestModalOpen(false);
+    setReqErrorMsg(null);
+  };
+
+  // Lock de scroll, tecla Escape e suporte a voltar físico no Android para o modal de solicitação
   useEffect(() => {
     if (!isRequestModalOpen) return;
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsRequestModalOpen(false);
+      if (e.key === 'Escape') {
+        handleCloseRequestModal();
+      }
+    };
+
+    const handleBackButton = () => {
+      handleCloseRequestModal();
     };
 
     window.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('backbutton', handleBackButton);
 
     return () => {
       document.body.style.overflow = originalOverflow;
       window.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('backbutton', handleBackButton);
     };
   }, [isRequestModalOpen]);
 
@@ -136,9 +161,23 @@ export const PortalScreen: React.FC = () => {
 
   const handleCreateRequest = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!project || !reqSubject.trim() || !reqMessage.trim()) return;
+    if (!project) return;
+
+    if (!reqCategory) {
+      setReqErrorMsg('Selecione uma categoria para a sua solicitação.');
+      return;
+    }
+    if (!reqSubject.trim()) {
+      setReqErrorMsg('Por favor, informe o assunto da solicitação.');
+      return;
+    }
+    if (!reqMessage.trim()) {
+      setReqErrorMsg('Por favor, descreva detalhadamente a sua solicitação.');
+      return;
+    }
 
     setSubmittingReq(true);
+    setReqErrorMsg(null);
     try {
       const newReq = await submitClientRequest(
         project.id,
@@ -146,19 +185,24 @@ export const PortalScreen: React.FC = () => {
         reqMessage.trim(),
         reqCategory
       );
-      setProject({
-        ...project,
-        solicitacoes: [newReq, ...(project.solicitacoes || [])],
-      });
+      setProject((prev) =>
+        prev
+          ? {
+              ...prev,
+              solicitacoes: [newReq, ...(prev.solicitacoes || [])],
+            }
+          : prev
+      );
       setReqSubject('');
       setReqMessage('');
       setReqCategory('Ajuste de Design');
+      setReqErrorMsg(null);
       setIsRequestModalOpen(false);
       setReqSuccessMsg('Solicitação enviada com sucesso para a equipe NexaWeb!');
       if (reqSuccessTimerRef.current) clearTimeout(reqSuccessTimerRef.current);
-      reqSuccessTimerRef.current = setTimeout(() => setReqSuccessMsg(null), 3500);
+      reqSuccessTimerRef.current = setTimeout(() => setReqSuccessMsg(null), 4500);
     } catch {
-      // tratamento de erro
+      setReqErrorMsg('Não foi possível enviar a solicitação. Verifique sua conexão e tente novamente.');
     } finally {
       setSubmittingReq(false);
     }
@@ -201,6 +245,38 @@ export const PortalScreen: React.FC = () => {
     }
   };
 
+  // Cores oficiais da hierarquia de planos (Etapa 5)
+  // Essencial -> azul | Profissional -> laranja/dourado | Personalizado -> roxo | Premium -> dourado/âmbar
+  const getPlanBadge = (planoId: string) => {
+    const id = (planoId || '').toLowerCase();
+    if (id.includes('essencial')) {
+      return {
+        label: 'Plano Essencial',
+        className: 'bg-blue-500/15 text-blue-300 border-blue-500/30',
+        iconColor: 'text-blue-400',
+      };
+    }
+    if (id.includes('personalizado')) {
+      return {
+        label: 'Plano Personalizado',
+        className: 'bg-purple-500/15 text-purple-300 border-purple-500/30',
+        iconColor: 'text-purple-400',
+      };
+    }
+    if (id.includes('profissional')) {
+      return {
+        label: 'Plano Profissional',
+        className: 'bg-amber-500/15 text-amber-300 border-amber-500/40',
+        iconColor: 'text-amber-400',
+      };
+    }
+    return {
+      label: 'Plano Premium',
+      className: 'bg-yellow-500/15 text-yellow-300 border-yellow-500/40',
+      iconColor: 'text-yellow-400',
+    };
+  };
+
   // Formata a cor do badge de categoria
   const getCategoryBadgeClass = (category?: string) => {
     switch (category) {
@@ -222,27 +298,63 @@ export const PortalScreen: React.FC = () => {
   return (
     <div className="space-y-5 pb-28 animate-in fade-in duration-200 overflow-x-hidden">
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-          1. FORMULÁRIO DE ACESSO (SE DESLOGADO)
+          1. FORMULÁRIO DE ACESSO / ESTADO SEM PROJETO
          ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       {!project ? (
         <div className="space-y-4">
-          <div className="rounded-2xl p-5 sm:p-6 bg-gradient-to-br from-indigo-950/80 via-slate-900 to-slate-950 border border-indigo-500/20 shadow-xl">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-semibold mb-3">
+          <div className="rounded-2xl p-5 sm:p-6 bg-gradient-to-br from-indigo-950/80 via-slate-900 to-slate-950 border border-indigo-500/20 shadow-xl space-y-4">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-semibold">
               <UserCheck className="w-3.5 h-3.5 text-cyan-400" />
               <span>Área do Cliente</span>
             </div>
 
-            <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
-              Acompanhe seu Projeto
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-md leading-relaxed">
-              Área privada para acompanhar cada etapa, consultar o percentual de evolução, acessar links de homologação e abrir solicitações.
-            </p>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
+                Acompanhe seu Projeto
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">
+                Você ainda não possui um projeto ativo nesta sessão.
+              </p>
+            </div>
 
-            <form onSubmit={handleLogin} className="mt-5 space-y-3.5">
+            {/* Explicação clara do que aparecerá quando houver um projeto */}
+            <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-2.5 text-xs text-slate-300">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-400 block">
+                O que você poderá acompanhar quando houver um projeto:
+              </span>
+              <ul className="space-y-1.5 text-slate-400 leading-relaxed text-[11.5px]">
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
+                  <span>
+                    <strong className="text-slate-200">Evolução em tempo real:</strong> percentual concluído (0% a 100%) e etapa atual do desenvolvimento.
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
+                  <span>
+                    <strong className="text-slate-200">Sequência oficial NexaWeb:</strong> Briefing → Estrutura → Design → Desenvolvimento → Revisão → Publicado.
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
+                  <span>
+                    <strong className="text-slate-200">Homologação e entrega:</strong> links diretos para a versão de teste e o site oficial publicado.
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
+                  <span>
+                    <strong className="text-slate-200">Canal direto:</strong> linha do tempo com atualizações da equipe técnica e envio de solicitações e dúvidas.
+                  </span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Ações existentes e necessárias: 1. Acesso por Chave */}
+            <form onSubmit={handleLogin} className="space-y-3 pt-1">
               <div>
                 <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-                  Chave de Acesso do Projeto
+                  Já possui uma Chave de Acesso do seu Projeto?
                 </label>
                 <div className="relative">
                   <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -283,7 +395,7 @@ export const PortalScreen: React.FC = () => {
             </form>
 
             {/* Acesso rápido para teste */}
-            <div className="mt-4 pt-3.5 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+            <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
               <span>Para testar a experiência:</span>
               <button
                 type="button"
@@ -293,6 +405,21 @@ export const PortalScreen: React.FC = () => {
                 Usar DEMO-2026
               </button>
             </div>
+
+            {/* Ação 2 existente: Se não possui projeto, iniciar pelo Briefing */}
+            {onNavigate && (
+              <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between gap-3 flex-wrap">
+                <span className="text-xs text-slate-400">Ainda não enviou seu projeto?</span>
+                <button
+                  type="button"
+                  onClick={() => onNavigate('project')}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition-colors"
+                >
+                  <FileText className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Criar Meu Site (Briefing)</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       ) : (
@@ -339,12 +466,19 @@ export const PortalScreen: React.FC = () => {
               </p>
             </div>
 
-            {/* Tags de Identificação: Plano Atual & Status Atual */}
+            {/* Tags de Identificação: Plano Atual (com cor oficial) & Status Atual */}
             <div className="flex items-center gap-2 pt-1 flex-wrap text-xs">
-              <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 font-semibold">
-                <Tag className="w-3 h-3 text-indigo-400" />
-                <span>Plano {project.planoId.toUpperCase()}</span>
-              </div>
+              {(() => {
+                const planBadge = getPlanBadge(project.planoId);
+                return (
+                  <div
+                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border font-semibold ${planBadge.className}`}
+                  >
+                    <Tag className={`w-3 h-3 ${planBadge.iconColor}`} />
+                    <span>{planBadge.label}</span>
+                  </div>
+                );
+              })()}
 
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-950/80 text-cyan-300 border border-cyan-800/60 font-semibold">
                 <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
@@ -353,11 +487,21 @@ export const PortalScreen: React.FC = () => {
             </div>
           </div>
 
-          {/* Toast de Feedback: Solicitação enviada */}
+          {/* Toast Superior de Feedback: Solicitação enviada */}
           {reqSuccessMsg && (
-            <div className="p-3.5 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs flex items-center gap-2 animate-in fade-in duration-150">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span className="font-medium">{reqSuccessMsg}</span>
+            <div className="p-3.5 rounded-xl bg-emerald-950/90 border border-emerald-500/50 text-emerald-300 text-xs flex items-center justify-between gap-2 shadow-lg animate-in fade-in duration-150">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span className="font-medium">{reqSuccessMsg}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setReqSuccessMsg(null)}
+                className="text-emerald-400 hover:text-emerald-200 p-1"
+                aria-label="Fechar notificação"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
             </div>
           )}
 
@@ -639,13 +783,31 @@ export const PortalScreen: React.FC = () => {
               {/* Ação: Nova Solicitação */}
               <button
                 type="button"
-                onClick={() => setIsRequestModalOpen(true)}
+                onClick={handleOpenRequestModal}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-all shadow-sm active:scale-95"
               >
                 <PlusCircle className="w-3.5 h-3.5" />
                 <span>Nova Solicitação</span>
               </button>
             </div>
+
+            {/* Banner de Feedback dentro da seção de solicitações */}
+            {reqSuccessMsg && (
+              <div className="p-3.5 rounded-xl bg-emerald-950/90 border border-emerald-500/50 text-emerald-300 text-xs flex items-center justify-between gap-2 shadow-sm animate-in fade-in duration-150">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span className="font-medium">{reqSuccessMsg}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setReqSuccessMsg(null)}
+                  className="text-emerald-400 hover:text-emerald-200 p-1"
+                  aria-label="Fechar notificação"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
 
             {project.solicitacoes && project.solicitacoes.length > 0 ? (
               <div className="space-y-3 pt-1">
@@ -723,7 +885,7 @@ export const PortalScreen: React.FC = () => {
                 <p>Nenhuma solicitação ou briefing registrado ainda.</p>
                 <button
                   type="button"
-                  onClick={() => setIsRequestModalOpen(true)}
+                  onClick={handleOpenRequestModal}
                   className="text-cyan-400 hover:underline font-semibold"
                 >
                   Enviar a primeira solicitação
@@ -746,12 +908,13 @@ export const PortalScreen: React.FC = () => {
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/85 backdrop-blur-sm animate-in fade-in duration-150"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setIsRequestModalOpen(false);
-          }}
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/85 backdrop-blur-sm animate-in fade-in duration-150 touch-pan-y"
+          onClick={handleCloseRequestModal}
         >
-          <div className="w-full sm:max-w-md bg-slate-900 border border-slate-800 rounded-t-3xl sm:rounded-2xl shadow-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto no-scrollbar">
+          <div
+            className="w-full sm:max-w-md bg-slate-900 border border-slate-800 rounded-t-3xl sm:rounded-2xl shadow-2xl p-5 pb-7 sm:pb-5 space-y-4 max-h-[85dvh] sm:max-h-[90vh] overflow-y-auto no-scrollbar overscroll-contain safe-area-pb"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div>
                 <h3 className="text-sm font-bold text-white">Nova Solicitação</h3>
@@ -761,7 +924,7 @@ export const PortalScreen: React.FC = () => {
               </div>
               <button
                 type="button"
-                onClick={() => setIsRequestModalOpen(false)}
+                onClick={handleCloseRequestModal}
                 className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors"
                 aria-label="Fechar"
               >
@@ -770,10 +933,17 @@ export const PortalScreen: React.FC = () => {
             </div>
 
             <form onSubmit={handleCreateRequest} className="space-y-3.5">
+              {reqErrorMsg && (
+                <div className="p-3 rounded-xl bg-rose-950/70 border border-rose-500/50 text-rose-300 text-xs flex items-center gap-2 animate-in fade-in">
+                  <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                  <span>{reqErrorMsg}</span>
+                </div>
+              )}
+
               {/* Seletor de Categoria */}
               <div>
                 <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-                  Categoria da Solicitação
+                  Categoria da Solicitação <span className="text-cyan-400">*</span>
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
                   {REQUEST_CATEGORIES.map((cat) => {
@@ -782,8 +952,11 @@ export const PortalScreen: React.FC = () => {
                       <button
                         key={cat.id}
                         type="button"
-                        onClick={() => setReqCategory(cat.id)}
-                        className={`p-2 rounded-xl text-left border text-xs transition-all flex items-center gap-1.5 ${
+                        onClick={() => {
+                          setReqCategory(cat.id);
+                          setReqErrorMsg(null);
+                        }}
+                        className={`p-2 rounded-xl text-left border text-xs transition-all flex items-center gap-1.5 min-h-[44px] ${
                           isSelected
                             ? 'bg-indigo-600/30 border-indigo-500 text-white font-bold ring-1 ring-indigo-500/50'
                             : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
@@ -800,13 +973,16 @@ export const PortalScreen: React.FC = () => {
               {/* Assunto */}
               <div>
                 <label className="text-xs font-semibold text-slate-300 block mb-1">
-                  Assunto da Solicitação
+                  Assunto da Solicitação <span className="text-cyan-400">*</span>
                 </label>
                 <input
                   type="text"
                   required
                   value={reqSubject}
-                  onChange={(e) => setReqSubject(e.target.value)}
+                  onChange={(e) => {
+                    setReqSubject(e.target.value);
+                    if (reqErrorMsg) setReqErrorMsg(null);
+                  }}
                   placeholder={
                     reqCategory === 'Ajuste de Design'
                       ? 'Ex: Ajustar cor dos botões, espaçamento...'
@@ -825,13 +1001,16 @@ export const PortalScreen: React.FC = () => {
               {/* Descrição Detalhada */}
               <div>
                 <label className="text-xs font-semibold text-slate-300 block mb-1">
-                  Descrição Detalhada
+                  Descrição Detalhada <span className="text-cyan-400">*</span>
                 </label>
                 <textarea
                   rows={4}
                   required
                   value={reqMessage}
-                  onChange={(e) => setReqMessage(e.target.value)}
+                  onChange={(e) => {
+                    setReqMessage(e.target.value);
+                    if (reqErrorMsg) setReqErrorMsg(null);
+                  }}
                   placeholder="Explique detalhadamente o que você precisa que seja feito no projeto..."
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 resize-none"
                 />
@@ -841,18 +1020,27 @@ export const PortalScreen: React.FC = () => {
               <div className="pt-2 flex gap-2">
                 <button
                   type="button"
-                  onClick={() => setIsRequestModalOpen(false)}
+                  onClick={handleCloseRequestModal}
                   className="min-h-[44px] flex-1 py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 text-xs font-semibold"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  disabled={submittingReq || !reqSubject.trim() || !reqMessage.trim()}
-                  className="min-h-[44px] flex-1 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-indigo-950 transition-all active:scale-[0.98]"
+                  disabled={submittingReq || !reqSubject.trim() || !reqMessage.trim() || !reqCategory}
+                  className="min-h-[44px] flex-1 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-indigo-950 transition-all active:scale-[0.98]"
                 >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>{submittingReq ? 'Enviando...' : 'Enviar Solicitação'}</span>
+                  {submittingReq ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Enviando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-3.5 h-3.5" />
+                      <span>Enviar Solicitação</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>

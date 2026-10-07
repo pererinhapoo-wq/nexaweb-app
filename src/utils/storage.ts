@@ -13,18 +13,22 @@ const KEYS = {
 };
 
 export interface BriefingDraftData {
-  step?: 1 | 2 | 3 | 4;
+  step?: number;
   selectedPlan: string;
   selectedSegment?: string;
   selectedModel?: string;
   modelApproach?: 'exact' | 'inspiration';
   startType?: 'modelo' | 'propria' | 'plano';
   businessName?: string;
+  siteObjective?: string;
+  businessLocation?: string;
+  googleMapsLink?: string;
   siteLanguage?: WebsiteLanguage;
   contactName?: string;
   contactPhone?: string;
   contactEmail?: string;
   specificNotes?: string;
+  selectedAdvancedFeatures?: string[];
   // Essencial
   essentialServices?: string;
   essentialColorMode?: 'suggest' | 'brand' | 'custom';
