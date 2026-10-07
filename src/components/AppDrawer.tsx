@@ -34,7 +34,7 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
   onNavigate,
   onOpenContact,
 }) => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
 
   const drawerRef = useRef<HTMLDivElement>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
@@ -352,49 +352,49 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
   const navigationItems = [
     {
       id: 'home',
-      label: 'Início',
+      label: t.nav.home,
       icon: Home,
       action: () => handleSelectTab('home'),
       isActive: currentTab === 'home',
     },
     {
       id: 'project',
-      label: 'Criar site',
+      label: language === 'en' ? 'Create website' : language === 'es' ? 'Crear sitio' : language === 'fr' ? 'Créer un site' : 'Criar site',
       icon: Sparkles,
       action: () => handleSelectTab('project'),
       isActive: currentTab === 'project',
     },
     {
       id: 'portfolio',
-      label: 'Portfólio',
+      label: t.nav.portfolio,
       icon: Briefcase,
       action: () => handleSelectTab('portfolio'),
       isActive: currentTab === 'portfolio',
     },
     {
       id: 'services',
-      label: 'Serviços & Planos',
+      label: t.nav.services,
       icon: Layers,
       action: () => handleSelectTab('services'),
       isActive: currentTab === 'services',
     },
     {
       id: 'portal',
-      label: 'Área do Cliente',
+      label: t.nav.client,
       icon: UserCheck,
       action: () => handleSelectTab('portal'),
       isActive: currentTab === 'portal',
     },
     {
       id: 'leads',
-      label: 'Meus leads',
+      label: language === 'en' ? 'My leads' : language === 'es' ? 'Mis leads' : language === 'fr' ? 'Mes pistes' : 'Meus leads',
       icon: Users,
       action: () => handleSelectTab('admin'),
       isActive: currentTab === 'admin',
     },
     {
       id: 'feedback',
-      label: 'Feedback',
+      label: language === 'en' ? 'Feedback' : 'Feedback',
       icon: MessageSquare,
       action: () => {
         onClose();
@@ -404,7 +404,7 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
     },
     {
       id: 'help',
-      label: 'Ajuda',
+      label: language === 'en' ? 'Help' : language === 'es' ? 'Ayuda' : language === 'fr' ? 'Aide' : 'Ajuda',
       icon: HelpCircle,
       action: () => {
         onClose();
@@ -414,7 +414,7 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
     },
     {
       id: 'settings',
-      label: 'Configurações',
+      label: t.nav.settings,
       icon: Settings,
       action: () => handleSelectTab('settings'),
       isActive: currentTab === 'settings',
@@ -487,7 +487,9 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
                     Menu
                   </span>
                 </div>
-                <p className="text-[10px] text-slate-400 leading-tight">Navegação Principal</p>
+                <p className="text-[10px] text-slate-400 leading-tight">
+                  {language === 'en' ? 'Main Navigation' : language === 'es' ? 'Navegación Principal' : language === 'fr' ? 'Navigation Principale' : 'Navegação Principal'}
+                </p>
               </div>
             </div>
 
@@ -495,8 +497,8 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
               type="button"
               onClick={onClose}
               className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white transition-colors active:scale-95"
-              aria-label="Fechar menu"
-              title="Fechar menu"
+              aria-label={t.portfolio?.close || (language === 'en' ? 'Close menu' : 'Fechar menu')}
+              title={t.portfolio?.close || (language === 'en' ? 'Close menu' : 'Fechar menu')}
             >
               <X className="w-4 h-4" />
             </button>
@@ -537,7 +539,7 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
           {/* Footer do Menu */}
           <div className="p-3.5 border-t border-slate-800/80 bg-slate-950/60 shrink-0">
             <p className="text-center text-[10.5px] font-medium text-slate-500">
-              NexaWeb App · Sites profissionais
+              {language === 'en' ? 'NexaWeb App · Professional websites' : 'NexaWeb App · Sites profissionais'}
             </p>
           </div>
         </div>

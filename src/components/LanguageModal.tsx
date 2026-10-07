@@ -234,7 +234,7 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen, onClose })
                   type="button"
                   disabled={!isAvailable}
                   onClick={() => handleSelect(item)}
-                  className={`w-full min-h-[46px] flex items-center justify-between px-3 py-2 rounded-xl border text-left transition-all duration-120 active:scale-[0.985] ${
+                  className={`w-full min-h-[48px] flex items-center justify-between px-3 py-2 rounded-xl border text-left transition-all duration-120 active:scale-[0.985] ${
                     !isAvailable
                       ? 'opacity-40 cursor-not-allowed bg-slate-950/30 border-slate-800/40'
                       : isSelected || isAnimating

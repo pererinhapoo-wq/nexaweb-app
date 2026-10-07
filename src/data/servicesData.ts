@@ -1,4 +1,6 @@
-import { ServicePlan, Language } from '../types';
+import { ServicePlan, Language, NexawebPlan } from '../types';
+
+export type { NexawebPlan, ServicePlan };
 
 const plansCache: Partial<Record<Language, ServicePlan[]>> = {};
 

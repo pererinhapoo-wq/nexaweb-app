@@ -78,7 +78,7 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
   initialSearchQuery = '',
   onSearchQueryChange,
 }) => {
-  const { language } = useTranslation();
+  const { language, t } = useTranslation();
 
   // Estados locais para filtragem veloz e sem re-renderizar a árvore inteira do app
   const [selectedPlan, setSelectedPlan] = useState<PlanFilter>(initialPlanFilter);
@@ -116,15 +116,15 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
   // Filtros de Planos Principais: Todos, Essencial, Profissional, Premium
   const planTabs: { id: PlanFilter; label: string; count: number }[] = useMemo(() => {
     return [
-      { id: 'todas', label: 'Todos', count: allProjects.length },
+      { id: 'todas', label: t.portfolio.allCategories || (language === 'en' ? 'All' : 'Todos'), count: allProjects.length },
       {
         id: 'essencial',
-        label: 'Essencial',
+        label: t.services.essentialBadge || 'Essencial',
         count: allProjects.filter((p) => p.planoId === 'essencial').length,
       },
       {
         id: 'profissional',
-        label: 'Profissional',
+        label: t.services.featuredBadge || 'Profissional',
         count: allProjects.filter((p) => p.planoId === 'profissional').length,
       },
       {
@@ -133,7 +133,7 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
         count: allProjects.filter((p) => p.planoId === 'premium').length,
       },
     ];
-  }, [allProjects]);
+  }, [allProjects, language, t]);
 
   // Filtragem leve e instantânea enquanto digita
   const filteredProjects = useMemo(() => {
@@ -199,10 +199,10 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
         )}
         <div className="min-w-0">
           <h1 className="text-base sm:text-lg font-bold text-white tracking-tight truncate">
-            Portfólio
+            {t.portfolio.title}
           </h1>
           <p className="text-xs text-slate-400 mt-0.5 truncate">
-            Explore nossos projetos e encontre o estilo ideal para o seu negócio.
+            {t.portfolio.subtitle}
           </p>
         </div>
       </section>
@@ -217,7 +217,7 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
             setSearchQuery(e.target.value);
             onSearchQueryChange?.(e.target.value);
           }}
-          placeholder="Pesquisar projeto, segmento ou categoria"
+          placeholder={t.portfolio.searchPlaceholder}
           className="min-h-[42px] w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-9 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500/70 transition-colors shadow-sm"
         />
 
@@ -229,8 +229,8 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
               onSearchQueryChange?.('');
             }}
             className="min-h-[36px] min-w-[36px] flex items-center justify-center p-1.5 text-slate-400 hover:text-white absolute right-1 top-1/2 -translate-y-1/2 rounded-lg"
-            title="Limpar pesquisa"
-            aria-label="Limpar pesquisa"
+            title={language === 'en' ? 'Clear search' : 'Limpar pesquisa'}
+            aria-label={language === 'en' ? 'Clear search' : 'Limpar pesquisa'}
           >
             <X className="w-4 h-4" />
           </button>
@@ -281,10 +281,10 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
               ? 'bg-cyan-500/15 border-cyan-500/50 text-cyan-300'
               : 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-300'
           }`}
-          title="Filtrar por segmento"
+          title={language === 'en' ? 'Filter by industry' : 'Filtrar por segmento'}
         >
           <SlidersHorizontal className="w-3.5 h-3.5 text-cyan-400" />
-          <span>Filtros</span>
+          <span>{language === 'en' ? 'Filters' : 'Filtros'}</span>
           {selectedSegment !== 'todos' && (
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
           )}
@@ -339,17 +339,17 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
               <Search className="w-6 h-6" />
             </div>
             <h3 className="text-sm font-bold text-white">
-              Não encontramos projetos para essa pesquisa.
+              {t.portfolio.noResultsTitle}
             </h3>
             <p className="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
-              Tente buscar por outro termo ou limpe os filtros para ver todas as demonstrações.
+              {t.portfolio.noResultsDesc}
             </p>
             <button
               type="button"
               onClick={handleClearAllFilters}
               className="min-h-[40px] px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-750 text-xs font-semibold text-cyan-400 border border-slate-700 transition-colors"
             >
-              Limpar pesquisa e filtros
+              {t.portfolio.clearSearch || (language === 'en' ? 'Clear search and filters' : 'Limpar pesquisa e filtros')}
             </button>
           </div>
         ) : (

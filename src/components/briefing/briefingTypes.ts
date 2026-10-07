@@ -32,13 +32,13 @@ export const VISUAL_STYLES: VisualStyleOption[] = [
 export type BriefingStep = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
 export const BRIEFING_STEP_NAMES: Record<BriefingStep, string> = {
-  1: 'Início & Origem',
+  1: 'Tipo / Origem',
   2: 'Informações Principais',
-  3: 'Segmento do Negócio',
-  4: 'Necessidades do Negócio',
+  3: 'Segmento',
+  4: 'Necessidades',
   5: 'Funcionalidades',
-  6: 'Estilo Visual & Cores',
-  7: 'Conteúdo & Contato',
-  8: 'Arquivos & Anexos',
+  6: 'Visual',
+  7: 'Conteúdo & Inspirações',
+  8: 'Arquivos',
   9: 'Resumo & Envio',
 };

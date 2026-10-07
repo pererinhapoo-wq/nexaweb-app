@@ -62,7 +62,7 @@ interface PortalScreenProps {
 }
 
 export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }) => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [accessKey, setAccessKey] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -309,7 +309,7 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
             <div className="flex items-center justify-between">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-semibold">
                 <UserCheck className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Área do Cliente</span>
+                <span>{t.nav.client || (language === 'en' ? 'Client Area' : 'Área do Cliente')}</span>
               </div>
 
               {onBack && (
@@ -327,17 +327,17 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
 
             <div>
               <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
-                Acompanhe seu Projeto
+                {language === 'en' ? 'Track your Project' : 'Acompanhe seu Projeto'}
               </h1>
               <p className="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">
-                Você ainda não possui um projeto ativo nesta sessão.
+                {language === 'en' ? 'You do not have an active project in this session yet.' : 'Você ainda não possui um projeto ativo nesta sessão.'}
               </p>
             </div>
 
             {/* Explicação clara do que aparecerá quando houver um projeto */}
             <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-2.5 text-xs text-slate-300">
               <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-400 block">
-                O que você poderá acompanhar quando houver um projeto:
+                {language === 'en' ? 'What you will track when a project is linked:' : 'O que você poderá acompanhar quando houver um projeto:'}
               </span>
               <ul className="space-y-1.5 text-slate-400 leading-relaxed text-[11.5px]">
                 <li className="flex items-start gap-2">
@@ -371,7 +371,7 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
             <form onSubmit={handleLogin} className="space-y-3 pt-1">
               <div>
                 <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-                  Já possui uma Chave de Acesso do seu Projeto?
+                  {language === 'en' ? 'Already have an Access Key for your project?' : 'Já possui uma Chave de Acesso do seu Projeto?'}
                 </label>
                 <div className="relative">
                   <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -382,7 +382,7 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
                     spellCheck={false}
                     value={accessKey}
                     onChange={(e) => setAccessKey(e.target.value.toUpperCase())}
-                    placeholder="Ex: DEMO-2026 ou sua chave"
+                    placeholder={language === 'en' ? 'e.g. DEMO-2026 or your key' : 'Ex: DEMO-2026 ou sua chave'}
                     className="min-h-[48px] w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 text-xs sm:text-sm text-white uppercase placeholder:normal-case placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 font-mono tracking-wider transition-colors"
                   />
                 </div>
@@ -401,10 +401,10 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
                 className="min-h-[48px] w-full py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs sm:text-sm shadow-lg shadow-indigo-950/40 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
               >
                 {loading ? (
-                  <span>Conectando...</span>
+                  <span>{language === 'en' ? 'Connecting...' : 'Conectando...'}</span>
                 ) : (
                   <>
-                    <span>Entrar na Área do Cliente</span>
+                    <span>{language === 'en' ? 'Access Client Portal' : 'Entrar na Área do Cliente'}</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -413,13 +413,13 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
 
             {/* Acesso rápido para teste */}
             <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-              <span>Para testar a experiência:</span>
+              <span>{language === 'en' ? 'To test the demo experience:' : 'Para testar a experiência:'}</span>
               <button
                 type="button"
                 onClick={() => setAccessKey('DEMO-2026')}
                 className="font-mono text-cyan-400 hover:underline font-semibold"
               >
-                Usar DEMO-2026
+                {language === 'en' ? 'Use DEMO-2026' : 'Usar DEMO-2026'}
               </button>
             </div>
 

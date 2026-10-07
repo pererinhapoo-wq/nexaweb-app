@@ -144,7 +144,7 @@ export const Step6Visual: React.FC<Step6VisualProps> = ({
           onClick={onNext}
           className="w-full min-h-[48px] py-3 px-5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs sm:text-sm shadow-md shadow-indigo-950/50 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
         >
-          <span>Avançar para Conteúdo & Contato</span>
+          <span>Avançar para Conteúdo & Inspirações</span>
           <ChevronRight className="w-4 h-4" />
         </button>
       </div>

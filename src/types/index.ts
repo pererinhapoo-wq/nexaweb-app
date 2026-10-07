@@ -60,6 +60,8 @@ export interface ServicePlan {
   projetosRelacionados?: string[];
 }
 
+export type NexawebPlan = ServicePlan;
+
 export interface ProjectUpdate {
   id: string;
   data: string;

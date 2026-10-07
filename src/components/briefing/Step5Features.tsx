@@ -121,12 +121,12 @@ export const Step5Features: React.FC<Step5FeaturesProps> = ({
                     <div
                       key={feat.id}
                       onClick={() => handleToggleAdvancedFeature(feat)}
-                      className={`p-2.5 rounded-xl border text-left cursor-pointer transition-all active:scale-[0.99] flex flex-col justify-between ${
+                      className={`p-2.5 rounded-xl border text-left transition-all active:scale-[0.99] flex flex-col justify-between ${
                         isChecked
-                          ? 'bg-cyan-500/15 border-cyan-500 text-white shadow-sm ring-1 ring-cyan-500/30'
+                          ? 'cursor-pointer bg-cyan-500/15 border-cyan-500 text-white shadow-sm ring-1 ring-cyan-500/30'
                           : isLimitReached
-                          ? 'bg-slate-950/50 border-slate-850 opacity-65 hover:opacity-85'
-                          : 'bg-slate-950 border-slate-800/80 hover:border-slate-700 text-slate-300'
+                          ? 'cursor-not-allowed bg-slate-950/50 border-slate-850 opacity-65 hover:opacity-85'
+                          : 'cursor-pointer bg-slate-950 border-slate-800/80 hover:border-slate-700 text-slate-300'
                       }`}
                     >
                       <div>

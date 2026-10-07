@@ -39,7 +39,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
   selectedPlan = 'profissional',
   onContinueToBriefing,
 }) => {
-  const { language } = useTranslation();
+  const { language, t } = useTranslation();
   const plans = getNexawebPlans(language);
   const allProjects = getPortfolioProjects(language);
 
@@ -238,10 +238,10 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
         )}
         <div className="min-w-0">
           <h1 className="text-base sm:text-lg font-bold text-white tracking-tight truncate">
-            Serviços & Planos
+            {t.services.title}
           </h1>
           <p className="text-xs text-slate-400 mt-0.5 leading-relaxed truncate">
-            Selecione uma opção oficial para conhecer os detalhes e iniciar seu projeto.
+            {t.services.subtitle}
           </p>
         </div>
       </section>
@@ -285,11 +285,11 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
                 {isSelected ? (
                   <span className="inline-flex items-center gap-1 text-[10px] font-bold text-cyan-400 bg-cyan-950/60 border border-cyan-500/40 px-2 py-0.5 rounded-full shrink-0 animate-in fade-in duration-100">
                     <Check className="w-3 h-3 stroke-[3]" />
-                    <span>Selecionado</span>
+                    <span>{language === 'en' ? 'Selected' : 'Selecionado'}</span>
                   </span>
                 ) : (
                   <span className="text-[10px] text-slate-500 font-medium shrink-0">
-                    Toque para selecionar
+                    {language === 'en' ? 'Tap to select' : 'Toque para selecionar'}
                   </span>
                 )}
               </div>
@@ -314,14 +314,14 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
 
               {/* Badge de Limite Oficial de Funcionalidades Avançadas */}
               <div className="mt-2 py-1 px-2.5 rounded-lg bg-slate-950/50 border border-slate-800/60 flex items-center justify-between text-[10.5px]">
-                <span className="text-slate-400 font-medium">Escopo:</span>
+                <span className="text-slate-400 font-medium">{language === 'en' ? 'Scope:' : 'Escopo:'}</span>
                 <span className="font-semibold text-slate-200">{positioning.limitLabel}</span>
               </div>
 
               {/* Principais Recursos Inclusos (Resumo com 3 itens) */}
               <div className="mt-2.5 pt-2 border-t border-slate-800/80 space-y-1.5">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                  Principais características:
+                  {t.services.whatsIncluded || (language === 'en' ? "What's included:" : 'Principais características:')}
                 </span>
                 <div className="space-y-1">
                   {visibleFeatures.map((rec, i) => (
@@ -346,7 +346,11 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
                     className="inline-flex items-center gap-1 text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 active:scale-95 transition-all py-1"
                     aria-expanded={isExpanded}
                   >
-                    <span>{isExpanded ? 'Ocultar detalhes' : 'Ver o que está incluído'}</span>
+                    <span>
+                      {isExpanded
+                        ? (language === 'en' ? 'Hide details' : 'Ocultar detalhes')
+                        : (language === 'en' ? "View what's included" : 'Ver o que está incluído')}
+                    </span>
                     <ChevronDown
                       className={`w-3 h-3 transition-transform duration-200 ${
                         isExpanded ? 'rotate-180' : ''
@@ -360,7 +364,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
               {isExpanded && relatedProjects.length > 0 && (
                 <div className="mt-2.5 pt-2 border-t border-slate-800/80 space-y-1.5 animate-in fade-in duration-150">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                    Demonstrações reais deste plano:
+                    {language === 'en' ? 'Live demos for this plan:' : 'Demonstrações reais deste plano:'}
                   </span>
                   <div className="space-y-1.5">
                     {relatedProjects.map((relProj) => (
@@ -418,10 +422,10 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
                   {isSelected ? (
                     <>
                       <Check className="w-3.5 h-3.5 text-cyan-400 stroke-[3]" />
-                      <span>Plano Selecionado</span>
+                      <span>{language === 'en' ? 'Plan Selected' : 'Plano Selecionado'}</span>
                     </>
                   ) : (
-                    <span>Selecionar Plano {plan.nome}</span>
+                    <span>{language === 'en' ? `Select ${plan.nome} Plan` : `Selecionar Plano ${plan.nome}`}</span>
                   )}
                 </button>
               </div>
@@ -438,10 +442,10 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
           <div>
             <h3 className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
               <Layers className="w-4 h-4 text-cyan-400" />
-              <span>Funcionalidades Avançadas</span>
+              <span>{language === 'en' ? 'Advanced Features' : 'Funcionalidades Avançadas'}</span>
             </h3>
             <span className="text-[10.5px] text-slate-400 block mt-0.5">
-              Escopo do Plano {activePlanObj.nome}
+              {language === 'en' ? `Scope of ${activePlanObj.nome} Plan` : `Escopo do Plano ${activePlanObj.nome}`}
             </span>
           </div>
 
@@ -458,8 +462,8 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
             >
               <span>
                 {advancedFeaturesLimit === 0
-                  ? '0 de 0 selecionadas (Escopo Fechado)'
-                  : `${selectedFeatures.length} de ${advancedFeaturesLimit} selecionadas`}
+                  ? (language === 'en' ? '0 of 0 selected (Fixed Scope)' : '0 de 0 selecionadas (Escopo Fechado)')
+                  : (language === 'en' ? `${selectedFeatures.length} of ${advancedFeaturesLimit} selected` : `${selectedFeatures.length} de ${advancedFeaturesLimit} selecionadas`)}
               </span>
             </div>
           </div>
@@ -470,10 +474,12 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
           <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/25 text-[11px] text-blue-300 space-y-1">
             <p className="font-semibold flex items-center gap-1.5">
               <AlertCircle className="w-4 h-4 shrink-0 text-blue-400" />
-              <span>Plano Essencial · Escopo Fechado (0 funcionalidades avançadas)</span>
+              <span>{language === 'en' ? 'Essential Plan · Fixed Scope (0 advanced features)' : 'Plano Essencial · Escopo Fechado (0 funcionalidades avançadas)'}</span>
             </p>
             <p className="text-slate-300 leading-relaxed">
-              O Plano Essencial já inclui a estrutura completa do negócio, páginas essenciais, WhatsApp e SEO básico. Para selecionar funcionalidades adicionais, escolha o Plano Profissional (até 5), Personalizado (até 3) ou Premium (até 8).
+              {language === 'en'
+                ? 'The Essential Plan includes the complete business structure, essential pages, WhatsApp, and basic SEO. To select additional features, choose the Professional (up to 5), Custom (up to 3), or Premium Plan (up to 8).'
+                : 'O Plano Essencial já inclui a estrutura completa do negócio, páginas essenciais, WhatsApp e SEO básico. Para selecionar funcionalidades adicionais, escolha o Plano Profissional (até 5), Personalizado (até 3) ou Premium (até 8).'}
             </p>
           </div>
         )}
@@ -539,7 +545,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
                           <div className="pt-1.5 mt-1 border-t border-slate-800/50 flex items-center justify-between gap-1">
                             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[9px] font-bold">
                               <Sparkles className="w-2.5 h-2.5 text-amber-400 shrink-0" />
-                              <span>Avançado / avaliação</span>
+                              <span>{language === 'en' ? 'Advanced / evaluation' : 'Avançado / avaliação'}</span>
                             </span>
                           </div>
                         )}
@@ -559,7 +565,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
             onClick={handleContinue}
             className={`min-h-[44px] w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2 active:scale-[0.985] ${activePlanTheme.btnAction}`}
           >
-            <span>Iniciar Briefing com Plano {activePlanObj.nome}</span>
+            <span>{language === 'en' ? `Start Briefing with ${activePlanObj.nome} Plan` : `Iniciar Briefing com Plano ${activePlanObj.nome}`}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>
@@ -569,10 +575,10 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
       <div className="rounded-2xl bg-slate-900 border border-slate-800 p-3.5 sm:p-4 space-y-1 shadow-sm">
         <div className="flex items-center gap-2 text-xs font-bold text-white">
           <Shield className="w-4 h-4 text-cyan-400 shrink-0" />
-          <span>Dúvidas sobre qual plano escolher?</span>
+          <span>{t.services.questionsTitle || (language === 'en' ? 'Need help choosing the right plan?' : 'Dúvidas sobre qual plano escolher?')}</span>
         </div>
         <p className="text-[11.5px] text-slate-400 leading-relaxed">
-          Nossa equipe analisa as necessidades do seu negócio para sugerir a melhor estrutura técnica e visual para o seu projeto.
+          {t.services.questionsDesc || (language === 'en' ? 'Our team analyzes your business goals to guide the ideal technical and visual structure.' : 'Nossa equipe analisa as necessidades do seu negócio para sugerir a melhor estrutura técnica e visual para o seu projeto.')}
         </p>
       </div>
     </div>
