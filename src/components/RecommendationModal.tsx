@@ -82,18 +82,18 @@ export const RecommendationModal: React.FC<RecommendationModalProps> = ({
         </div>
 
         {/* Header */}
-        <div className="px-5 py-3 border-b border-slate-800 flex items-center justify-between bg-slate-900/95 shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 p-0.5 shadow-md shadow-indigo-600/30">
-              <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-cyan-400" />
+        <div className="px-4 py-2.5 border-b border-slate-800/80 flex items-center justify-between bg-slate-900/95 shrink-0">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 p-0.5 shadow-sm shadow-indigo-600/30">
+              <div className="w-full h-full bg-slate-950 rounded-[6px] flex items-center justify-center">
+                <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
               </div>
             </div>
             <div>
-              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+              <span className="text-[9.5px] uppercase font-bold tracking-wider px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
                 {t.recommendation.badge}
               </span>
-              <h2 className="font-extrabold text-sm sm:text-base text-white tracking-tight leading-snug mt-0.5">
+              <h2 className="font-bold text-xs sm:text-sm text-white tracking-tight leading-snug mt-0.5">
                 {t.recommendation.idealProject}
               </h2>
             </div>
@@ -102,9 +102,9 @@ export const RecommendationModal: React.FC<RecommendationModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors -mr-1 active:scale-95"
-            aria-label={t.portfolio.close}
-            title={t.portfolio.close}
+            className="w-8 h-8 min-h-[32px] min-w-[32px] flex items-center justify-center rounded-lg bg-slate-800/80 hover:bg-slate-750 text-slate-400 hover:text-white transition-colors -mr-0.5 active:scale-95"
+            aria-label="Fechar"
+            title="Fechar"
           >
             <X className="w-4 h-4" />
           </button>

@@ -20,7 +20,7 @@ export type WebsiteLanguage =
 
 export type ViewTab = 'home' | 'services' | 'portfolio' | 'project' | 'portal' | 'admin' | 'settings';
 
-export type ThemeMode = 'dark' | 'official' | 'light' | 'auto';
+export type ThemeMode = 'system' | 'light' | 'dark' | 'auto' | 'official';
 
 export type AnimationMode = 'enabled' | 'reduced';
 

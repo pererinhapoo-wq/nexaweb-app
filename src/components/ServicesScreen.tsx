@@ -223,24 +223,24 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
 
   return (
     <div className="space-y-4 pb-6 animate-in fade-in duration-150 overflow-x-hidden">
-      {/* Header Compacto com Botão Voltar ← */}
-      <section className="pt-0.5 flex items-center gap-3">
+      {/* Header Compacto com Botão Voltar ← pequeno no canto superior esquerdo */}
+      <section className="pt-0 flex items-center gap-2.5">
         {onBack && (
           <button
             type="button"
             onClick={onBack}
-            className="min-h-[44px] min-w-[44px] -ml-1 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-850 text-slate-300 hover:text-white flex items-center justify-center transition-all active:scale-95 shrink-0"
+            className="w-9 h-9 min-h-[36px] min-w-[36px] -ml-0.5 rounded-lg bg-slate-900 border border-slate-800/80 hover:bg-slate-850 text-slate-300 hover:text-white flex items-center justify-center transition-all active:scale-95 shrink-0"
             aria-label="←"
             title="←"
           >
-            <ArrowLeft className="w-5 h-5 text-slate-300" />
+            <ArrowLeft className="w-4 h-4 text-slate-300" />
           </button>
         )}
         <div className="min-w-0">
-          <h1 className="text-base sm:text-lg font-bold text-white tracking-tight truncate">
+          <h1 className="text-sm sm:text-base font-bold text-white tracking-tight truncate">
             {t.services.title}
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5 leading-relaxed truncate">
+          <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed truncate">
             {t.services.subtitle}
           </p>
         </div>
@@ -266,7 +266,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
             <div
               key={plan.id}
               onClick={() => handleSelect(plan.id)}
-              className={`relative rounded-2xl border ${theme.cardBorder} p-3.5 sm:p-4 transition-all duration-150 shadow-sm overflow-hidden cursor-pointer active:scale-[0.99]`}
+              className={`relative rounded-xl border ${theme.cardBorder} p-3 sm:p-3.5 transition-all duration-150 shadow-sm overflow-hidden cursor-pointer active:scale-[0.99]`}
             >
               {/* Topo do Card: Nome, Badges de Limite e Estado de Seleção */}
               <div className="flex items-center justify-between gap-2 mb-1.5">

@@ -332,10 +332,31 @@ function AppContent() {
       handleAndroidBack();
     };
 
-    const handlePopStateEvent = () => {
-      // Modais e drawer controlam seus próprios eventos de popstate isoladamente.
-      // Se nenhum modal ou drawer estiver aberto, o popstate executa a navegação de retorno.
-      if (isContactOpen || isLanguageModalOpen || isOnboardingOpen || isRecommendationOpen || isMenuOpen) {
+    const handlePopStateEvent = (e: PopStateEvent) => {
+      // 1. Se o menu lateral (Drawer) estiver aberto, fecha apenas o Drawer sem trocar de tela
+      if (isMenuOpen) {
+        setIsMenuOpen(false);
+        return;
+      }
+      // 2. Modais têm prioridade de fechamento isolado
+      if (isContactOpen) {
+        setIsContactOpen(false);
+        return;
+      }
+      if (isLanguageModalOpen) {
+        setIsLanguageModalOpen(false);
+        return;
+      }
+      if (isOnboardingOpen) {
+        setIsOnboardingOpen(false);
+        return;
+      }
+      if (isRecommendationOpen) {
+        setIsRecommendationOpen(false);
+        return;
+      }
+      // 3. Se o estado do popstate for da mesma aba atual, não desempilha a tela
+      if (e?.state?.appTab && e.state.appTab === currentTab) {
         return;
       }
       handleGoBack();

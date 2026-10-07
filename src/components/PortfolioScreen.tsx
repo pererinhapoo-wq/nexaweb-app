@@ -31,7 +31,7 @@ const PortfolioProjectCard = React.memo<{
   return (
     <div
       onClick={() => onSelectProject?.(project)}
-      className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm hover:border-slate-700 transition-all duration-150 flex flex-col justify-between cursor-pointer active:scale-[0.985] group"
+      className="bg-slate-900 border border-slate-800/80 rounded-xl overflow-hidden shadow-sm hover:border-slate-700 transition-all duration-150 flex flex-col justify-between cursor-pointer active:scale-[0.985] group"
     >
       <div>
         {/* Imagem Real do Segmento com badge e suporte a múltiplos ângulos */}
@@ -43,21 +43,21 @@ const PortfolioProjectCard = React.memo<{
         />
 
         {/* Informações Visuais Compactas do Projeto */}
-        <div className="p-3 sm:p-3.5 space-y-1">
-          <div className="flex items-center justify-between gap-1 text-[10px]">
+        <div className="p-2.5 sm:p-3 space-y-1">
+          <div className="flex items-center justify-between gap-1 text-[9.5px]">
             <span className="font-bold text-cyan-400 uppercase tracking-wider truncate">
               {categoryLabel || project.categoria}
             </span>
-            <span className="font-mono text-[9px] uppercase px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 shrink-0">
+            <span className="font-mono text-[8.5px] uppercase px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 shrink-0">
               {planBadge}
             </span>
           </div>
 
-          <h3 className="text-xs sm:text-sm font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-1">
+          <h3 className="text-xs sm:text-[13px] font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-1">
             {project.titulo}
           </h3>
 
-          <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
+          <p className="text-[10.5px] text-slate-400 line-clamp-2 leading-relaxed">
             {project.descricaoCurta}
           </p>
         </div>
@@ -185,23 +185,23 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
   return (
     <div className="space-y-3.5 pb-4 animate-in fade-in duration-150">
       {/* 1. Cabeçalho Compacto */}
-      <section className="pt-0.5 flex items-center gap-3">
+      <section className="pt-0 flex items-center gap-2.5">
         {onBack && (
           <button
             type="button"
             onClick={onBack}
-            className="min-h-[44px] min-w-[44px] -ml-1 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-850 text-slate-300 hover:text-white flex items-center justify-center transition-all active:scale-95 shrink-0"
+            className="w-9 h-9 min-h-[36px] min-w-[36px] -ml-0.5 rounded-lg bg-slate-900 border border-slate-800/80 hover:bg-slate-850 text-slate-300 hover:text-white flex items-center justify-center transition-all active:scale-95 shrink-0"
             aria-label="←"
             title="←"
           >
-            <ArrowLeft className="w-5 h-5 text-slate-300" />
+            <ArrowLeft className="w-4 h-4 text-slate-300" />
           </button>
         )}
         <div className="min-w-0">
-          <h1 className="text-base sm:text-lg font-bold text-white tracking-tight truncate">
+          <h1 className="text-sm sm:text-base font-bold text-white tracking-tight truncate">
             {t.portfolio.title}
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5 truncate">
+          <p className="text-[11px] text-slate-400 mt-0.5 truncate">
             {t.portfolio.subtitle}
           </p>
         </div>
@@ -209,7 +209,7 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
 
       {/* 2. Barra de Pesquisa Compacta */}
       <div className="relative">
-        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+        <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
         <input
           type="text"
           value={searchQuery}
@@ -218,7 +218,7 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
             onSearchQueryChange?.(e.target.value);
           }}
           placeholder={t.portfolio.searchPlaceholder}
-          className="min-h-[42px] w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-9 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500/70 transition-colors shadow-sm"
+          className="min-h-[38px] w-full bg-slate-900 border border-slate-800/80 rounded-xl pl-8.5 pr-8.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500/70 transition-colors shadow-sm"
         />
 
         {searchQuery && (
@@ -228,11 +228,11 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
               setSearchQuery('');
               onSearchQueryChange?.('');
             }}
-            className="min-h-[36px] min-w-[36px] flex items-center justify-center p-1.5 text-slate-400 hover:text-white absolute right-1 top-1/2 -translate-y-1/2 rounded-lg"
+            className="w-8 h-8 min-h-[32px] min-w-[32px] flex items-center justify-center p-1.5 text-slate-400 hover:text-white absolute right-1 top-1/2 -translate-y-1/2 rounded-lg"
             title={language === 'en' ? 'Clear search' : 'Limpar pesquisa'}
             aria-label={language === 'en' ? 'Clear search' : 'Limpar pesquisa'}
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5" />
           </button>
         )}
       </div>

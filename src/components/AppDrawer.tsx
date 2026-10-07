@@ -75,30 +75,18 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
     };
   }, [isOpen]);
 
-  // Suporte a tecla Escape e histórico/botão Voltar do Android (popstate)
+  // Suporte a tecla Escape sem poluir o histórico do navegador nem disparar popstate fantasma
   useEffect(() => {
     if (!isOpen) return;
-
-    let isPoppingDueToBack = false;
-    const handlePopState = () => {
-      isPoppingDueToBack = true;
-      onClose();
-    };
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
 
-    window.history.pushState({ drawerOpen: true }, '');
-    window.addEventListener('popstate', handlePopState);
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      window.removeEventListener('popstate', handlePopState);
       window.removeEventListener('keydown', handleKeyDown);
-      if (!isPoppingDueToBack && window.history.state?.drawerOpen) {
-        window.history.back();
-      }
     };
   }, [isOpen, onClose]);
 
@@ -445,12 +433,17 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
             : 'invisible pointer-events-none'
         }`}
       >
-        {/* Backdrop discreto sem blur pesado (máxima performance no Galaxy A20) */}
+        {/* Backdrop discreto sem blur pesado com transparência garantida em qualquer tema */}
         <div
           ref={backdropRef}
-          onClick={onClose}
-          className="absolute inset-0 bg-slate-950/60"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onClose();
+          }}
+          className="absolute inset-0 drawer-scrim"
           style={{
+            backgroundColor: 'rgba(15, 23, 42, 0.62)',
             opacity: isOpen ? 1 : 0,
             pointerEvents: isOpen ? 'auto' : 'none',
             willChange: 'opacity',
@@ -467,7 +460,7 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
           role="dialog"
           aria-modal="true"
           aria-label="Menu Principal"
-          className="absolute top-0 bottom-0 left-0 w-[280px] max-w-[80vw] sm:w-[300px] h-full bg-slate-900 border-r border-slate-800 shadow-2xl flex flex-col justify-between overflow-y-auto no-scrollbar z-10 overscroll-contain"
+          className="absolute top-0 bottom-0 left-0 w-[275px] max-w-[80vw] sm:w-[290px] h-full bg-slate-900 border-r border-slate-800 shadow-2xl flex flex-col justify-between overflow-y-auto no-scrollbar z-10 overscroll-contain drawer-panel"
           style={{
             transform: isOpen ? 'translate3d(0, 0, 0)' : 'translate3d(-100%, 0, 0)',
             willChange: 'transform',
@@ -475,16 +468,16 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header do Menu */}
-          <div className="p-4 sm:p-5 border-b border-slate-800/80 flex items-center justify-between shrink-0 bg-slate-900">
+          <div className="p-3.5 border-b border-slate-800/70 flex items-center justify-between shrink-0 bg-slate-900/95 drawer-header">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-400 p-0.5 shadow-md shadow-indigo-500/20 shrink-0 flex items-center justify-center">
-                <span className="font-mono font-black text-xs text-slate-950">N</span>
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-500 to-cyan-400 p-0.5 shadow-sm shadow-indigo-500/20 shrink-0 flex items-center justify-center">
+                <span className="font-mono font-black text-[11px] text-slate-950">N</span>
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <span className="font-extrabold text-sm sm:text-base tracking-tight text-white">Nexa</span>
-                  <span className="text-[10px] px-1.5 py-0.2 rounded font-mono font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                    Menu
+                  <span className="font-extrabold text-sm tracking-tight text-white drawer-title">Nexa</span>
+                  <span className="text-[9px] px-1.5 py-0.2 rounded font-mono font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                    App
                   </span>
                 </div>
                 <p className="text-[10px] text-slate-400 leading-tight">
@@ -496,7 +489,7 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white transition-colors active:scale-95"
+              className="w-8 h-8 min-h-[32px] min-w-[32px] flex items-center justify-center rounded-lg bg-slate-800/80 hover:bg-slate-750 text-slate-300 hover:text-white transition-colors active:scale-95 cursor-pointer drawer-close-btn"
               aria-label={t.portfolio?.close || (language === 'en' ? 'Close menu' : 'Fechar menu')}
               title={t.portfolio?.close || (language === 'en' ? 'Close menu' : 'Fechar menu')}
             >
@@ -504,8 +497,8 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
             </button>
           </div>
 
-          {/* Lista de Navegação com 10 Itens Oficiais e Touch Targets Confortáveis (min 46px) */}
-          <div className="p-3 space-y-1 flex-1 overflow-y-auto no-scrollbar">
+          {/* Lista de Navegação com 10 Itens Oficiais e Touch Targets Confortáveis */}
+          <div className="p-2.5 space-y-0.5 flex-1 overflow-y-auto no-scrollbar">
             {navigationItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -513,23 +506,23 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
                   key={item.id}
                   type="button"
                   onClick={item.action}
-                  className={`min-h-[46px] w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs sm:text-[13px] font-semibold transition-all active:scale-[0.98] ${
+                  className={`min-h-[44px] w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-[12.5px] font-medium transition-all active:scale-[0.98] cursor-pointer ${
                     item.isActive
-                      ? 'bg-indigo-600/20 text-cyan-300 border border-indigo-500/40 shadow-sm'
-                      : 'text-slate-300 hover:bg-slate-800/70 hover:text-white border border-transparent'
+                      ? 'bg-indigo-600/15 text-cyan-300 border border-indigo-500/30 shadow-xs font-semibold drawer-item-active'
+                      : 'text-slate-300 hover:bg-slate-800/60 hover:text-white border border-transparent drawer-item-inactive'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <span className={item.isActive ? 'text-cyan-400' : 'text-slate-400'}>
-                      <Icon className="w-4 h-4" />
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className={item.isActive ? 'text-cyan-400 drawer-icon-active' : 'text-slate-400'}>
+                      <Icon className="w-4 h-4 shrink-0" />
                     </span>
-                    <span>{item.label}</span>
+                    <span className="truncate">{item.label}</span>
                   </div>
 
                   {item.isActive ? (
-                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400 shrink-0 drawer-dot-active" />
                   ) : (
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-600 shrink-0" />
                   )}
                 </button>
               );
@@ -537,8 +530,8 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
           </div>
 
           {/* Footer do Menu */}
-          <div className="p-3.5 border-t border-slate-800/80 bg-slate-950/60 shrink-0">
-            <p className="text-center text-[10.5px] font-medium text-slate-500">
+          <div className="p-3 border-t border-slate-800/80 bg-slate-950/60 shrink-0 drawer-footer">
+            <p className="text-center text-[10px] font-medium text-slate-500">
               {language === 'en' ? 'NexaWeb App · Professional websites' : 'NexaWeb App · Sites profissionais'}
             </p>
           </div>

@@ -394,7 +394,7 @@ const FeaturedProjectCard = React.memo<{
   return (
     <div
       onClick={() => onSelectProject(project)}
-      className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm hover:border-slate-700 transition-all duration-150 flex flex-col justify-between cursor-pointer active:scale-[0.98] group"
+      className="bg-slate-900 border border-slate-800/80 rounded-xl overflow-hidden shadow-sm hover:border-slate-700 transition-all duration-150 flex flex-col justify-between cursor-pointer active:scale-[0.985] group"
     >
       <div>
         <ProjectCardImage
@@ -404,8 +404,8 @@ const FeaturedProjectCard = React.memo<{
           priority={priority}
         />
 
-        <div className="p-2.5 space-y-0.5">
-          <span className="text-[10px] font-semibold text-cyan-400 block truncate">
+        <div className="p-2 sm:p-2.5 space-y-0.5">
+          <span className="text-[9.5px] font-semibold text-cyan-400 block truncate">
             {categoryLabel || project.categoria}
           </span>
           <h3 className="text-xs font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-1">
@@ -483,13 +483,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   return (
     <div className="space-y-4 pb-4 animate-in fade-in duration-150 overflow-x-hidden">
       {/* 1. CABEÇALHO COMPACTO & AMIGÁVEL */}
-      <section className="pt-0.5 flex items-center justify-between">
+      <section className="pt-0 flex items-center justify-between">
         <div>
-          <h1 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-1.5">
+          <h1 className="text-sm sm:text-base font-bold text-white tracking-tight flex items-center gap-1.5">
             <span>{language === 'en' ? 'Hello' : language === 'es' ? 'Hola' : language === 'fr' ? 'Bonjour' : 'Olá'}</span>
-            <span className="inline-block select-none">👋</span>
+            <span className="inline-block select-none text-xs">👋</span>
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-[11.5px] text-slate-400 mt-0.5">
             {language === 'en' ? 'What would you like to do today?' : language === 'es' ? '¿Qué te gustaría hacer hoy?' : language === 'fr' ? "Que souhaitez-vous faire aujourd'hui ?" : 'O que você quer fazer hoje?'}
           </p>
         </div>
@@ -508,24 +508,24 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         <button
           type="button"
           onClick={() => onNavigate('project')}
-          className="w-full text-left p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-cyan-500 text-white shadow-lg shadow-indigo-950/40 border border-indigo-400/30 transition-all duration-150 active:scale-[0.985] group flex items-center justify-between gap-3"
+          className="w-full text-left p-3 sm:p-3.5 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-cyan-500 text-white shadow-md shadow-indigo-950/40 border border-indigo-400/25 transition-all duration-150 active:scale-[0.985] group flex items-center justify-between gap-3"
         >
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center shrink-0">
-              <Sparkles className="w-5 h-5 text-white" />
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-white/15 border border-white/20 flex items-center justify-center shrink-0">
+              <Sparkles className="w-4 h-4 text-white" />
             </div>
             <div className="min-w-0">
-              <span className="text-sm sm:text-base font-extrabold text-white block leading-snug">
+              <span className="text-xs sm:text-sm font-extrabold text-white block leading-snug">
                 {language === 'en' ? 'CREATE MY WEBSITE' : language === 'es' ? 'CREAR MI SITIO' : language === 'fr' ? 'CRÉER MON SITE' : 'CRIAR MEU SITE'}
               </span>
-              <span className="text-[11px] text-indigo-100/90 block truncate mt-0.5">
+              <span className="text-[10.5px] text-indigo-100/90 block truncate mt-0.5">
                 {language === 'en' ? 'Start the official briefing in a few steps' : 'Inicie o briefing oficial em poucos passos'}
               </span>
             </div>
           </div>
 
-          <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center shrink-0 group-hover:translate-x-0.5 transition-transform">
-            <ArrowRight className="w-4 h-4 text-white" />
+          <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center shrink-0 group-hover:translate-x-0.5 transition-transform">
+            <ArrowRight className="w-3.5 h-3.5 text-white" />
           </div>
         </button>
       </section>
@@ -577,16 +577,16 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         <button
           type="button"
           onClick={() => onNavigate('services')}
-          className="min-h-[50px] p-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-left flex flex-col justify-between transition-all active:scale-[0.97]"
+          className="min-h-[48px] p-2 sm:p-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-left flex flex-col justify-between transition-all active:scale-[0.97]"
         >
-          <div className="w-7 h-7 rounded-lg bg-cyan-500/15 text-cyan-400 flex items-center justify-center mb-1">
+          <div className="w-6.5 h-6.5 rounded-lg bg-cyan-500/15 text-cyan-400 flex items-center justify-center mb-1">
             <Layers className="w-3.5 h-3.5" />
           </div>
           <div>
-            <span className="text-[11px] font-bold text-white block leading-tight truncate">
+            <span className="text-[10.5px] font-bold text-white block leading-tight truncate">
               {language === 'en' ? 'Find clients' : 'Encontrar clientes'}
             </span>
-            <span className="text-[9.5px] text-slate-500 block truncate">
+            <span className="text-[9px] text-slate-500 block truncate">
               {language === 'en' ? 'Plans & solutions' : 'Planos & soluções'}
             </span>
           </div>
@@ -596,16 +596,16 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         <button
           type="button"
           onClick={() => onNavigate('admin')}
-          className="min-h-[50px] p-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-left flex flex-col justify-between transition-all active:scale-[0.97]"
+          className="min-h-[48px] p-2 sm:p-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-left flex flex-col justify-between transition-all active:scale-[0.97]"
         >
-          <div className="w-7 h-7 rounded-lg bg-amber-500/15 text-amber-400 flex items-center justify-center mb-1">
+          <div className="w-6.5 h-6.5 rounded-lg bg-amber-500/15 text-amber-400 flex items-center justify-center mb-1">
             <Users className="w-3.5 h-3.5" />
           </div>
           <div>
-            <span className="text-[11px] font-bold text-white block leading-tight truncate">
+            <span className="text-[10.5px] font-bold text-white block leading-tight truncate">
               {language === 'en' ? 'My leads' : 'Meus leads'}
             </span>
-            <span className="text-[9.5px] text-slate-500 block truncate">
+            <span className="text-[9px] text-slate-500 block truncate">
               {language === 'en' ? 'Team dashboard' : 'Painel da equipe'}
             </span>
           </div>
@@ -615,16 +615,16 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         <button
           type="button"
           onClick={() => onNavigate('portfolio')}
-          className="min-h-[50px] p-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-left flex flex-col justify-between transition-all active:scale-[0.97]"
+          className="min-h-[48px] p-2 sm:p-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-left flex flex-col justify-between transition-all active:scale-[0.97]"
         >
-          <div className="w-7 h-7 rounded-lg bg-indigo-500/15 text-indigo-400 flex items-center justify-center mb-1">
+          <div className="w-6.5 h-6.5 rounded-lg bg-indigo-500/15 text-indigo-400 flex items-center justify-center mb-1">
             <FolderKanban className="w-3.5 h-3.5" />
           </div>
           <div>
-            <span className="text-[11px] font-bold text-white block leading-tight truncate">
+            <span className="text-[10.5px] font-bold text-white block leading-tight truncate">
               {t.nav.portfolio}
             </span>
-            <span className="text-[9.5px] text-slate-500 block truncate">
+            <span className="text-[9px] text-slate-500 block truncate">
               {language === 'en' ? 'Live Demos' : 'Demonstrações'}
             </span>
           </div>

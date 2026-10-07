@@ -40,33 +40,33 @@ export const BriefingStepHeader: React.FC<BriefingStepHeaderProps> = ({
       : BRIEFING_STEP_NAMES[currentStep];
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3 sm:p-4 shadow-sm space-y-2.5">
+    <div className="bg-slate-900 border border-slate-800/80 rounded-xl p-3 sm:p-3.5 shadow-sm space-y-2">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
           {canGoBack && (
             <button
               type="button"
               onClick={onBackAction}
-              className="min-h-[44px] min-w-[44px] -ml-1 rounded-xl bg-slate-950/80 border border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center transition-all active:scale-95 shrink-0"
+              className="w-9 h-9 min-h-[36px] min-w-[36px] -ml-0.5 rounded-lg bg-slate-950/80 border border-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center transition-all active:scale-95 shrink-0"
               aria-label={language === 'en' ? 'Back to previous step' : 'Voltar para a etapa anterior'}
               title={language === 'en' ? 'Back' : 'Voltar'}
             >
-              <ArrowLeft className="w-5 h-5 text-slate-300" />
+              <ArrowLeft className="w-4 h-4 text-slate-300" />
             </button>
           )}
 
           <div className="min-w-0 flex flex-col">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 w-fit">
+            <span className="text-[9.5px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 w-fit">
               {language === 'en' ? `Step ${currentStep} of ${totalSteps}` : `Etapa ${currentStep} de ${totalSteps}`}
             </span>
-            <span className="text-xs sm:text-sm font-bold text-white truncate mt-0.5">
+            <span className="text-xs sm:text-[13px] font-bold text-white truncate mt-0.5">
               {stepName}
             </span>
           </div>
         </div>
 
         <div className="text-right shrink-0">
-          <span className="text-[10px] font-mono text-slate-400 block uppercase">
+          <span className="text-[9.5px] font-mono text-slate-400 block uppercase">
             {language === 'en' ? `Plan ${planName}` : `Plano ${planName}`}
           </span>
           <span className="text-xs font-mono font-bold text-cyan-400">

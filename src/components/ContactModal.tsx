@@ -58,23 +58,23 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+        <div className="flex items-center justify-between border-b border-slate-800/70 pb-2.5">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-400 p-0.5">
-              <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-cyan-400" />
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-600 to-cyan-400 p-0.5">
+              <div className="w-full h-full bg-slate-950 rounded-[6px] flex items-center justify-center">
+                <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
               </div>
             </div>
             <div>
-              <h2 className="text-sm font-bold text-white">Falar com a NexaWeb</h2>
-              <p className="text-[11px] text-slate-400">Canais oficiais de atendimento</p>
+              <h2 className="text-xs sm:text-sm font-bold text-white">Falar com a NexaWeb</h2>
+              <p className="text-[10.5px] text-slate-400">Canais oficiais de atendimento</p>
             </div>
           </div>
 
           <button
             type="button"
             onClick={onClose}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors -mr-1 active:scale-95"
+            className="w-8 h-8 min-h-[32px] min-w-[32px] flex items-center justify-center p-1 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors -mr-0.5 active:scale-95"
             aria-label="Fechar"
             title="Fechar"
           >

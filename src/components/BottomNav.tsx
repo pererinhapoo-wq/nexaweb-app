@@ -77,7 +77,7 @@ export const BottomNav: React.FC<BottomNavProps> = React.memo(({
     <nav
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
-      className="fixed bottom-0 left-0 right-0 z-40 bg-slate-900/98 backdrop-blur-sm border-t border-slate-800/80 px-2 py-1.5 safe-area-pb shadow-lg"
+      className="fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-md border-t border-slate-800/60 px-2 py-1 safe-area-pb shadow-lg"
       aria-label="Navegação inferior"
     >
       <div className="max-w-md mx-auto grid grid-cols-4 gap-1">
@@ -86,25 +86,35 @@ export const BottomNav: React.FC<BottomNavProps> = React.memo(({
           return (
             <button
               key={item.tab}
+              type="button"
               onClick={() => onNavigate(item.tab)}
-              className={`min-h-[48px] relative flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all duration-100 ease-out active:scale-[0.92] ${
-                isActive
-                  ? 'text-indigo-400 font-semibold'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
+              className="min-h-[46px] max-h-[50px] w-full flex flex-col items-center justify-center py-1 px-0.5 rounded-xl transition-all duration-150 ease-out active:scale-[0.93] cursor-pointer group"
               aria-label={item.label}
+              aria-current={isActive ? 'page' : undefined}
             >
-              <div className="relative">
-                {item.icon}
+              {/* Contêiner do ícone com indicador de estado ativo sutil e elegante */}
+              <div
+                className={`px-3 py-1 rounded-full flex items-center justify-center transition-all duration-150 ${
+                  isActive
+                    ? 'bg-indigo-500/15 text-indigo-400 dark:text-cyan-300 border border-indigo-500/25 nav-pill-active'
+                    : 'text-slate-400 hover:text-slate-200 dark:text-slate-400 group-hover:text-slate-300'
+                }`}
+              >
+                <div className="w-[19px] h-[19px] flex items-center justify-center">
+                  {item.icon}
+                </div>
               </div>
-              <span className={`text-[10.5px] mt-1 truncate max-w-full leading-none transition-colors duration-100 ${isActive ? 'text-indigo-300 font-semibold' : 'text-slate-400'}`}>
+
+              {/* Rótulo pequeno, alinhado e perfeitamente legível */}
+              <span
+                className={`text-[10px] mt-0.5 tracking-tight truncate max-w-full leading-none transition-colors duration-150 ${
+                  isActive
+                    ? 'text-indigo-400 dark:text-cyan-300 font-semibold nav-label-active'
+                    : 'text-slate-400 dark:text-slate-400 font-medium'
+                }`}
+              >
                 {item.label}
               </span>
-              <div className="h-2 flex items-center justify-center">
-                {isActive && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 shadow-sm shadow-indigo-400 animate-in zoom-in-75 duration-100" />
-                )}
-              </div>
             </button>
           );
         })}

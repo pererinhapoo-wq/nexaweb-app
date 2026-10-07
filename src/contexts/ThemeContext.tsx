@@ -1,12 +1,18 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { AnimationMode } from '../types';
+import { AnimationMode, ThemeMode } from '../types';
 import {
   getSavedAnimationMode,
   saveAnimationMode,
+  getSavedTheme,
+  saveTheme,
 } from '../utils/storage';
 import { StatusBar, Style } from '@capacitor/status-bar';
 
+export type ThemeOption = 'system' | 'light' | 'dark';
+
 interface ThemeContextType {
+  themeMode: ThemeOption;
+  setThemeMode: (mode: ThemeOption) => Promise<void>;
   resolvedTheme: 'dark' | 'light';
   animationMode: AnimationMode;
   setAnimationMode: (mode: AnimationMode) => Promise<void>;
@@ -15,17 +21,27 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Detecta o tema inicial diretamente do sistema (Android / Browser)
-  const [isDark, setIsDark] = useState<boolean>(() => {
+  // Detecta o tema dinâmico do sistema (Android / Browser)
+  const [isSystemDark, setIsSystemDark] = useState<boolean>(() => {
     if (typeof window !== 'undefined' && window.matchMedia) {
       return window.matchMedia('(prefers-color-scheme: dark)').matches;
     }
     return true; // Padrão seguro para fallback
   });
+
+  // Modo de tema configurado pelo usuário: 'system' | 'light' | 'dark'
+  const [themeMode, setThemeModeState] = useState<ThemeOption>('system');
   const [animationMode, setAnimationModeState] = useState<AnimationMode>('enabled');
 
-  // Tema resolvido acompanha 100% o sistema Android
-  const resolvedTheme: 'dark' | 'light' = isDark ? 'dark' : 'light';
+  // Tema final resolvido: se 'system', acompanha Android; se 'light' ou 'dark', força a escolha
+  const resolvedTheme: 'dark' | 'light' =
+    themeMode === 'system'
+      ? isSystemDark
+        ? 'dark'
+        : 'light'
+      : themeMode === 'light'
+      ? 'light'
+      : 'dark';
 
   // Monitora alterações dinâmicas do tema do sistema em tempo real
   useEffect(() => {
@@ -34,14 +50,14 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const updateThemeFromSystem = (e?: MediaQueryListEvent) => {
       if (e && typeof e.matches === 'boolean') {
-        setIsDark(e.matches);
+        setIsSystemDark(e.matches);
       } else {
-        setIsDark(mediaQuery.matches);
+        setIsSystemDark(mediaQuery.matches);
       }
     };
 
     // Sincroniza estado inicial exato
-    setIsDark(mediaQuery.matches);
+    setIsSystemDark(mediaQuery.matches);
 
     // Suporte moderno e fallback para WebViews Android
     if (mediaQuery.addEventListener) {
@@ -53,12 +69,20 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   }, []);
 
-  // Carrega preferências salvas de animação na inicialização
+  // Carrega preferências salvas de tema e animação na inicialização
   useEffect(() => {
     async function loadPreferences() {
       try {
-        const savedAnim = await getSavedAnimationMode();
+        const [savedAnim, savedTheme] = await Promise.all([
+          getSavedAnimationMode(),
+          getSavedTheme(),
+        ]);
         setAnimationModeState(savedAnim);
+        if (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'system') {
+          setThemeModeState(savedTheme as ThemeOption);
+        } else {
+          setThemeModeState('system');
+        }
       } catch {
         // Fallback seguro
       }
@@ -111,6 +135,15 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   }, [animationMode]);
 
+  const setThemeMode = async (mode: ThemeOption) => {
+    setThemeModeState(mode);
+    try {
+      await saveTheme(mode);
+    } catch {
+      // Ignora falha de armazenamento
+    }
+  };
+
   const setAnimationMode = async (mode: AnimationMode) => {
     setAnimationModeState(mode);
     try {
@@ -123,6 +156,8 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   return (
     <ThemeContext.Provider
       value={{
+        themeMode,
+        setThemeMode,
         resolvedTheme,
         animationMode,
         setAnimationMode,

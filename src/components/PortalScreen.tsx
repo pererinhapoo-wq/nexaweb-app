@@ -316,11 +316,11 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
                 <button
                   type="button"
                   onClick={onBack}
-                  className="min-h-[44px] min-w-[44px] -mr-1 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-850 text-slate-300 hover:text-white flex items-center justify-center transition-all active:scale-95 shrink-0"
+                  className="w-9 h-9 min-h-[36px] min-w-[36px] -mr-0.5 rounded-lg bg-slate-900 border border-slate-800/80 hover:bg-slate-850 text-slate-300 hover:text-white flex items-center justify-center transition-all active:scale-95 shrink-0"
                   aria-label="←"
                   title="←"
                 >
-                  <ArrowLeft className="w-5 h-5 text-slate-300" />
+                  <ArrowLeft className="w-4 h-4 text-slate-300" />
                 </button>
               )}
             </div>
@@ -453,11 +453,11 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
                   <button
                     type="button"
                     onClick={onBack}
-                    className="min-h-[44px] min-w-[44px] -ml-1 rounded-xl bg-slate-950/80 border border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center transition-all active:scale-95 shrink-0"
+                    className="w-9 h-9 min-h-[36px] min-w-[36px] -ml-0.5 rounded-lg bg-slate-950/80 border border-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center transition-all active:scale-95 shrink-0"
                     aria-label="←"
                     title="←"
                   >
-                    <ArrowLeft className="w-5 h-5 text-slate-300" />
+                    <ArrowLeft className="w-4 h-4 text-slate-300" />
                   </button>
                 )}
 
