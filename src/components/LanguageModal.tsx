@@ -11,6 +11,7 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen, onClose })
   const { language, setLanguage, languages, t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAnimCode, setSelectedAnimCode] = useState<string | null>(null);
+  const [isClosing, setIsClosing] = useState<boolean>(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const savedScrollYRef = useRef<number>(0);
 
@@ -26,8 +27,17 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen, onClose })
     if (isOpen) {
       setSearchQuery('');
       setSelectedAnimCode(null);
+      setIsClosing(false);
     }
   }, [isOpen]);
+
+  const handleClose = () => {
+    if (isClosing) return;
+    setIsClosing(true);
+    setTimeout(() => {
+      onClose();
+    }, 180);
+  };
 
   // Scroll lock, Android Back & ESC handling sem vazamento de histórico
   useEffect(() => {
@@ -43,15 +53,15 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen, onClose })
 
     const handlePopState = () => {
       isPoppingDueToBack = true;
-      onClose();
+      handleClose();
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') handleClose();
     };
 
     const handleAndroidBack = () => {
-      onClose();
+      handleClose();
     };
 
     try {
@@ -75,12 +85,12 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen, onClose })
         } catch {}
       }
 
-      // Restaura scroll original se houve micro-deslocamento
+      // Restaura scroll original exatamente como estava
       if (typeof window !== 'undefined' && savedScrollYRef.current !== undefined) {
         window.scrollTo({ top: savedScrollYRef.current, behavior: 'instant' as ScrollBehavior });
       }
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   // Lista filtrada em tempo real (Português, Inglês, nativo e código)
   const filteredLanguages = useMemo(() => {
@@ -89,15 +99,15 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen, onClose })
 
     // Mapeamento extra de termos comuns PT / EN
     const aliasMap: Record<string, string[]> = {
-      'pt-br': ['brasil', 'brazil', 'portugues', 'portuguese'],
-      'pt-pt': ['portugal', 'portugues', 'portuguese', 'europa'],
-      en: ['ingles', 'english', 'usa', 'estados unidos', 'american'],
-      es: ['espanhol', 'spanish', 'castellano', 'espanol'],
-      fr: ['frances', 'french', 'francais', 'franca'],
-      de: ['alemao', 'german', 'deutsch', 'alemanha'],
-      it: ['italiano', 'italian', 'italia'],
-      ja: ['japones', 'japanese', 'nihongo', 'japao'],
-      zh: ['chines', 'chinese', 'mandarim', 'china'],
+      'pt-br': ['brasil', 'brazil', 'portugues', 'portuguese', 'br'],
+      'pt-pt': ['portugal', 'portugues', 'portuguese', 'europa', 'pt'],
+      en: ['ingles', 'english', 'usa', 'estados unidos', 'american', 'eua', 'us'],
+      es: ['espanhol', 'spanish', 'castellano', 'espanol', 'es', 'spain'],
+      fr: ['frances', 'french', 'francais', 'franca', 'fr', 'france'],
+      de: ['alemao', 'german', 'deutsch', 'alemanha', 'de'],
+      it: ['italiano', 'italian', 'italia', 'it'],
+      ja: ['japones', 'japanese', 'nihongo', 'japao', 'jp'],
+      zh: ['chines', 'chinese', 'mandarim', 'china', 'cn'],
     };
 
     return languages.filter((item) => {
@@ -118,11 +128,11 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen, onClose })
     if (!opt.available) return;
     setSelectedAnimCode(opt.code);
 
-    // Microinteração curta (140ms) antes de fechar para feedback visual nítido
+    // Microinteração curta (130ms) antes de fechar para feedback visual nítido
     setTimeout(async () => {
       await setLanguage(opt.code);
-      onClose();
-    }, 140);
+      handleClose();
+    }, 130);
   };
 
   return (
@@ -130,22 +140,28 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen, onClose })
       role="dialog"
       aria-modal="true"
       aria-labelledby="language-modal-title"
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200 touch-pan-y"
+      className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/80 backdrop-blur-sm touch-pan-y transition-opacity duration-200 ${
+        isClosing ? 'opacity-0' : 'opacity-100 animate-in fade-in duration-200'
+      }`}
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (e.target === e.currentTarget) handleClose();
       }}
     >
       <div
-        className="w-full sm:max-w-md bg-slate-900 border border-slate-800 rounded-t-3xl sm:rounded-2xl shadow-2xl max-h-[82dvh] sm:max-h-[75vh] flex flex-col overflow-hidden pb-4 sm:pb-3 safe-area-pb animate-in slide-in-from-bottom-3 sm:zoom-in-95 duration-200 will-change-transform"
+        className={`w-full max-w-sm sm:max-w-md bg-slate-900 border border-slate-800 rounded-t-3xl sm:rounded-2xl shadow-2xl max-h-[72dvh] sm:max-h-[65vh] flex flex-col overflow-hidden pb-3 safe-area-pb will-change-transform transition-all duration-200 ${
+          isClosing
+            ? 'translate-y-6 opacity-0 sm:scale-95'
+            : 'translate-y-0 opacity-100 animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200'
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Barra superior de puxar (Mobile drag handle discreto) */}
-        <div className="pt-2.5 pb-1 flex justify-center sm:hidden shrink-0" aria-hidden="true">
+        <div className="pt-2 pb-1 flex justify-center sm:hidden shrink-0" aria-hidden="true">
           <div className="w-10 h-1 bg-slate-700/80 rounded-full" />
         </div>
 
         {/* Cabeçalho do Seletor */}
-        <div className="px-4 py-2.5 border-b border-slate-800/80 flex items-center justify-between shrink-0">
+        <div className="px-4 py-2 border-b border-slate-800/80 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-7 h-7 rounded-lg bg-indigo-500/15 text-indigo-400 flex items-center justify-center border border-indigo-500/30 shrink-0">
               <Globe className="w-3.5 h-3.5 text-cyan-400" />
@@ -154,7 +170,7 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen, onClose })
               <h2 id="language-modal-title" className="font-bold text-xs sm:text-sm text-white truncate">
                 {t.languageModal.title}
               </h2>
-              <p className="text-[10.5px] text-slate-400 truncate">
+              <p className="text-[10px] text-slate-400 truncate">
                 {t.languageModal.subtitle}
               </p>
             </div>
@@ -162,8 +178,8 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen, onClose })
 
           <button
             type="button"
-            onClick={onClose}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800/80 transition-colors shrink-0 -mr-1"
+            onClick={handleClose}
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800/80 active:scale-95 transition-all shrink-0 -mr-1"
             aria-label={t.languageModal.close}
             title={t.languageModal.close}
           >
@@ -172,7 +188,7 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen, onClose })
         </div>
 
         {/* Campo de Pesquisa Instantânea */}
-        <div className="px-4 pt-2.5 pb-2 shrink-0">
+        <div className="px-4 pt-2 pb-1.5 shrink-0">
           <div className="relative flex items-center">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 pointer-events-none" />
             <input
@@ -185,6 +201,7 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen, onClose })
               autoComplete="off"
               autoCorrect="off"
               spellCheck="false"
+              aria-label="Pesquisar idioma"
             />
             {searchQuery && (
               <button
@@ -193,8 +210,9 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen, onClose })
                   setSearchQuery('');
                   searchInputRef.current?.focus();
                 }}
-                className="min-h-[36px] min-w-[36px] absolute right-1.5 flex items-center justify-center text-slate-400 hover:text-white rounded-lg transition-colors"
+                className="min-h-[44px] min-w-[44px] absolute right-0 flex items-center justify-center text-slate-400 hover:text-white rounded-lg transition-colors active:scale-95"
                 aria-label="Limpar pesquisa"
+                title="Limpar pesquisa"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -216,20 +234,21 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen, onClose })
                   type="button"
                   disabled={!isAvailable}
                   onClick={() => handleSelect(item)}
-                  className={`w-full min-h-[46px] flex items-center justify-between px-3 py-2 rounded-xl border text-left transition-all duration-150 active:scale-[0.985] ${
+                  className={`w-full min-h-[46px] flex items-center justify-between px-3 py-2 rounded-xl border text-left transition-all duration-120 active:scale-[0.985] ${
                     !isAvailable
-                      ? 'opacity-40 cursor-not-allowed bg-slate-950/30 border-slate-850'
+                      ? 'opacity-40 cursor-not-allowed bg-slate-950/30 border-slate-800/40'
                       : isSelected || isAnimating
                       ? 'bg-indigo-600/15 border-cyan-500 text-white shadow-sm ring-1 ring-cyan-500/30'
                       : 'bg-slate-950/60 border-slate-800/80 text-slate-300 hover:border-slate-700 hover:bg-slate-850/60'
                   }`}
+                  aria-pressed={isSelected}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <span className="text-base sm:text-lg shrink-0 select-none" role="img" aria-label={item.name}>
                       {item.flag}
                     </span>
                     <div className="min-w-0">
-                      <span className="text-xs font-bold block text-white truncate leading-tight">
+                      <span className="text-xs font-semibold block text-white truncate leading-tight">
                         {item.nativeName}
                       </span>
                       <span className="text-[10px] text-slate-400 block truncate leading-tight mt-0.5">
@@ -245,7 +264,7 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen, onClose })
                       </span>
                     )}
                     {(isSelected || isAnimating) && (
-                      <span className="w-5 h-5 rounded-full bg-cyan-500 text-slate-950 flex items-center justify-center shadow-sm animate-in zoom-in-75 duration-150">
+                      <span className="w-5 h-5 rounded-full bg-cyan-500 text-slate-950 flex items-center justify-center shadow-sm animate-in zoom-in-75 duration-120">
                         <Check className="w-3 h-3 stroke-[3]" />
                       </span>
                     )}
@@ -255,18 +274,18 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen, onClose })
             })
           ) : (
             /* Estado Vazio de Pesquisa */
-            <div className="py-8 px-4 text-center space-y-2">
-              <Search className="w-6 h-6 text-slate-500 mx-auto" />
+            <div className="py-6 px-4 text-center space-y-2">
+              <Search className="w-5 h-5 text-slate-500 mx-auto" />
               <p className="text-xs font-semibold text-slate-300">
                 Nenhum idioma encontrado para &ldquo;{searchQuery}&rdquo;
               </p>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-slate-400">
                 Tente buscar pelo nome em português, inglês ou código (ex: BR, EN, ES, FR).
               </p>
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="mt-2 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-750 text-cyan-300 text-xs font-medium transition-colors"
+                className="mt-1 min-h-[44px] inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-750 text-cyan-300 text-xs font-medium transition-colors active:scale-95"
               >
                 Limpar pesquisa
               </button>
@@ -275,7 +294,7 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen, onClose })
         </div>
 
         {/* Rodapé informativo discreto */}
-        <div className="px-4 pt-2 border-t border-slate-800/80 text-[10.5px] text-slate-500 text-center shrink-0">
+        <div className="px-4 pt-1.5 border-t border-slate-800/80 text-[10px] text-slate-400 text-center shrink-0">
           {t.languageModal.availableNotice}
         </div>
       </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { ViewTab, WebsiteLanguage, PortfolioProject } from '../types';
 import { getNexawebPlans } from '../data/servicesData';
 import { getPortfolioProjects } from '../data/portfolioData';
@@ -239,6 +239,83 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     setSelectedSecondaryOptions((prev) => (prev.length > 0 ? prev : config.secondaryOptions.slice(0, 2)));
     setSelectedFeatures((prev) => (prev.length > 0 ? prev : config.features.slice(0, 2)));
   }, [selectedSegment]);
+
+  // Suporte ao teclado virtual Android: assegura que qualquer campo focado permaneça visível sem cortes
+  const isKeyboardOpenRef = useRef<boolean>(false);
+  const scrollPosBeforeKeyboardRef = useRef<number>(0);
+
+  const scrollActiveFieldIntoView = useCallback((el: HTMLElement) => {
+    if (!el || typeof window === 'undefined') return;
+    const rect = el.getBoundingClientRect();
+    const vv = window.visualViewport;
+    const viewportHeight = vv ? vv.height : window.innerHeight;
+    const headerHeight = 64; // altura do cabeçalho fixo no topo
+    const bottomPadding = 24;
+
+    // Se o elemento estiver abaixo da área visível ou escondido atrás do cabeçalho
+    if (rect.bottom > viewportHeight - bottomPadding || rect.top < headerHeight + 10) {
+      const currentScroll = window.scrollY;
+      const targetScroll = currentScroll + rect.top - headerHeight - 16;
+      window.scrollTo({
+        top: Math.max(0, targetScroll),
+        behavior: 'smooth',
+      });
+    }
+  }, []);
+
+  const handleFormFocusCapture = useCallback((e: React.FocusEvent<HTMLDivElement>) => {
+    const target = e.target;
+    if (
+      target instanceof HTMLInputElement ||
+      target instanceof HTMLTextAreaElement ||
+      target instanceof HTMLSelectElement
+    ) {
+      if (!isKeyboardOpenRef.current) {
+        scrollPosBeforeKeyboardRef.current = window.scrollY;
+      }
+      setTimeout(() => {
+        scrollActiveFieldIntoView(target);
+      }, 250);
+    }
+  }, [scrollActiveFieldIntoView]);
+
+  // Monitora redimensionamento da viewport física (abertura/fechamento de teclado no Android)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.visualViewport) return;
+    const vv = window.visualViewport;
+
+    const handleViewportResize = () => {
+      const windowHeight = window.innerHeight;
+      const currentHeight = vv.height;
+      const isKeyboardNowOpen = windowHeight - currentHeight > 150;
+
+      if (isKeyboardNowOpen) {
+        if (!isKeyboardOpenRef.current) {
+          scrollPosBeforeKeyboardRef.current = window.scrollY;
+          isKeyboardOpenRef.current = true;
+        }
+        const activeEl = document.activeElement;
+        if (
+          activeEl instanceof HTMLInputElement ||
+          activeEl instanceof HTMLTextAreaElement ||
+          activeEl instanceof HTMLSelectElement
+        ) {
+          setTimeout(() => {
+            scrollActiveFieldIntoView(activeEl);
+          }, 80);
+        }
+      } else {
+        if (isKeyboardOpenRef.current) {
+          isKeyboardOpenRef.current = false;
+        }
+      }
+    };
+
+    vv.addEventListener('resize', handleViewportResize);
+    return () => {
+      vv.removeEventListener('resize', handleViewportResize);
+    };
+  }, [scrollActiveFieldIntoView]);
 
   // Se inicializado com modelo específico ou plano específico
   useEffect(() => {
@@ -746,14 +823,29 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
   };
 
   return (
-    <div className="space-y-4 pb-28 animate-in fade-in duration-150 overflow-x-hidden">
+    <div
+      onFocusCapture={handleFormFocusCapture}
+      className="space-y-4 pb-8 sm:pb-12 animate-in fade-in duration-150 overflow-x-hidden w-full min-w-0"
+    >
       {/* ============================================================== */}
       {/* 1. INDICADOR DE PROGRESSO DISCRETO E REAL (01 a 06)            */}
       {/* ============================================================== */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3 sm:p-4 shadow-sm space-y-2.5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            {/* Botão Voltar da Etapa (Apenas a partir do Estágio 2, nunca no Estágio 1) */}
+            {currentStep > 1 && (
+              <button
+                type="button"
+                onClick={handlePrevStep}
+                className="min-h-[44px] min-w-[44px] -ml-1 rounded-xl bg-slate-950/80 border border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center transition-all active:scale-95 shrink-0"
+                aria-label="←"
+                title="←"
+              >
+                <ArrowLeft className="w-5 h-5 text-slate-300" />
+              </button>
+            )}
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 shrink-0">
               Etapa {currentStep} de 6
             </span>
             <span className="text-xs sm:text-sm font-bold text-white truncate">
@@ -779,8 +871,8 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
           />
         </div>
 
-        {/* Abas Discretas de Navegação das Etapas */}
-        <div className="grid grid-cols-6 gap-1 text-center">
+        {/* Indicador Visual das Etapas (Informativo, sem duplicar ação de retorno) */}
+        <div className="grid grid-cols-6 gap-1 text-center" aria-label="Progresso das etapas">
           {[
             { step: 1, label: '01 Início' },
             { step: 2, label: '02 Negócio' },
@@ -789,27 +881,18 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
             { step: 5, label: '05 Visual' },
             { step: 6, label: '06 Envio' },
           ].map((item) => (
-            <button
+            <div
               key={item.step}
-              type="button"
-              onClick={() => {
-                if (item.step < currentStep) {
-                  setStepError(null);
-                  setCurrentStep(item.step as BriefingStep);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }
-              }}
-              className={`min-h-[34px] flex items-center justify-center py-1 px-0.5 rounded-lg text-[9.5px] sm:text-[10px] font-bold transition-all ${
+              className={`min-h-[34px] flex items-center justify-center py-1 px-0.5 rounded-lg text-[9.5px] sm:text-[10px] font-bold select-none ${
                 currentStep === item.step
                   ? 'bg-indigo-600/25 text-cyan-300 border border-indigo-500/40 shadow-sm'
                   : item.step < currentStep
-                  ? 'bg-slate-950/80 text-slate-300 hover:text-white cursor-pointer border border-slate-800/60'
-                  : 'text-slate-600 cursor-not-allowed opacity-40'
+                  ? 'bg-slate-950/80 text-slate-400 border border-slate-800/60'
+                  : 'text-slate-600 opacity-40'
               }`}
-              disabled={item.step > currentStep}
             >
               <span className="truncate">{item.label}</span>
-            </button>
+            </div>
           ))}
         </div>
       </div>
@@ -1110,12 +1193,12 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
                 </p>
               </div>
 
-              {/* Seletor do Segmento do Negócio */}
-              <div className="space-y-1">
+              {/* Seletor do Segmento do Negócio - Visual Mobile Moderno */}
+              <div className="space-y-1.5">
                 <label className="text-[11px] font-semibold text-slate-300 block">
                   Qual é o segmento principal do seu negócio?
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {Object.values(CANONICAL_SEGMENTS).map((seg) => {
                     const isSelected = selectedSegment === seg.segmentKey;
                     return (
@@ -1123,14 +1206,41 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
                         key={seg.segmentKey}
                         type="button"
                         onClick={() => setSelectedSegment(seg.segmentKey)}
-                        className={`p-2 rounded-xl border text-left text-xs transition-all flex items-center gap-2 ${
+                        className={`min-h-[46px] p-2.5 rounded-xl border text-left transition-all active:scale-[0.99] flex items-center justify-between gap-2.5 ${
                           isSelected
-                            ? 'bg-indigo-600/20 border-cyan-500 text-white font-bold ring-1 ring-cyan-500/30'
-                            : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                            ? 'bg-indigo-950/60 border-cyan-500/80 ring-1 ring-cyan-500/30 text-white shadow-sm'
+                            : 'bg-slate-950/70 border-slate-800 hover:border-slate-700 text-slate-300'
                         }`}
                       >
-                        <span className="text-base leading-none">{seg.icon}</span>
-                        <span className="truncate text-[11px]">{seg.name.split('&')[0]}</span>
+                        {/* Ícone discreto em container próprio */}
+                        <div
+                          className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm shrink-0 border transition-colors ${
+                            isSelected
+                              ? 'bg-cyan-500/15 border-cyan-500/30'
+                              : 'bg-slate-900 border-slate-800'
+                          }`}
+                          aria-hidden="true"
+                        >
+                          <span>{seg.icon}</span>
+                        </div>
+
+                        {/* Área própria para o texto (pode ocupar até 2 linhas, sem cortar, sem sobreposição) */}
+                        <div className="flex-1 min-w-0 pr-1">
+                          <span className="text-xs font-semibold block leading-tight text-slate-200 line-clamp-2">
+                            {seg.name}
+                          </span>
+                        </div>
+
+                        {/* Controle de seleção alinhado e discreto */}
+                        <div
+                          className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-colors ${
+                            isSelected
+                              ? 'border-cyan-400 bg-cyan-400 text-slate-950 shadow-sm'
+                              : 'border-slate-700 bg-slate-900/60'
+                          }`}
+                        >
+                          {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                        </div>
                       </button>
                     );
                   })}
@@ -1326,36 +1436,37 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
                 {SITE_OBJECTIVES.map((obj) => {
                   const isChecked = siteObjective === obj.id;
                   return (
-                    <div
+                    <button
                       key={obj.id}
+                      type="button"
                       onClick={() => {
                         setSiteObjective(obj.id);
                         if (stepError) setStepError(null);
                       }}
-                      className={`p-2.5 rounded-xl border text-left cursor-pointer transition-all active:scale-[0.99] flex items-start justify-between gap-2 ${
+                      className={`min-h-[46px] p-2.5 rounded-xl border text-left transition-all active:scale-[0.99] flex items-center justify-between gap-2.5 ${
                         isChecked
                           ? 'bg-cyan-500/15 border-cyan-500 text-white shadow-sm ring-1 ring-cyan-500/30'
                           : 'bg-slate-950 border-slate-800 hover:border-slate-700 text-slate-300'
                       }`}
                     >
-                      <div>
+                      <div className="flex-1 min-w-0 pr-1.5">
                         <span className="text-xs font-bold block leading-snug">
                           {obj.label}
                         </span>
-                        <span className="text-[10px] text-slate-400 leading-tight block mt-0.5">
+                        <span className="text-[10px] text-slate-400 leading-tight block mt-0.5 line-clamp-2">
                           {obj.desc}
                         </span>
                       </div>
                       <span
-                        className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 mt-0.5 ${
+                        className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
                           isChecked
-                            ? 'border-cyan-400 bg-cyan-400 text-slate-950'
-                            : 'border-slate-700'
+                            ? 'border-cyan-400 bg-cyan-400 text-slate-950 shadow-sm'
+                            : 'border-slate-700 bg-slate-900/60'
                         }`}
                       >
                         {isChecked && <Check className="w-2.5 h-2.5 stroke-[3]" />}
                       </span>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -1425,22 +1536,12 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
             </div>
           </div>
 
-          {/* Botões de Ação da Etapa 2 (Regra 4: somente ← sem a palavra "Voltar") */}
-          <div className="pt-2 flex items-center justify-between gap-2.5">
-            <button
-              type="button"
-              onClick={handlePrevStep}
-              className="min-h-[48px] min-w-[48px] px-4 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-850 text-slate-300 flex items-center justify-center transition-colors active:scale-95"
-              aria-label="←"
-              title="←"
-            >
-              <ArrowLeft className="w-5 h-5 text-slate-300" />
-            </button>
-
+          {/* Botão de Avanço da Etapa 2 (O único controle de retorno nesta tela é o botão ← no cabeçalho) */}
+          <div className="pt-2 flex items-center justify-end">
             <button
               type="button"
               onClick={handleNextStep}
-              className="min-h-[48px] flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs shadow-md shadow-indigo-950/50 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+              className="w-full min-h-[48px] py-3 px-5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs sm:text-sm shadow-md shadow-indigo-950/50 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
             >
               <span>{getNextButtonLabel()}</span>
               <ChevronRight className="w-4 h-4" />
@@ -1604,22 +1705,12 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
             </div>
           </div>
 
-          {/* Botões de Ação da Etapa 3 */}
-          <div className="pt-2 flex items-center justify-between gap-2.5">
-            <button
-              type="button"
-              onClick={handlePrevStep}
-              className="min-h-[48px] min-w-[48px] px-4 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-850 text-slate-300 flex items-center justify-center transition-colors active:scale-95"
-              aria-label="←"
-              title="←"
-            >
-              <ArrowLeft className="w-5 h-5 text-slate-300" />
-            </button>
-
+          {/* Botão de Avanço da Etapa 3 */}
+          <div className="pt-2 flex items-center justify-end">
             <button
               type="button"
               onClick={handleNextStep}
-              className="min-h-[48px] flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs shadow-md shadow-indigo-950/50 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+              className="w-full min-h-[48px] py-3 px-5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs sm:text-sm shadow-md shadow-indigo-950/50 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
             >
               <span>{getNextButtonLabel()}</span>
               <ChevronRight className="w-4 h-4" />
@@ -1780,22 +1871,12 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
             </div>
           </div>
 
-          {/* Botões de Ação da Etapa 4 */}
-          <div className="pt-2 flex items-center justify-between gap-2.5">
-            <button
-              type="button"
-              onClick={handlePrevStep}
-              className="min-h-[48px] min-w-[48px] px-4 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-850 text-slate-300 flex items-center justify-center transition-colors active:scale-95"
-              aria-label="←"
-              title="←"
-            >
-              <ArrowLeft className="w-5 h-5 text-slate-300" />
-            </button>
-
+          {/* Botão de Avanço da Etapa 4 */}
+          <div className="pt-2 flex items-center justify-end">
             <button
               type="button"
               onClick={handleNextStep}
-              className="min-h-[48px] flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs shadow-md shadow-indigo-950/50 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+              className="w-full min-h-[48px] py-3 px-5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs sm:text-sm shadow-md shadow-indigo-950/50 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
             >
               <span>{getNextButtonLabel()}</span>
               <ChevronRight className="w-4 h-4" />
@@ -2020,22 +2101,12 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
             </div>
           </div>
 
-          {/* Botões de Ação da Etapa 5 */}
-          <div className="pt-2 flex items-center justify-between gap-2.5">
-            <button
-              type="button"
-              onClick={handlePrevStep}
-              className="min-h-[48px] min-w-[48px] px-4 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-850 text-slate-300 flex items-center justify-center transition-colors active:scale-95"
-              aria-label="←"
-              title="←"
-            >
-              <ArrowLeft className="w-5 h-5 text-slate-300" />
-            </button>
-
+          {/* Botão de Avanço da Etapa 5 */}
+          <div className="pt-2 flex items-center justify-end">
             <button
               type="button"
               onClick={handleNextStep}
-              className="min-h-[48px] flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs shadow-md shadow-indigo-950/50 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+              className="w-full min-h-[48px] py-3 px-5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs sm:text-sm shadow-md shadow-indigo-950/50 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
             >
               <span>{getNextButtonLabel()}</span>
               <ChevronRight className="w-4 h-4" />
@@ -2359,36 +2430,24 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
           {/* Botões de Ação da Etapa 6 (Copiar e Enviar) */}
           {!submissionSuccess && (
             <div className="space-y-2.5 pt-1">
-              <div className="flex items-center justify-between gap-2.5">
-                <button
-                  type="button"
-                  onClick={handlePrevStep}
-                  className="min-h-[48px] min-w-[48px] px-4 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-850 text-slate-300 flex items-center justify-center transition-colors active:scale-95"
-                  aria-label="←"
-                  title="←"
-                >
-                  <ArrowLeft className="w-5 h-5 text-slate-300" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleSubmitProject}
-                  disabled={isSubmitting}
-                  className="min-h-[48px] flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black text-xs shadow-lg shadow-emerald-950/40 flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Registrando seu projeto...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4" />
-                      <span>Enviar Briefing Oficial</span>
-                    </>
-                  )}
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={handleSubmitProject}
+                disabled={isSubmitting}
+                className="w-full min-h-[48px] py-3 px-5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black text-xs sm:text-sm shadow-lg shadow-emerald-950/40 flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Registrando seu projeto...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    <span>Enviar Briefing Oficial</span>
+                  </>
+                )}
+              </button>
 
               {/* Botão para Copiar Briefing Formatado */}
               <button

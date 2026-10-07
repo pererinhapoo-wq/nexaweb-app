@@ -67,6 +67,7 @@ PortfolioProjectCard.displayName = 'PortfolioProjectCard';
 
 export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
   onSelectProject,
+  onBack,
   initialPlanFilter = 'todas',
   onPlanFilterChange,
   initialSearchQuery = '',
@@ -156,13 +157,26 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
   return (
     <div className="space-y-3.5 pb-24 animate-in fade-in duration-150">
       {/* 1. Cabeçalho Compacto */}
-      <section className="pt-0.5">
-        <h1 className="text-base sm:text-lg font-bold text-white tracking-tight">
-          Portfólio
-        </h1>
-        <p className="text-xs text-slate-400 mt-0.5">
-          Explore nossos projetos e encontre o estilo ideal para o seu negócio.
-        </p>
+      <section className="pt-0.5 flex items-center gap-3">
+        {onBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            className="min-h-[44px] min-w-[44px] -ml-1 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-850 text-slate-300 hover:text-white flex items-center justify-center transition-all active:scale-95 shrink-0"
+            aria-label="←"
+            title="←"
+          >
+            <ArrowLeft className="w-5 h-5 text-slate-300" />
+          </button>
+        )}
+        <div className="min-w-0">
+          <h1 className="text-base sm:text-lg font-bold text-white tracking-tight truncate">
+            Portfólio
+          </h1>
+          <p className="text-xs text-slate-400 mt-0.5 truncate">
+            Explore nossos projetos e encontre o estilo ideal para o seu negócio.
+          </p>
+        </div>
       </section>
 
       {/* 2. Barra de Pesquisa Compacta */}
@@ -318,25 +332,33 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
       {/* Modal Compacto de Seleção de Segmento */}
       {isSegmentFilterModalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-150"
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200"
           onClick={() => setIsSegmentFilterModalOpen(false)}
         >
           <div
-            className="w-full max-w-sm rounded-2xl bg-slate-900 border border-slate-800 p-4 space-y-3 shadow-2xl max-h-[85vh] overflow-y-auto no-scrollbar"
+            className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl bg-slate-900 border border-slate-800 p-4 space-y-3 shadow-2xl max-h-[75dvh] sm:max-h-[80vh] overflow-y-auto no-scrollbar pb-4 safe-area-pb animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Mobile drag handle discreto */}
+            <div className="pt-0.5 pb-1 flex justify-center sm:hidden shrink-0" aria-hidden="true">
+              <div className="w-10 h-1 bg-slate-700/80 rounded-full" />
+            </div>
+
             <div className="flex items-center justify-between pb-2 border-b border-slate-800">
               <div className="flex items-center gap-2">
                 <SlidersHorizontal className="w-4 h-4 text-cyan-400" />
-                <h3 className="text-sm font-bold text-white">Filtrar por Segmento</h3>
+                <h3 className="text-xs sm:text-sm font-bold text-white">Filtrar por Segmento</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setIsSegmentFilterModalOpen(false)}
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors -mr-1"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors -mr-1 active:scale-95"
                 aria-label="Fechar filtros"
+                title="Fechar filtros"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -359,10 +381,10 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
                       setSelectedSegment(cat.id);
                       setIsSegmentFilterModalOpen(false);
                     }}
-                    className={`w-full p-2.5 rounded-xl text-left flex items-center justify-between text-xs transition-colors ${
+                    className={`w-full min-h-[46px] p-2.5 rounded-xl text-left flex items-center justify-between text-xs transition-all active:scale-[0.985] ${
                       isSelected
-                        ? 'bg-cyan-500/15 border border-cyan-500/40 text-white font-semibold'
-                        : 'hover:bg-slate-800 text-slate-300'
+                        ? 'bg-cyan-500/15 border border-cyan-500/40 text-white font-semibold shadow-sm ring-1 ring-cyan-500/20'
+                        : 'bg-slate-950/60 border border-slate-800/80 text-slate-300 hover:border-slate-700 hover:bg-slate-850/60'
                     }`}
                   >
                     <span>{cat.nome}</span>
@@ -384,7 +406,7 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
                   setSelectedSegment('todos');
                   setIsSegmentFilterModalOpen(false);
                 }}
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white"
+                className="min-h-[44px] px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white active:scale-95 transition-colors"
               >
                 Limpar segmento
               </button>

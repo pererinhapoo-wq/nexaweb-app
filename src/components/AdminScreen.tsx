@@ -19,6 +19,7 @@ import {
   CheckCircle2,
   Clock,
   ArrowRight,
+  ArrowLeft,
   ExternalLink,
   Save,
   X,
@@ -27,7 +28,11 @@ import {
 } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 
-export const AdminScreen: React.FC = () => {
+interface AdminScreenProps {
+  onBack?: () => void;
+}
+
+export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
   const { t } = useTranslation();
   const [isAdmin, setIsAdmin] = useState(false);
   const [password, setPassword] = useState('');
@@ -193,9 +198,22 @@ export const AdminScreen: React.FC = () => {
       {!isAdmin ? (
         <div className="space-y-4">
           <div className="rounded-2xl p-5 sm:p-6 bg-gradient-to-br from-amber-950/60 via-slate-900 to-slate-950 border border-amber-500/30 shadow-xl">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-semibold mb-3">
-              <Shield className="w-3.5 h-3.5 text-amber-400" />
-              <span>Painel Administrativo NexaWeb</span>
+            <div className="flex items-center justify-between mb-3">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-semibold">
+                <Shield className="w-3.5 h-3.5 text-amber-400" />
+                <span>Painel Administrativo NexaWeb</span>
+              </div>
+              {onBack && (
+                <button
+                  type="button"
+                  onClick={onBack}
+                  className="min-h-[44px] min-w-[44px] -mr-1 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-850 text-slate-300 hover:text-white flex items-center justify-center transition-all active:scale-95 shrink-0"
+                  aria-label="←"
+                  title="←"
+                >
+                  <ArrowLeft className="w-5 h-5 text-slate-300" />
+                </button>
+              )}
             </div>
 
             <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
@@ -255,6 +273,17 @@ export const AdminScreen: React.FC = () => {
           {/* Header do Admin */}
           <div className="rounded-2xl p-4 sm:p-5 bg-slate-900 border border-slate-800 shadow-md flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
+              {onBack && (
+                <button
+                  type="button"
+                  onClick={onBack}
+                  className="min-h-[44px] min-w-[44px] -ml-1 rounded-xl bg-slate-950/80 border border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center transition-all active:scale-95 shrink-0"
+                  aria-label="←"
+                  title="←"
+                >
+                  <ArrowLeft className="w-5 h-5 text-slate-300" />
+                </button>
+              )}
               <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
                 <Shield className="w-5 h-5" />
               </div>
@@ -479,12 +508,17 @@ export const AdminScreen: React.FC = () => {
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/85 backdrop-blur-sm animate-in fade-in duration-150"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200"
           onClick={(e) => {
             if (e.target === e.currentTarget) setEditingProject(null);
           }}
         >
-          <div className="w-full sm:max-w-md bg-slate-900 border border-slate-800 rounded-t-3xl sm:rounded-2xl shadow-2xl p-5 space-y-4 max-h-[92vh] overflow-y-auto no-scrollbar">
+          <div className="w-full sm:max-w-md bg-slate-900 border border-slate-800 rounded-t-3xl sm:rounded-2xl shadow-2xl p-5 space-y-4 max-h-[85dvh] sm:max-h-[90vh] overflow-y-auto no-scrollbar safe-area-pb animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200">
+            {/* Mobile drag handle discreto */}
+            <div className="pt-0.5 pb-1 flex justify-center sm:hidden shrink-0" aria-hidden="true">
+              <div className="w-10 h-1 bg-slate-700/80 rounded-full" />
+            </div>
+
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div>
                 <h3 className="text-sm font-bold text-white">Gerenciar Projeto</h3>
@@ -493,10 +527,11 @@ export const AdminScreen: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setEditingProject(null)}
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors -mr-1"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors -mr-1 active:scale-95"
                 aria-label="Fechar"
+                title="Fechar"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -594,12 +629,17 @@ export const AdminScreen: React.FC = () => {
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/85 backdrop-blur-sm animate-in fade-in duration-150"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200"
           onClick={(e) => {
             if (e.target === e.currentTarget) setReplyingRequest(null);
           }}
         >
-          <div className="w-full sm:max-w-md bg-slate-900 border border-slate-800 rounded-t-3xl sm:rounded-2xl shadow-2xl p-5 space-y-4 max-h-[92vh] overflow-y-auto no-scrollbar">
+          <div className="w-full sm:max-w-md bg-slate-900 border border-slate-800 rounded-t-3xl sm:rounded-2xl shadow-2xl p-5 space-y-4 max-h-[85dvh] sm:max-h-[90vh] overflow-y-auto no-scrollbar safe-area-pb animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200">
+            {/* Mobile drag handle discreto */}
+            <div className="pt-0.5 pb-1 flex justify-center sm:hidden shrink-0" aria-hidden="true">
+              <div className="w-10 h-1 bg-slate-700/80 rounded-full" />
+            </div>
+
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div>
                 <h3 className="text-sm font-bold text-white">Responder Solicitação</h3>
@@ -608,10 +648,11 @@ export const AdminScreen: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setReplyingRequest(null)}
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors -mr-1"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors -mr-1 active:scale-95"
                 aria-label="Fechar"
+                title="Fechar"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 

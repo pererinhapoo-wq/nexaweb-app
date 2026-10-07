@@ -221,8 +221,8 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
           type="button"
           onClick={onBack}
           className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors active:scale-95"
-          title="Voltar"
-          aria-label="Voltar"
+          title="←"
+          aria-label="←"
         >
           <ArrowLeft className="w-5 h-5 text-cyan-400" />
         </button>

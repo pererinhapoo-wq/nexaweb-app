@@ -42,6 +42,7 @@ interface HistoryEntry {
   selectedModel?: string;
   selectedWebsiteLanguage?: WebsiteLanguage;
   modelApproach?: 'exact' | 'inspiration';
+  scrollY?: number;
 }
 
 function AppContent() {
@@ -111,6 +112,23 @@ function AppContent() {
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState<boolean>(false);
   const [recommendation, setRecommendation] = useState<ProjectRecommendation | null>(null);
 
+  // Detecção de teclado virtual Android para ocultação garantida da BottomNav sobre formulários
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    const handleResize = () => {
+      const isOpen = window.innerHeight - vv.height > 150;
+      setIsKeyboardOpen(isOpen);
+    };
+
+    vv.addEventListener('resize', handleResize);
+    return () => vv.removeEventListener('resize', handleResize);
+  }, []);
+
   // Esconde splash screen uma única vez ao montar (ThemeContext gerencia a StatusBar)
   useEffect(() => {
     SplashScreen.hide().catch(() => {});
@@ -174,6 +192,10 @@ function AppContent() {
         }
 
         const current = prev[prev.length - 1];
+        if (current) {
+          current.scrollY = window.scrollY;
+        }
+
         const nextEntry: HistoryEntry = {
           tab,
           projectDetail: options?.projectDetail !== undefined ? options.projectDetail : null,
@@ -244,9 +266,12 @@ function AppContent() {
       return;
     }
 
+    let targetScrollY: number | undefined;
+
     // 2. Desempilha o histórico de navegação
     setHistory((prev) => {
       if (prev.length > 1) {
+        targetScrollY = prev[prev.length - 2]?.scrollY;
         return prev.slice(0, prev.length - 1);
       }
       // Se só houver 1 tela e não for home, vai para a home
@@ -256,11 +281,13 @@ function AppContent() {
       return prev;
     });
 
-    // Se estiver saindo do detalhe do projeto com posição de rolagem salva, não força scroll(0)
-    if (!selectedProjectDetail) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Se estiver saindo de detalhe de projeto com posição salva, restaura sem scroll jump
+    if (targetScrollY !== undefined && targetScrollY > 0) {
+      setTimeout(() => {
+        window.scrollTo({ top: targetScrollY, behavior: 'instant' as ScrollBehavior });
+      }, 15);
     }
-  }, [currentTab, selectedProjectDetail]);
+  }, [currentTab]);
 
   // Suporte aprimorado e intuitivo ao botão físico/gestual de voltar do Android
   const handleAndroidBack = useCallback(() => {
@@ -415,7 +442,11 @@ function AppContent() {
       <Header onOpenMenu={() => setIsMenuOpen(true)} />
 
       {/* Área de conteúdo principal com transição suave entre telas */}
-      <main className="flex-1 max-w-3xl w-full mx-auto px-4 pt-4 pb-24 sm:pt-6 sm:pb-28">
+      <main
+        className={`flex-1 max-w-3xl w-full mx-auto px-4 pt-4 ${
+          currentTab === 'project' ? 'pb-8 sm:pb-12' : 'pb-24 sm:pt-6 sm:pb-28'
+        }`}
+      >
         <div
           key={selectedProjectDetail ? `detail-${selectedProjectDetail.id}` : currentTab}
           className="animate-in fade-in slide-in-from-bottom-1 duration-150 ease-out will-change-transform"
@@ -460,6 +491,7 @@ function AppContent() {
                 <PortfolioScreen
                   onSelectProject={handleSelectProject}
                   onSelectProjectForBriefing={handleSelectProjectForBriefing}
+                  onBack={history.length > 1 ? handleGoBack : undefined}
                   initialPlanFilter={portfolioPlanFilter}
                   onPlanFilterChange={setPortfolioPlanFilter}
                   initialSearchQuery={portfolioSearchQuery}
@@ -484,10 +516,10 @@ function AppContent() {
               )}
 
               {currentTab === 'portal' && (
-                <PortalScreen onNavigate={handleNavigate} />
+                <PortalScreen onNavigate={handleNavigate} onBack={handleGoBack} />
               )}
 
-              {currentTab === 'admin' && <AdminScreen />}
+              {currentTab === 'admin' && <AdminScreen onBack={handleGoBack} />}
 
               {currentTab === 'settings' && (
                 <SettingsScreen
@@ -500,8 +532,8 @@ function AppContent() {
         </div>
       </main>
 
-      {/* Navegação inferior estritamente simples (Início, Serviços, Portfólio, Projeto) */}
-      {!selectedProjectDetail && (
+      {/* Navegação inferior estritamente nos destinos principais (Início, Serviços, Portfólio, Portal). Oculta no fluxo interno Criar Site e com teclado aberto */}
+      {!selectedProjectDetail && !isKeyboardOpen && (currentTab === 'home' || currentTab === 'services' || currentTab === 'portfolio' || currentTab === 'portal') && (
         <BottomNav
           currentTab={currentTab}
           onNavigate={handleNavigate}

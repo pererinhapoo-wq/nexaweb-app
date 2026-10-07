@@ -72,12 +72,17 @@ export const RecommendationModal: React.FC<RecommendationModalProps> = ({
       }}
     >
       <div
-        className="w-full sm:max-w-lg bg-slate-900 border border-slate-800 rounded-t-3xl sm:rounded-2xl shadow-2xl max-h-[92vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150"
+        className="w-full sm:max-w-lg bg-slate-900 border border-slate-800 rounded-t-3xl sm:rounded-2xl shadow-2xl max-h-[85dvh] sm:max-h-[85vh] flex flex-col overflow-hidden pb-3 safe-area-pb animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200"
         role="dialog"
         aria-modal="true"
       >
+        {/* Mobile drag handle discreto */}
+        <div className="pt-2 pb-0.5 flex justify-center sm:hidden shrink-0" aria-hidden="true">
+          <div className="w-10 h-1 bg-slate-700/80 rounded-full" />
+        </div>
+
         {/* Header */}
-        <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/95 shrink-0">
+        <div className="px-5 py-3 border-b border-slate-800 flex items-center justify-between bg-slate-900/95 shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 p-0.5 shadow-md shadow-indigo-600/30">
               <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
@@ -88,7 +93,7 @@ export const RecommendationModal: React.FC<RecommendationModalProps> = ({
               <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
                 {t.recommendation.badge}
               </span>
-              <h2 className="font-extrabold text-base text-white tracking-tight leading-snug mt-0.5">
+              <h2 className="font-extrabold text-sm sm:text-base text-white tracking-tight leading-snug mt-0.5">
                 {t.recommendation.idealProject}
               </h2>
             </div>
@@ -97,10 +102,11 @@ export const RecommendationModal: React.FC<RecommendationModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors -mr-1"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors -mr-1 active:scale-95"
             aria-label={t.portfolio.close}
+            title={t.portfolio.close}
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 

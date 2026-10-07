@@ -18,9 +18,11 @@ import {
   LogOut,
   Sparkles,
   ArrowRight,
+  ArrowLeft,
   ArrowDown,
   PlusCircle,
   X,
+  Check,
   FileText,
   Calendar,
   ShieldCheck,
@@ -56,9 +58,10 @@ const REQUEST_CATEGORIES: { id: RequestCategory; label: string; icon: string }[]
 
 interface PortalScreenProps {
   onNavigate?: (tab: ViewTab) => void;
+  onBack?: () => void;
 }
 
-export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate }) => {
+export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }) => {
   const { t } = useTranslation();
   const [accessKey, setAccessKey] = useState('');
   const [loading, setLoading] = useState(false);
@@ -303,9 +306,23 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate }) => {
       {!project ? (
         <div className="space-y-4">
           <div className="rounded-2xl p-5 sm:p-6 bg-gradient-to-br from-indigo-950/80 via-slate-900 to-slate-950 border border-indigo-500/20 shadow-xl space-y-4">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-semibold">
-              <UserCheck className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Área do Cliente</span>
+            <div className="flex items-center justify-between">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-semibold">
+                <UserCheck className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Área do Cliente</span>
+              </div>
+
+              {onBack && (
+                <button
+                  type="button"
+                  onClick={onBack}
+                  className="min-h-[44px] min-w-[44px] -mr-1 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-850 text-slate-300 hover:text-white flex items-center justify-center transition-all active:scale-95 shrink-0"
+                  aria-label="←"
+                  title="←"
+                >
+                  <ArrowLeft className="w-5 h-5 text-slate-300" />
+                </button>
+              )}
             </div>
 
             <div>
@@ -429,9 +446,21 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate }) => {
         <div className="space-y-4">
           {/* Header do Projeto: Projeto Verificado, Saudação, Empresa, Plano & Status */}
           <div className="rounded-2xl p-4 sm:p-5 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 border border-slate-800 shadow-md space-y-3.5">
-            {/* Linha Superior: Selo Projeto Verificado + Chave + Botão Sair */}
+            {/* Linha Superior: Botão Voltar + Selo Projeto Verificado + Chave + Botão Sair */}
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <div className="flex items-center gap-2 flex-wrap">
+                {onBack && (
+                  <button
+                    type="button"
+                    onClick={onBack}
+                    className="min-h-[44px] min-w-[44px] -ml-1 rounded-xl bg-slate-950/80 border border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center transition-all active:scale-95 shrink-0"
+                    aria-label="←"
+                    title="←"
+                  >
+                    <ArrowLeft className="w-5 h-5 text-slate-300" />
+                  </button>
+                )}
+
                 {/* Selo: Projeto Verificado */}
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold shadow-sm">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
@@ -912,9 +941,14 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate }) => {
           onClick={handleCloseRequestModal}
         >
           <div
-            className="w-full sm:max-w-md bg-slate-900 border border-slate-800 rounded-t-3xl sm:rounded-2xl shadow-2xl p-5 pb-7 sm:pb-5 space-y-4 max-h-[85dvh] sm:max-h-[90vh] overflow-y-auto no-scrollbar overscroll-contain safe-area-pb"
+            className="w-full sm:max-w-md bg-slate-900 border border-slate-800 rounded-t-3xl sm:rounded-2xl shadow-2xl p-5 pb-7 sm:pb-5 space-y-4 max-h-[85dvh] sm:max-h-[85vh] overflow-y-auto no-scrollbar overscroll-contain safe-area-pb animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Mobile drag handle discreto */}
+            <div className="pt-0.5 pb-1 flex justify-center sm:hidden shrink-0" aria-hidden="true">
+              <div className="w-10 h-1 bg-slate-700/80 rounded-full" />
+            </div>
+
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div>
                 <h3 className="text-sm font-bold text-white">Nova Solicitação</h3>
@@ -925,10 +959,11 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate }) => {
               <button
                 type="button"
                 onClick={handleCloseRequestModal}
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors active:scale-95"
                 aria-label="Fechar"
+                title="Fechar"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -945,7 +980,7 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate }) => {
                 <label className="text-xs font-semibold text-slate-300 block mb-1.5">
                   Categoria da Solicitação <span className="text-cyan-400">*</span>
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {REQUEST_CATEGORIES.map((cat) => {
                     const isSelected = reqCategory === cat.id;
                     return (
@@ -956,14 +991,38 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate }) => {
                           setReqCategory(cat.id);
                           setReqErrorMsg(null);
                         }}
-                        className={`p-2 rounded-xl text-left border text-xs transition-all flex items-center gap-1.5 min-h-[44px] ${
+                        className={`min-h-[44px] p-2.5 rounded-xl text-left border transition-all active:scale-[0.99] flex items-center justify-between gap-2.5 ${
                           isSelected
-                            ? 'bg-indigo-600/30 border-indigo-500 text-white font-bold ring-1 ring-indigo-500/50'
-                            : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                            ? 'bg-indigo-950/60 border-indigo-500/80 ring-1 ring-indigo-500/30 text-white font-bold'
+                            : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
                         }`}
                       >
-                        <span className="text-sm">{cat.icon}</span>
-                        <span className="truncate">{cat.label}</span>
+                        <div
+                          className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs shrink-0 border transition-colors ${
+                            isSelected
+                              ? 'bg-indigo-500/20 border-indigo-500/40'
+                              : 'bg-slate-900 border-slate-800'
+                          }`}
+                          aria-hidden="true"
+                        >
+                          <span>{cat.icon}</span>
+                        </div>
+
+                        <div className="flex-1 min-w-0 pr-1">
+                          <span className="text-xs font-semibold block leading-tight line-clamp-2">
+                            {cat.label}
+                          </span>
+                        </div>
+
+                        <div
+                          className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-colors ${
+                            isSelected
+                              ? 'border-indigo-400 bg-indigo-400 text-slate-950'
+                              : 'border-slate-700 bg-slate-900/60'
+                          }`}
+                        >
+                          {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                        </div>
                       </button>
                     );
                   })}
