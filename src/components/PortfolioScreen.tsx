@@ -2,12 +2,13 @@ import React, { useState, useMemo } from 'react';
 import { getPortfolioProjects, getPortfolioCategories } from '../data/portfolioData';
 import { PortfolioProject } from '../types';
 import { ProjectCardImage } from './ProjectCardImage';
-import { Search, X, SlidersHorizontal, Check } from 'lucide-react';
+import { Search, X, SlidersHorizontal, Check, ArrowLeft } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 
 interface PortfolioScreenProps {
   onSelectProject?: (project: PortfolioProject) => void;
   onSelectProjectForBriefing?: (projectTitle: string) => void;
+  onBack?: () => void;
   initialPlanFilter?: PlanFilter;
   onPlanFilterChange?: (plan: PlanFilter) => void;
   initialSearchQuery?: string;

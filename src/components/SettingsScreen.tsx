@@ -14,13 +14,18 @@ import {
   Palette,
   MessageCircle,
   ShieldCheck,
+  ArrowLeft,
 } from 'lucide-react';
 
 interface SettingsScreenProps {
   onOpenLanguageModal?: () => void;
+  onBack?: () => void;
 }
 
-export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
+export const SettingsScreen: React.FC<SettingsScreenProps> = ({
+  onOpenLanguageModal,
+  onBack,
+}) => {
   const { language, setLanguage, t, languages } = useTranslation();
   const { themeMode, setThemeMode, animationMode, setAnimationMode } = useTheme();
 
@@ -103,14 +108,29 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
         </div>
       )}
 
-      {/* Cabeçalho da Tela: Estrutura Solicitada */}
+      {/* Cabeçalho da Tela: Estrutura Solicitada com Botão Voltar ← */}
       <header className="rounded-2xl p-4 sm:p-5 bg-gradient-to-br from-indigo-950/60 via-slate-900 to-slate-950 border border-indigo-900/40 shadow-sm space-y-1">
-        <h1 className="text-lg sm:text-xl font-extrabold tracking-tight text-white uppercase">
-          Configurações
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-300">
-          Preferências e informações da NexaWeb.
-        </p>
+        <div className="flex items-center gap-3">
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="min-h-[44px] min-w-[44px] -ml-1 rounded-xl bg-slate-900/80 border border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center transition-all active:scale-95 shrink-0"
+              aria-label="←"
+              title="←"
+            >
+              <ArrowLeft className="w-5 h-5 text-slate-300" />
+            </button>
+          )}
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-xl font-extrabold tracking-tight text-white uppercase truncate">
+              Configurações
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-300 truncate">
+              Preferências e informações da NexaWeb.
+            </p>
+          </div>
+        </div>
       </header>
 
       {/* =========================================================================

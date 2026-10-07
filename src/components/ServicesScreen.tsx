@@ -10,6 +10,7 @@ import {
   Clock,
   ExternalLink,
   ChevronDown,
+  ArrowLeft,
 } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 
@@ -82,14 +83,27 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
 
   return (
     <div className="space-y-4 pb-24 animate-in fade-in duration-150 overflow-x-hidden">
-      {/* Header Compacto */}
-      <section className="pt-0.5">
-        <h1 className="text-base sm:text-lg font-bold text-white tracking-tight">
-          Serviços & Planos
-        </h1>
-        <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
-          Conheça as opções oficiais da NexaWeb e inicie a estruturação do seu projeto profissional.
-        </p>
+      {/* Header Compacto com Botão Voltar ← */}
+      <section className="pt-0.5 flex items-center gap-3">
+        {onBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            className="min-h-[44px] min-w-[44px] -ml-1 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-850 text-slate-300 hover:text-white flex items-center justify-center transition-all active:scale-95 shrink-0"
+            aria-label="←"
+            title="←"
+          >
+            <ArrowLeft className="w-5 h-5 text-slate-300" />
+          </button>
+        )}
+        <div className="min-w-0">
+          <h1 className="text-base sm:text-lg font-bold text-white tracking-tight truncate">
+            Serviços & Planos
+          </h1>
+          <p className="text-xs text-slate-400 mt-0.5 leading-relaxed truncate">
+            Conheça as opções oficiais da NexaWeb e inicie a estruturação do seu projeto profissional.
+          </p>
+        </div>
       </section>
 
       {/* Cards dos 4 Planos Oficiais */}

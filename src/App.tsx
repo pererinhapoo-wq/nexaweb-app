@@ -492,6 +492,7 @@ function AppContent() {
               {currentTab === 'settings' && (
                 <SettingsScreen
                   onOpenLanguageModal={() => setIsLanguageModalOpen(true)}
+                  onBack={handleGoBack}
                 />
               )}
             </>
