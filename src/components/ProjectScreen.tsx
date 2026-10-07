@@ -833,11 +833,11 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3 sm:p-4 shadow-sm space-y-2.5">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
-            {/* Botão Voltar da Etapa (Apenas a partir do Estágio 2, nunca no Estágio 1) */}
-            {currentStep > 1 && (
+            {/* Botão Voltar: em etapas > 1 volta para a etapa anterior; na etapa 1 volta para o contexto anterior */}
+            {(currentStep > 1 || onBack) && (
               <button
                 type="button"
-                onClick={handlePrevStep}
+                onClick={currentStep > 1 ? handlePrevStep : onBack}
                 className="min-h-[44px] min-w-[44px] -ml-1 rounded-xl bg-slate-950/80 border border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center transition-all active:scale-95 shrink-0"
                 aria-label="←"
                 title="←"

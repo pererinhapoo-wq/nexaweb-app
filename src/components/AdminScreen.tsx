@@ -193,7 +193,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
   }, [projects]);
 
   return (
-    <div className="space-y-5 pb-28 animate-in fade-in duration-200 overflow-x-hidden">
+    <div className="space-y-5 pb-6 animate-in fade-in duration-200 overflow-x-hidden">
       {/* 1. SE NÃO FOR AUTENTICADO COMO ADMIN */}
       {!isAdmin ? (
         <div className="space-y-4">

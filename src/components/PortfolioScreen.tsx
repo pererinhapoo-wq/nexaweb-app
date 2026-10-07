@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { getPortfolioProjects, getPortfolioCategories } from '../data/portfolioData';
 import { PortfolioProject } from '../types';
 import { ProjectCardImage } from './ProjectCardImage';
@@ -11,6 +11,8 @@ interface PortfolioScreenProps {
   onBack?: () => void;
   initialPlanFilter?: PlanFilter;
   onPlanFilterChange?: (plan: PlanFilter) => void;
+  initialSegmentFilter?: string;
+  onSegmentFilterChange?: (segment: string) => void;
   initialSearchQuery?: string;
   onSearchQueryChange?: (query: string) => void;
 }
@@ -20,9 +22,10 @@ type PlanFilter = 'todas' | 'essencial' | 'profissional' | 'premium';
 // Card de projeto na vitrine redesenhado para visual moderno, compacto e sem botões internos
 const PortfolioProjectCard = React.memo<{
   project: PortfolioProject;
+  categoryLabel: string;
   onSelectProject?: (project: PortfolioProject) => void;
   priority?: boolean;
-}>(({ project, onSelectProject, priority }) => {
+}>(({ project, categoryLabel, onSelectProject, priority }) => {
   const planBadge = project.planoId ? project.planoId.toUpperCase() : 'PROFISSIONAL';
 
   return (
@@ -43,7 +46,7 @@ const PortfolioProjectCard = React.memo<{
         <div className="p-3 sm:p-3.5 space-y-1">
           <div className="flex items-center justify-between gap-1 text-[10px]">
             <span className="font-bold text-cyan-400 uppercase tracking-wider truncate">
-              {project.categoria}
+              {categoryLabel || project.categoria}
             </span>
             <span className="font-mono text-[9px] uppercase px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 shrink-0">
               {planBadge}
@@ -70,18 +73,34 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
   onBack,
   initialPlanFilter = 'todas',
   onPlanFilterChange,
+  initialSegmentFilter = 'todos',
+  onSegmentFilterChange,
   initialSearchQuery = '',
+  onSearchQueryChange,
 }) => {
   const { language } = useTranslation();
 
   // Estados locais para filtragem veloz e sem re-renderizar a árvore inteira do app
   const [selectedPlan, setSelectedPlan] = useState<PlanFilter>(initialPlanFilter);
-  const [selectedSegment, setSelectedSegment] = useState<string>('todos');
+  const [selectedSegment, setSelectedSegment] = useState<string>(initialSegmentFilter);
   const [searchQuery, setSearchQuery] = useState<string>(initialSearchQuery);
   const [isSegmentFilterModalOpen, setIsSegmentFilterModalOpen] = useState<boolean>(false);
 
+  // Sincroniza estados com props quando alternar abas
+  useEffect(() => {
+    if (initialPlanFilter) setSelectedPlan(initialPlanFilter);
+  }, [initialPlanFilter]);
+
+  useEffect(() => {
+    if (initialSegmentFilter) setSelectedSegment(initialSegmentFilter);
+  }, [initialSegmentFilter]);
+
+  useEffect(() => {
+    if (initialSearchQuery !== undefined) setSearchQuery(initialSearchQuery);
+  }, [initialSearchQuery]);
+
   // Fecha modal de filtros com tecla Escape
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isSegmentFilterModalOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setIsSegmentFilterModalOpen(false);
@@ -145,17 +164,26 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
     });
   }, [allProjects, selectedPlan, selectedSegment, searchQuery]);
 
+  // Mapeamento id -> nome legível para badges de segmento
+  const categoryNameMap = useMemo(() => {
+    const map = new Map<string, string>();
+    allCategories.forEach((c) => map.set(c.id, c.nome));
+    return map;
+  }, [allCategories]);
+
   const handleClearAllFilters = () => {
     setSearchQuery('');
+    onSearchQueryChange?.('');
     setSelectedPlan('todas');
-    setSelectedSegment('todos');
     onPlanFilterChange?.('todas');
+    setSelectedSegment('todos');
+    onSegmentFilterChange?.('todos');
   };
 
   const activeSegmentCategory = allCategories.find((c) => c.id === selectedSegment);
 
   return (
-    <div className="space-y-3.5 pb-24 animate-in fade-in duration-150">
+    <div className="space-y-3.5 pb-4 animate-in fade-in duration-150">
       {/* 1. Cabeçalho Compacto */}
       <section className="pt-0.5 flex items-center gap-3">
         {onBack && (
@@ -185,7 +213,10 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
         <input
           type="text"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            onSearchQueryChange?.(e.target.value);
+          }}
           placeholder="Pesquisar projeto, segmento ou categoria"
           className="min-h-[42px] w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-9 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500/70 transition-colors shadow-sm"
         />
@@ -193,7 +224,10 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
         {searchQuery && (
           <button
             type="button"
-            onClick={() => setSearchQuery('')}
+            onClick={() => {
+              setSearchQuery('');
+              onSearchQueryChange?.('');
+            }}
             className="min-h-[36px] min-w-[36px] flex items-center justify-center p-1.5 text-slate-400 hover:text-white absolute right-1 top-1/2 -translate-y-1/2 rounded-lg"
             title="Limpar pesquisa"
             aria-label="Limpar pesquisa"
@@ -265,7 +299,10 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
             {activeSegmentCategory?.nome || selectedSegment}
             <button
               type="button"
-              onClick={() => setSelectedSegment('todos')}
+              onClick={() => {
+                setSelectedSegment('todos');
+                onSegmentFilterChange?.('todos');
+              }}
               className="p-0.5 hover:text-white"
               aria-label="Remover filtro de segmento"
             >
@@ -321,6 +358,7 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
               <PortfolioProjectCard
                 key={project.id}
                 project={project}
+                categoryLabel={categoryNameMap.get(project.categoria) || project.categoria}
                 onSelectProject={onSelectProject}
                 priority={idx < 2}
               />
@@ -379,6 +417,7 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
                     type="button"
                     onClick={() => {
                       setSelectedSegment(cat.id);
+                      onSegmentFilterChange?.(cat.id);
                       setIsSegmentFilterModalOpen(false);
                     }}
                     className={`w-full min-h-[46px] p-2.5 rounded-xl text-left flex items-center justify-between text-xs transition-all active:scale-[0.985] ${
@@ -404,6 +443,7 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
                 type="button"
                 onClick={() => {
                   setSelectedSegment('todos');
+                  onSegmentFilterChange?.('todos');
                   setIsSegmentFilterModalOpen(false);
                 }}
                 className="min-h-[44px] px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white active:scale-95 transition-colors"

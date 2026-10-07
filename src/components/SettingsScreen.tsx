@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation, LanguageOption } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { Language, ThemeMode, AnimationMode } from '../types';
+import { Language, AnimationMode } from '../types';
 import {
   Globe,
   Zap,
@@ -27,7 +27,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   onBack,
 }) => {
   const { language, setLanguage, t, languages } = useTranslation();
-  const { themeMode, setThemeMode, animationMode, setAnimationMode } = useTheme();
+  const { animationMode, setAnimationMode } = useTheme();
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -55,51 +55,13 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     showToast(t.settings.languageChangedToast || 'Idioma atualizado com sucesso!');
   };
 
-  const handleThemeChange = async (mode: ThemeMode) => {
-    if (mode === themeMode) return;
-    await setThemeMode(mode);
-  };
-
   const handleAnimationChange = async (mode: AnimationMode) => {
     if (mode === animationMode) return;
     await setAnimationMode(mode);
   };
 
-  // 4 Opções de Tema conforme especificação
-  const themeOptions: {
-    id: ThemeMode;
-    label: string;
-    icon: string;
-    description: string;
-  }[] = [
-    {
-      id: 'dark',
-      label: 'Escuro',
-      icon: '🌙',
-      description: 'Preto profundo AMOLED',
-    },
-    {
-      id: 'official',
-      label: 'Padrão Oficial',
-      icon: '◐',
-      description: 'Identidade NexaWeb',
-    },
-    {
-      id: 'light',
-      label: 'Claro',
-      icon: '☀️',
-      description: 'Visual clássico de alto contraste',
-    },
-    {
-      id: 'auto',
-      label: 'Automático',
-      icon: '⚙️',
-      description: 'Sincronizado com o sistema',
-    },
-  ];
-
   return (
-    <div className="space-y-5 pb-28 transition-colors duration-200 overflow-x-hidden">
+    <div className="space-y-5 pb-4 transition-colors duration-200 overflow-x-hidden">
       {/* Toast flutuante de confirmação */}
       {toastMessage && (
         <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-indigo-600 text-white text-xs font-semibold shadow-xl shadow-indigo-500/25 flex items-center gap-2 animate-in fade-in zoom-in-95 duration-150">
@@ -214,62 +176,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       </section>
 
       {/* =========================================================================
-          SEÇÃO 2: APARÊNCIA / TEMA
-          ========================================================================= */}
-      <section className="rounded-2xl p-4 sm:p-5 bg-slate-900/90 border border-slate-800 shadow-md space-y-3">
-        <div className="flex items-center gap-2 pb-1 border-b border-slate-800/80">
-          <span className="text-base" role="img" aria-hidden="true">◐</span>
-          <h2 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-white">
-            Aparência / Tema
-          </h2>
-        </div>
-
-        <p className="text-[11px] text-slate-400">
-          Escolha a identidade visual do NexaWeb App:
-        </p>
-
-        <div className="grid grid-cols-2 gap-2">
-          {themeOptions.map((opt) => {
-            const isSelected = themeMode === opt.id;
-            return (
-              <button
-                key={opt.id}
-                type="button"
-                onClick={() => handleThemeChange(opt.id)}
-                className={`flex flex-col justify-between p-3 rounded-xl border text-left transition-all duration-150 min-h-[64px] active:scale-[0.98] ${
-                  isSelected
-                    ? 'bg-indigo-600/20 border-cyan-500/80 text-white shadow-sm ring-1 ring-cyan-500/30'
-                    : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-850'
-                }`}
-                aria-pressed={isSelected}
-              >
-                <div className="flex items-center justify-between w-full mb-1">
-                  <span className="text-lg leading-none" role="img" aria-hidden="true">
-                    {opt.icon}
-                  </span>
-                  {isSelected && (
-                    <div className="w-4 h-4 rounded-full bg-cyan-500 flex items-center justify-center text-slate-950">
-                      <Check className="w-2.5 h-2.5 stroke-[3]" />
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <p className={`text-xs font-bold leading-tight ${isSelected ? 'text-cyan-200' : 'text-white'}`}>
-                    {opt.label}
-                  </p>
-                  <p className="text-[10px] text-slate-400 leading-tight mt-0.5 truncate">
-                    {opt.description}
-                  </p>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* =========================================================================
-          SEÇÃO 3: ANIMAÇÕES
+          SEÇÃO 2: ANIMAÇÕES
           ========================================================================= */}
       <section className="rounded-2xl p-4 sm:p-5 bg-slate-900/90 border border-slate-800 shadow-md space-y-3">
         <div className="flex items-center gap-2 pb-1 border-b border-slate-800/80">
@@ -347,7 +254,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       </section>
 
       {/* =========================================================================
-          SEÇÃO 4: NEXAWEB OFICIAL
+          SEÇÃO 3: NEXAWEB OFICIAL
           ========================================================================= */}
       <section className="rounded-2xl p-4 sm:p-5 bg-slate-900/90 border border-slate-800 shadow-md space-y-3">
         <div className="flex items-center gap-2 pb-1 border-b border-slate-800/80">
@@ -428,7 +335,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       </section>
 
       {/* =========================================================================
-          SEÇÃO 5: SOBRE A NEXAWEB
+          SEÇÃO 4: SOBRE A NEXAWEB
           ========================================================================= */}
       <section className="rounded-2xl p-4 sm:p-5 bg-slate-900/90 border border-slate-800 shadow-md space-y-4">
         <div className="flex items-center justify-between pb-1 border-b border-slate-800/80">

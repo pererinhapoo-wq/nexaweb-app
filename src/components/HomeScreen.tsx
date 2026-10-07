@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { ViewTab, PortfolioProject, ProjectRecommendation } from '../types';
-import { getPortfolioProjects } from '../data/portfolioData';
+import { getPortfolioProjects, getPortfolioCategories } from '../data/portfolioData';
 import { ProjectCardImage } from './ProjectCardImage';
 import {
   getSegmentConfig,
@@ -108,7 +108,6 @@ const MainHeroBanner = React.memo<{
   onNavigate: (tab: ViewTab) => void;
 }>(({ allProjects, onSelectProject, onNavigate }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
   const [imageOverrides, setImageOverrides] = useState<Record<string, string>>({});
 
   const touchStartX = useRef<number>(0);
@@ -116,43 +115,10 @@ const MainHeroBanner = React.memo<{
   const touchDeltaX = useRef<number>(0);
   const isHorizontalIntent = useRef<boolean | null>(null);
   const isSwiping = useRef<boolean>(false);
-  const pauseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isMouseDown = useRef<boolean>(false);
   const mouseStartX = useRef<number>(0);
   const mouseDeltaX = useRef<number>(0);
-
-  // Pausa temporariamente a rotação automática quando o usuário interage
-  const pauseTemporarily = useCallback(() => {
-    setIsPaused(true);
-    if (pauseTimeoutRef.current) {
-      clearTimeout(pauseTimeoutRef.current);
-    }
-    pauseTimeoutRef.current = setTimeout(() => {
-      setIsPaused(false);
-    }, 8000); // 8 segundos para leitura tranquila
-  }, []);
-
-  // Troca automática lenta e suave (a cada 5.5 segundos)
-  useEffect(() => {
-    if (isPaused) return;
-
-    const interval = setInterval(() => {
-      if (typeof document !== 'undefined' && document.hidden) return;
-      setCurrentIndex((prev) => (prev + 1) % BANNER_SLIDES.length);
-    }, 5500);
-
-    return () => clearInterval(interval);
-  }, [isPaused]);
-
-  // Cleanup do timer de pausa
-  useEffect(() => {
-    return () => {
-      if (pauseTimeoutRef.current) {
-        clearTimeout(pauseTimeoutRef.current);
-      }
-    };
-  }, []);
 
   // Handlers para gestos de toque no celular diferenciando intenção horizontal de vertical
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -161,7 +127,6 @@ const MainHeroBanner = React.memo<{
     touchDeltaX.current = 0;
     isHorizontalIntent.current = null;
     isSwiping.current = false;
-    pauseTemporarily();
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
@@ -204,7 +169,6 @@ const MainHeroBanner = React.memo<{
     isMouseDown.current = true;
     mouseStartX.current = e.clientX;
     mouseDeltaX.current = 0;
-    pauseTemporarily();
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -325,7 +289,6 @@ const MainHeroBanner = React.memo<{
                 e.stopPropagation();
                 e.preventDefault();
                 setCurrentIndex(idx);
-                pauseTemporarily();
               }}
               className="min-h-[32px] min-w-[20px] flex items-center justify-center p-1"
             >
@@ -349,9 +312,10 @@ MainHeroBanner.displayName = 'MainHeroBanner';
 // Card de destaque memorizado
 const FeaturedProjectCard = React.memo<{
   project: PortfolioProject;
+  categoryLabel?: string;
   onSelectProject: (project: PortfolioProject) => void;
   priority?: boolean;
-}>(({ project, onSelectProject, priority }) => {
+}>(({ project, categoryLabel, onSelectProject, priority }) => {
   const planBadge = project.planoId ? project.planoId.toUpperCase() : 'PROFISSIONAL';
 
   return (
@@ -369,7 +333,7 @@ const FeaturedProjectCard = React.memo<{
 
         <div className="p-2.5 space-y-0.5">
           <span className="text-[10px] font-semibold text-cyan-400 block truncate">
-            {project.categoria}
+            {categoryLabel || project.categoria}
           </span>
           <h3 className="text-xs font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-1">
             {project.titulo}
@@ -400,10 +364,20 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 }) => {
   const { language } = useTranslation();
 
-  // Carrega todos os projetos para o banner interativo
+  // Carrega todos os projetos e categorias para mapeamento e navegação
   const allProjects = useMemo(() => {
     return getPortfolioProjects(language);
   }, [language]);
+
+  const allCategories = useMemo(() => {
+    return getPortfolioCategories(language);
+  }, [language]);
+
+  const categoryNameMap = useMemo(() => {
+    const map = new Map<string, string>();
+    allCategories.forEach((c) => map.set(c.id, c.nome));
+    return map;
+  }, [allCategories]);
 
   // Seleciona exatamente 6 projetos de segmentos representativos para a seção compacta
   const featuredProjects = useMemo(() => {
@@ -424,7 +398,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   }, [allProjects]);
 
   return (
-    <div className="space-y-4 pb-24 animate-in fade-in duration-150 overflow-x-hidden">
+    <div className="space-y-4 pb-4 animate-in fade-in duration-150 overflow-x-hidden">
       {/* 1. CABEÇALHO COMPACTO & AMIGÁVEL */}
       <section className="pt-0.5 flex items-center justify-between">
         <div>
@@ -631,6 +605,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             <FeaturedProjectCard
               key={project.id}
               project={project}
+              categoryLabel={categoryNameMap.get(project.categoria) || project.categoria}
               onSelectProject={onSelectProject}
               priority={idx < 2}
             />

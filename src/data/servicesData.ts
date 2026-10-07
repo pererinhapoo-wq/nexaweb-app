@@ -352,7 +352,7 @@ function buildNexawebPlans(lang: Language = 'pt-BR'): ServicePlan[] {
       preco: 'R$ 1.000',
       prazo: '3–5 dias',
       corIdentidade: 'azul',
-      descricao: 'Para quem está começando.',
+      descricao: 'Site profissional para começar',
       recursos: [
         'Apresentação completa do negócio, serviços e diferenciais',
         'Estrutura Home, Sobre, Serviços, Informações e Contato',
@@ -371,7 +371,7 @@ function buildNexawebPlans(lang: Language = 'pt-BR'): ServicePlan[] {
       preco: 'R$ 1.700',
       prazo: '5–8 dias',
       corIdentidade: 'dourado',
-      descricao: 'Para negócios que precisam de mais recursos e presença profissional.',
+      descricao: 'Mais recursos e autoridade para fortalecer sua marca no mercado',
       recursos: [
         'Estrutura completa com seções estratégicas de alta conversão',
         'Seções com chamadas de ação (CTAs) otimizadas',
@@ -387,11 +387,11 @@ function buildNexawebPlans(lang: Language = 'pt-BR'): ServicePlan[] {
     {
       id: 'personalizado',
       nome: 'PERSONALIZADO',
-      tagline: 'Escopo dependente do projeto',
-      preco: 'A partir de R$ 2.800',
+      tagline: 'Projeto sob medida conforme escopo',
+      preco: 'a partir de R$ 2.800',
       prazo: 'Conforme escopo',
       corIdentidade: 'roxo',
-      descricao: 'Para quem precisa de um projeto sob medida.',
+      descricao: 'Projeto sob medida conforme escopo',
       recursos: [
         'Identidade visual autoral sob medida para o negócio',
         'Arquitetura e fluxo de navegação personalizados',
@@ -405,11 +405,11 @@ function buildNexawebPlans(lang: Language = 'pt-BR'): ServicePlan[] {
     {
       id: 'premium',
       nome: 'PREMIUM',
-      tagline: 'VIP / conforme escopo',
-      preco: 'A partir de R$ 4.500',
+      tagline: 'Experiência avançada / solução VIP',
+      preco: 'a partir de R$ 4.500',
       prazo: 'VIP / conforme escopo',
       corIdentidade: 'dourado',
-      descricao: 'Para projetos avançados e experiências mais completas.',
+      descricao: 'Experiência avançada / solução VIP',
       recursos: [
         'Direção de arte exclusiva e padrão visual refinado',
         'Apresentação premium com máximo impacto e autoridade de marca',

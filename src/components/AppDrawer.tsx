@@ -244,6 +244,7 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
         backdropRef.current.style.pointerEvents = 'none';
       }
       currentTranslateRef.current = -DRAWER_WIDTH;
+      setIsRendered(false);
       onClose();
     }
   };
@@ -422,13 +423,13 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
 
   return (
     <>
-      {/* 1. Zona de captura na borda esquerda (quando fechado, não interfere no conteúdo do centro) */}
+      {/* 1. Zona de captura na borda esquerda abaixo do header (não sobrepõe o botão do menu ☰ nem interfere no header) */}
       {!isOpen && (
         <div
           onTouchStart={handleEdgeTouchStart}
           onTouchMove={handleEdgeTouchMove}
           onTouchEnd={handleEdgeTouchEnd}
-          className="fixed top-0 left-0 bottom-0 w-6 z-40 touch-pan-y"
+          className="fixed top-16 left-0 bottom-0 w-6 z-30 touch-pan-y"
           style={{ width: '26px' }}
           aria-hidden="true"
         />
@@ -437,7 +438,11 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
       {/* 2. Container do Drawer e Backdrop (com overflow-hidden sem permitir scroll horizontal) */}
       <div
         className={`fixed inset-0 z-50 overflow-hidden transition-opacity ${
-          isRendered || isOpen ? 'visible' : 'invisible pointer-events-none'
+          isOpen || isDraggingRef.current
+            ? 'visible'
+            : isRendered
+            ? 'visible pointer-events-none'
+            : 'invisible pointer-events-none'
         }`}
       >
         {/* Backdrop discreto sem blur pesado (máxima performance no Galaxy A20) */}

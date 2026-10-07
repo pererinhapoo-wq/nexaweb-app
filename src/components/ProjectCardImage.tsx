@@ -8,6 +8,7 @@ import {
   isImageCachedFailed,
   cacheImageLoaded,
   cacheImageFailed,
+  GLOBAL_SAFE_FALLBACK_IMAGE,
 } from '../utils/imageService';
 
 interface ProjectCardImageProps {
@@ -27,7 +28,7 @@ export const ProjectCardImage: React.FC<ProjectCardImageProps> = React.memo(({
   enableSwipe = true,
   priority = false,
 }) => {
-  // Lista de imagens do projeto com imagens do segmento
+  // Lista de imagens estritamente pertencentes a este projeto
   const images = useMemo(() => {
     if (project.imagens && project.imagens.length > 0) {
       return project.imagens;
@@ -35,9 +36,8 @@ export const ProjectCardImage: React.FC<ProjectCardImageProps> = React.memo(({
     if (project.imagemUrl) {
       return [project.imagemUrl];
     }
-    const segment = getSegmentConfig(project.categoria || project.segmentoAlvo);
-    return [segment.primaryImage, segment.secondaryImage];
-  }, [project.imagens, project.imagemUrl, project.categoria, project.segmentoAlvo]);
+    return [GLOBAL_SAFE_FALLBACK_IMAGE];
+  }, [project.imagens, project.imagemUrl]);
 
   const [activeIdx, setActiveIdx] = useState(0);
   const currentPrimaryUrl = images[activeIdx] || images[0];

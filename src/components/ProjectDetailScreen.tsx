@@ -8,7 +8,6 @@ import {
   Layers,
   Globe,
   Tag,
-  ShieldCheck,
   Send,
   Check,
 } from 'lucide-react';
@@ -47,18 +46,22 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
 
   const hasMultipleImages = imageList.length > 1;
 
-  // Estado do Carrossel
+  // Estado do Carrossel (Estritamente Manual)
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imageOverrides, setImageOverrides] = useState<Record<number, string>>({});
   const [loadedImages, setLoadedImages] = useState<Record<number, boolean>>({});
   const [failedImages, setFailedImages] = useState<Record<number, boolean>>({});
-  const [isInteracting, setIsInteracting] = useState(false);
 
   // Gesto de Swipe no celular
   const touchStartXRef = useRef<number | null>(null);
   const touchStartYRef = useRef<number | null>(null);
   const touchDeltaXRef = useRef<number>(0);
-  const autoplayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isHorizontalIntentRef = useRef<boolean | null>(null);
+
+  // Mouse drag para preview desktop
+  const isMouseDownRef = useRef<boolean>(false);
+  const mouseStartXRef = useRef<number>(0);
+  const mouseDeltaXRef = useRef<number>(0);
 
   // 2. Abordagem do Modelo: Exatamente o mesmo formato OU Inspiração para personalizar
   const [selectedApproach, setSelectedApproach] = useState<'exact' | 'inspiration'>('exact');
@@ -84,12 +87,10 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
 
   // Navegação manual de imagem (sem setas na UI)
   const handlePrevImage = useCallback(() => {
-    setIsInteracting(true);
     setCurrentImageIndex((prev) => (prev > 0 ? prev - 1 : imageList.length - 1));
   }, [imageList.length]);
 
   const handleNextImage = useCallback(() => {
-    setIsInteracting(true);
     setCurrentImageIndex((prev) => (prev < imageList.length - 1 ? prev + 1 : 0));
   }, [imageList.length]);
 
@@ -108,43 +109,8 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
     }
   }, [currentImageIndex, imageList, hasMultipleImages]);
 
-  // Autoplay lento suave apenas quando houver múltiplas imagens, app visível e sem interação ativa
-  useEffect(() => {
-    if (!hasMultipleImages || isInteracting) return;
-
-    const handleVisibility = () => {
-      if (document.hidden && autoplayTimerRef.current) {
-        clearTimeout(autoplayTimerRef.current);
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibility);
-
-    autoplayTimerRef.current = setTimeout(() => {
-      if (typeof document !== 'undefined' && document.hidden) return;
-      setCurrentImageIndex((prev) => (prev + 1) % imageList.length);
-    }, 6000);
-
-    return () => {
-      if (autoplayTimerRef.current) clearTimeout(autoplayTimerRef.current);
-      document.removeEventListener('visibilitychange', handleVisibility);
-    };
-  }, [currentImageIndex, hasMultipleImages, isInteracting, imageList.length]);
-
-  // Retoma autoplay após 8s de inatividade do usuário
-  useEffect(() => {
-    if (!isInteracting) return;
-    const resumeTimer = setTimeout(() => {
-      setIsInteracting(false);
-    }, 8000);
-    return () => clearTimeout(resumeTimer);
-  }, [isInteracting]);
-
-  // Handlers de toque para swipe natural no mobile (sem travar a página)
-  const isHorizontalIntentRef = useRef<boolean | null>(null);
-
+  // Handlers de toque para swipe natural no celular (sem travar a rolagem vertical da página)
   const handleTouchStart = (e: React.TouchEvent) => {
-    setIsInteracting(true);
     touchStartXRef.current = e.touches[0].clientX;
     touchStartYRef.current = e.touches[0].clientY;
     touchDeltaXRef.current = 0;
@@ -182,27 +148,29 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
     isHorizontalIntentRef.current = null;
   };
 
-  // Gesto seguro de retorno por deslize da borda esquerda (sem conflitar com o carrossel interno)
-  const edgeStartXRef = useRef<number | null>(null);
-
-  const handleContainerTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length !== 1) return;
-    const clientX = e.touches[0].clientX;
-    if (clientX < 32) {
-      edgeStartXRef.current = clientX;
-    } else {
-      edgeStartXRef.current = null;
-    }
+  // Handlers para mouse (desktop preview)
+  const handleMouseDown = (e: React.MouseEvent) => {
+    isMouseDownRef.current = true;
+    mouseStartXRef.current = e.clientX;
+    mouseDeltaXRef.current = 0;
   };
 
-  const handleContainerTouchEnd = (e: React.TouchEvent) => {
-    if (edgeStartXRef.current !== null && e.changedTouches.length === 1) {
-      const deltaX = e.changedTouches[0].clientX - edgeStartXRef.current;
-      if (deltaX > 50) {
-        onBack();
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isMouseDownRef.current) return;
+    mouseDeltaXRef.current = e.clientX - mouseStartXRef.current;
+  };
+
+  const handleMouseUp = () => {
+    if (!isMouseDownRef.current) return;
+    isMouseDownRef.current = false;
+    if (Math.abs(mouseDeltaXRef.current) > 35) {
+      if (mouseDeltaXRef.current < 0) {
+        handleNextImage();
+      } else {
+        handlePrevImage();
       }
     }
-    edgeStartXRef.current = null;
+    mouseDeltaXRef.current = 0;
   };
 
   const handleStart = () => {
@@ -210,11 +178,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
   };
 
   return (
-    <div
-      onTouchStart={handleContainerTouchStart}
-      onTouchEnd={handleContainerTouchEnd}
-      className="space-y-4 pb-28 animate-in fade-in duration-200"
-    >
+    <div className="space-y-4 pb-24 sm:pb-28 animate-in fade-in duration-200">
       {/* 1. Barra de Acesso e Voltar Contextual */}
       <div className="flex items-center justify-between gap-2 pb-1 border-b border-slate-800/80">
         <button
@@ -235,11 +199,14 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
       {/* 2. Carrossel / Imagem Principal (Swipe com Toque, Sem Setas) */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-lg">
         <div
-          className="relative w-full aspect-[16/10] bg-slate-950 overflow-hidden select-none touch-pan-y"
+          className="relative w-full aspect-[16/10] bg-slate-950 overflow-hidden select-none touch-pan-y cursor-grab active:cursor-grabbing"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-          onMouseEnter={() => setIsInteracting(true)}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
         >
           {/* Skeleton Shimmer enquanto imagem carrega */}
           {!loadedImages[currentImageIndex] && !failedImages[currentImageIndex] && (
@@ -341,7 +308,6 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
                   onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
-                    setIsInteracting(true);
                     setCurrentImageIndex(idx);
                   }}
                   className="pointer-events-auto min-h-[32px] min-w-[22px] flex items-center justify-center p-1 focus:outline-none"
@@ -529,15 +495,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
         </div>
       )}
 
-      {/* 8. Nota de Padrão NexaWeb */}
-      <div className="p-3.5 rounded-xl bg-indigo-950/30 border border-indigo-500/20 text-xs text-slate-400 flex items-center gap-2.5">
-        <ShieldCheck className="w-4 h-4 text-cyan-400 shrink-0" />
-        <span>
-          Projeto conceito oficial NexaWeb. Ao solicitar, este mesmo padrão é entregue publicado com seu domínio, identidade e conteúdo.
-        </span>
-      </div>
-
-      {/* 9. Barra de Ação Fixa no Rodapé Mobile (Apenas ação principal de solicitar briefing, SEM botão Ver Site) */}
+      {/* Barra de Ação Fixa no Rodapé Mobile (Ação de solicitar briefing) */}
       <div className="fixed bottom-0 left-0 right-0 z-40 p-3 sm:p-4 bg-slate-950/95 backdrop-blur-md border-t border-slate-800 shadow-2xl safe-area-pb">
         <div className="max-w-3xl mx-auto">
           <button
@@ -546,7 +504,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
             className="w-full min-h-[48px] flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-sm shadow-lg shadow-indigo-950/50 transition-all active:scale-[0.985]"
           >
             <Send className="w-4 h-4" />
-            <span>Quero esse site</span>
+            <span>Iniciar Briefing</span>
           </button>
         </div>
       </div>

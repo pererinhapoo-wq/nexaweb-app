@@ -14,7 +14,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({ onOpenMenu }) => {
           <button
             type="button"
             onClick={onOpenMenu}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/80 active:scale-95 transition-all -ml-1"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/80 active:scale-95 transition-all -ml-1 cursor-pointer"
             aria-label="Abrir Menu"
             title="Menu"
           >
@@ -22,14 +22,11 @@ export const Header: React.FC<HeaderProps> = React.memo(({ onOpenMenu }) => {
           </button>
         </div>
 
-        {/* Centro Absoluto: "Nexa" visualmente centralizado na tela, independente da largura dos botões */}
+        {/* Centro Absoluto: Somente o N estilizado aprovado para o app */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="flex items-center gap-1.5 pointer-events-auto">
-            <span className="w-5 h-5 rounded-md bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center text-[11px] font-black text-slate-950 font-mono select-none shadow-sm">
+          <div className="flex items-center pointer-events-auto">
+            <span className="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center text-xs font-black text-slate-950 font-mono select-none shadow-sm shadow-indigo-500/20">
               N
-            </span>
-            <span className="font-extrabold text-base tracking-tight text-white select-none">
-              Nexa
             </span>
           </div>
         </div>

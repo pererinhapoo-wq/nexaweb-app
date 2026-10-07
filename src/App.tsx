@@ -68,10 +68,11 @@ function AppContent() {
   const [savedModelApproach, setSavedModelApproach] = useState<'exact' | 'inspiration'>('exact');
   const [savedWebsiteLanguage, setSavedWebsiteLanguage] = useState<WebsiteLanguage | undefined>(undefined);
 
-  // Preservação de estado da Vitrine de Demonstrações (Filtro, Busca e Rolagem)
+  // Preservação de estado da Vitrine de Demonstrações (Filtro, Segmento, Busca e Rolagem)
   const [portfolioPlanFilter, setPortfolioPlanFilter] = useState<
     'todas' | 'essencial' | 'profissional' | 'premium'
   >('todas');
+  const [portfolioSegmentFilter, setPortfolioSegmentFilter] = useState<string>('todos');
   const [portfolioSearchQuery, setPortfolioSearchQuery] = useState('');
   const portfolioScrollPosRef = useRef(0);
 
@@ -429,6 +430,19 @@ function AppContent() {
     navigateTo(tab);
   };
 
+  // Determina se a Bottom Navigation deve estar visível:
+  // Somente nas 4 telas principais (Início, Serviços, Portfólio, Cliente), oculta em telas internas e fluxos
+  const isMainTab =
+    currentTab === 'home' ||
+    currentTab === 'services' ||
+    currentTab === 'portfolio' ||
+    currentTab === 'portal';
+
+  const isBottomNavVisible =
+    !selectedProjectDetail &&
+    !isKeyboardOpen &&
+    isMainTab;
+
   return (
     <div
       className={`min-h-screen flex flex-col font-sans selection:bg-indigo-500 selection:text-white transition-colors duration-200 ${
@@ -443,8 +457,8 @@ function AppContent() {
 
       {/* Área de conteúdo principal com transição suave entre telas */}
       <main
-        className={`flex-1 max-w-3xl w-full mx-auto px-4 pt-4 ${
-          currentTab === 'project' ? 'pb-8 sm:pb-12' : 'pb-24 sm:pt-6 sm:pb-28'
+        className={`flex-1 max-w-3xl w-full mx-auto px-4 pt-4 sm:pt-6 ${
+          isBottomNavVisible ? 'pb-20 sm:pb-24' : 'pb-6 sm:pb-8'
         }`}
       >
         <div
@@ -481,7 +495,6 @@ function AppContent() {
                 <ServicesScreen
                   onSelectPlan={handleSelectPlan}
                   onNavigate={handleNavigate}
-                  onBack={handleGoBack}
                   onSelectProject={handleSelectProject}
                   onSelectProjectForBriefing={handleSelectProjectForBriefing}
                 />
@@ -491,9 +504,10 @@ function AppContent() {
                 <PortfolioScreen
                   onSelectProject={handleSelectProject}
                   onSelectProjectForBriefing={handleSelectProjectForBriefing}
-                  onBack={history.length > 1 ? handleGoBack : undefined}
                   initialPlanFilter={portfolioPlanFilter}
                   onPlanFilterChange={setPortfolioPlanFilter}
+                  initialSegmentFilter={portfolioSegmentFilter}
+                  onSegmentFilterChange={setPortfolioSegmentFilter}
                   initialSearchQuery={portfolioSearchQuery}
                   onSearchQueryChange={setPortfolioSearchQuery}
                 />
@@ -516,7 +530,7 @@ function AppContent() {
               )}
 
               {currentTab === 'portal' && (
-                <PortalScreen onNavigate={handleNavigate} onBack={handleGoBack} />
+                <PortalScreen onNavigate={handleNavigate} />
               )}
 
               {currentTab === 'admin' && <AdminScreen onBack={handleGoBack} />}
@@ -532,8 +546,8 @@ function AppContent() {
         </div>
       </main>
 
-      {/* Navegação inferior estritamente nos destinos principais (Início, Serviços, Portfólio, Portal). Oculta no fluxo interno Criar Site e com teclado aberto */}
-      {!selectedProjectDetail && !isKeyboardOpen && (currentTab === 'home' || currentTab === 'services' || currentTab === 'portfolio' || currentTab === 'portal') && (
+      {/* Navegação inferior estritamente nos 4 destinos principais */}
+      {isBottomNavVisible && (
         <BottomNav
           currentTab={currentTab}
           onNavigate={handleNavigate}
