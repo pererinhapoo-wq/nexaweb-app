@@ -1,8 +1,8 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { getPortfolioProjects, getPortfolioCategories } from '../data/portfolioData';
 import { PortfolioProject } from '../types';
 import { ProjectCardImage } from './ProjectCardImage';
-import { Search, X, SlidersHorizontal, Check, ArrowLeft } from 'lucide-react';
+import { Search, X, SlidersHorizontal, Check, ArrowLeft, ChevronDown } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 
 interface PortfolioScreenProps {
@@ -84,7 +84,8 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
   const [selectedPlan, setSelectedPlan] = useState<PlanFilter>(initialPlanFilter);
   const [selectedSegment, setSelectedSegment] = useState<string>(initialSegmentFilter);
   const [searchQuery, setSearchQuery] = useState<string>(initialSearchQuery);
-  const [isSegmentFilterModalOpen, setIsSegmentFilterModalOpen] = useState<boolean>(false);
+  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState<boolean>(false);
+  const dropdownContainerRef = useRef<HTMLDivElement>(null);
 
   // Sincroniza estados com props quando alternar abas
   useEffect(() => {
@@ -92,22 +93,69 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
   }, [initialPlanFilter]);
 
   useEffect(() => {
-    if (initialSegmentFilter) setSelectedSegment(initialSegmentFilter);
+    if (initialSegmentFilter !== undefined) setSelectedSegment(initialSegmentFilter);
   }, [initialSegmentFilter]);
 
   useEffect(() => {
     if (initialSearchQuery !== undefined) setSearchQuery(initialSearchQuery);
   }, [initialSearchQuery]);
 
-  // Fecha modal de filtros com tecla Escape
+  const handleToggleFilter = (e?: React.MouseEvent | React.TouchEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setIsFilterDropdownOpen((prev) => !prev);
+  };
+
+  const handleCloseFilter = () => {
+    setIsFilterDropdownOpen(false);
+  };
+
+  const handleSelectCategory = (catId: string) => {
+    setSelectedSegment(catId);
+    onSegmentFilterChange?.(catId);
+    setIsFilterDropdownOpen(false);
+  };
+
+  const handleClearSegment = (e?: React.MouseEvent | React.TouchEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setSelectedSegment('todos');
+    onSegmentFilterChange?.('todos');
+  };
+
+  // Fecha dropdown com tecla Escape ou toque/clique fora
   useEffect(() => {
-    if (!isSegmentFilterModalOpen) return;
+    if (!isFilterDropdownOpen) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsSegmentFilterModalOpen(false);
+      if (e.key === 'Escape') {
+        setIsFilterDropdownOpen(false);
+      }
     };
+
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      if (
+        dropdownContainerRef.current &&
+        !dropdownContainerRef.current.contains(e.target as Node)
+      ) {
+        setIsFilterDropdownOpen(false);
+      }
+    };
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isSegmentFilterModalOpen]);
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isFilterDropdownOpen]);
 
   // Lista oficial de demonstrações
   const allProjects = useMemo(() => getPortfolioProjects(language), [language]);
@@ -237,80 +285,151 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
         )}
       </div>
 
-      {/* 3. Filtros Principais Compactos (Todos, Essencial, Profissional, Premium) + Botão Filtros */}
-      <div className="flex items-center gap-2">
-        {/* Tabs compactas de planos */}
-        <div className="flex-1 grid grid-cols-4 gap-1 p-1 rounded-xl bg-slate-900 border border-slate-800 shadow-sm">
-          {planTabs.map((tab) => {
-            const isSelected = selectedPlan === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => {
-                  setSelectedPlan(tab.id);
-                  onPlanFilterChange?.(tab.id);
-                }}
-                className={`py-1.5 px-1 rounded-lg text-center transition-all flex flex-col items-center justify-center active:scale-[0.98] ${
-                  isSelected
-                    ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white font-bold shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 font-medium'
-                }`}
-              >
-                <span className="text-[11px] leading-tight truncate max-w-full">
-                  {tab.label}
-                </span>
-                <span
-                  className={`text-[8.5px] font-mono leading-none mt-0.5 ${
-                    isSelected ? 'text-cyan-200 font-bold' : 'text-slate-500'
-                  }`}
-                >
-                  {tab.count}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Botão compacto "Filtros" de segmentos */}
-        <button
-          type="button"
-          onClick={() => setIsSegmentFilterModalOpen(true)}
-          className={`min-h-[44px] px-3 rounded-xl border flex items-center justify-center gap-1.5 text-xs font-semibold shrink-0 transition-all active:scale-[0.98] ${
-            selectedSegment !== 'todos'
-              ? 'bg-cyan-500/15 border-cyan-500/50 text-cyan-300'
-              : 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-300'
-          }`}
-          title={language === 'en' ? 'Filter by industry' : 'Filtrar por segmento'}
-        >
-          <SlidersHorizontal className="w-3.5 h-3.5 text-cyan-400" />
-          <span>{language === 'en' ? 'Filters' : 'Filtros'}</span>
-          {selectedSegment !== 'todos' && (
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-          )}
-        </button>
-      </div>
-
-      {/* Pill de segmento ativo quando selecionado */}
-      {selectedSegment !== 'todos' && (
-        <div className="flex items-center gap-1.5">
-          <span className="text-[11px] text-slate-400">Segmento:</span>
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-[11px] font-semibold">
-            {activeSegmentCategory?.nome || selectedSegment}
+      {/* 3. Filtros de Planos (Todos, Essencial, Profissional, Premium) */}
+      <div className="grid grid-cols-4 gap-1 p-1 rounded-xl bg-slate-900 border border-slate-800 shadow-sm">
+        {planTabs.map((tab) => {
+          const isSelected = selectedPlan === tab.id;
+          return (
             <button
+              key={tab.id}
               type="button"
               onClick={() => {
-                setSelectedSegment('todos');
-                onSegmentFilterChange?.('todos');
+                setSelectedPlan(tab.id);
+                onPlanFilterChange?.(tab.id);
               }}
-              className="p-0.5 hover:text-white"
-              aria-label="Remover filtro de segmento"
+              className={`py-1.5 px-1 rounded-lg text-center transition-all flex flex-col items-center justify-center active:scale-[0.98] cursor-pointer ${
+                isSelected
+                  ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white font-bold shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 font-medium'
+              }`}
             >
-              <X className="w-3 h-3" />
+              <span className="text-[11px] leading-tight truncate max-w-full">
+                {tab.label}
+              </span>
+              <span
+                className={`text-[8.5px] font-mono leading-none mt-0.5 ${
+                  isSelected ? 'text-cyan-200 font-bold' : 'text-slate-500'
+                }`}
+              >
+                {tab.count}
+              </span>
             </button>
-          </span>
-        </div>
-      )}
+          );
+        })}
+      </div>
+
+      {/* 4. Controle "Selecione filtro" de Categorias / Segmentos */}
+      <div className="relative z-30" ref={dropdownContainerRef}>
+        <button
+          type="button"
+          onClick={handleToggleFilter}
+          aria-haspopup="listbox"
+          aria-expanded={isFilterDropdownOpen}
+          aria-label={language === 'en' ? 'Select filter' : 'Selecione filtro'}
+          title={language === 'en' ? 'Select filter' : 'Selecione filtro'}
+          className={`w-full min-h-[44px] px-3.5 py-2.5 rounded-xl border flex items-center justify-between gap-2 text-xs transition-all active:scale-[0.99] cursor-pointer shadow-sm select-none ${
+            selectedSegment !== 'todos'
+              ? 'bg-cyan-500/15 border-cyan-500/50 text-white ring-1 ring-cyan-500/30 pr-16'
+              : isFilterDropdownOpen
+                ? 'bg-slate-900 border-cyan-500/50 text-white ring-1 ring-cyan-500/30'
+                : 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-300'
+          }`}
+        >
+          <div className="flex items-center gap-2 min-w-0">
+            <SlidersHorizontal className="w-4 h-4 text-cyan-400 shrink-0" />
+            <span className="text-slate-400 shrink-0 text-[11px] font-semibold uppercase tracking-wider">
+              {language === 'en' ? 'Category:' : 'Categoria:'}
+            </span>
+            <span className={`truncate text-xs font-semibold ${selectedSegment !== 'todos' ? 'text-cyan-300' : 'text-slate-200'}`}>
+              {selectedSegment !== 'todos'
+                ? activeSegmentCategory?.nome || selectedSegment
+                : (language === 'en' ? 'Select filter' : 'Selecione filtro')}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            {selectedSegment === 'todos' && (
+              <span className="text-[10px] text-slate-500 font-mono">
+                {allCategories.length} {language === 'en' ? 'options' : 'opções'}
+              </span>
+            )}
+            <ChevronDown
+              className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
+                isFilterDropdownOpen ? 'rotate-180 text-cyan-400' : ''
+              }`}
+            />
+          </div>
+        </button>
+
+        {selectedSegment !== 'todos' && (
+          <button
+            type="button"
+            onClick={handleClearSegment}
+            className="absolute right-8 top-1/2 -translate-y-1/2 min-h-[36px] min-w-[36px] flex items-center justify-center p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer z-20"
+            title={language === 'en' ? 'Clear filter' : 'Limpar filtro'}
+            aria-label={language === 'en' ? 'Clear filter' : 'Limpar filtro'}
+          >
+            <X className="w-3.5 h-3.5 text-cyan-400" />
+          </button>
+        )}
+
+        {/* NOVO SELETOR COMPACTO: Popup suspenso flutuante logo abaixo do controle */}
+        {isFilterDropdownOpen && (
+          <>
+            {/* Backdrop invisível para fechar ao clicar fora */}
+            <div
+              className="fixed inset-0 z-30 bg-transparent"
+              onClick={handleCloseFilter}
+              aria-hidden="true"
+            />
+
+            {/* Popup compacto com sombra sutil e borda arredondada */}
+            <div
+              role="listbox"
+              aria-label={language === 'en' ? 'Select filter' : 'Selecione filtro'}
+              className="absolute left-0 right-0 top-full mt-1.5 z-40 rounded-2xl bg-slate-900/98 backdrop-blur-md border border-slate-700/80 shadow-2xl shadow-black/80 p-1.5 space-y-1 max-h-[300px] overflow-y-auto no-scrollbar animate-in fade-in zoom-in-95 duration-150 origin-top"
+            >
+              {allCategories.map((cat) => {
+                const count =
+                  cat.id === 'todos'
+                    ? allProjects.length
+                    : allProjects.filter((p) => p.categoria === cat.id).length;
+
+                if (cat.id !== 'todos' && count === 0) return null;
+
+                const isSelected = selectedSegment === cat.id;
+
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    role="option"
+                    aria-selected={isSelected}
+                    onClick={() => handleSelectCategory(cat.id)}
+                    className={`w-full min-h-[42px] px-3.5 py-2 rounded-xl text-left flex items-center justify-between text-xs transition-all active:scale-[0.99] cursor-pointer ${
+                      isSelected
+                        ? 'bg-cyan-500/15 border border-cyan-500/40 text-cyan-300 font-semibold shadow-sm'
+                        : 'border border-transparent text-slate-300 hover:text-white hover:bg-slate-800/80 active:bg-slate-800'
+                    }`}
+                  >
+                    <span className="truncate pr-2 font-medium">
+                      {cat.id === 'todos'
+                        ? (language === 'en' ? 'All Categories (Show All)' : 'Todos os Segmentos (Ver Todos)')
+                        : cat.nome}
+                    </span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-[10px] font-mono text-slate-500">
+                        {count}
+                      </span>
+                      {isSelected && <Check className="w-3.5 h-3.5 text-cyan-400 stroke-[2.5]" />}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </div>
 
       {/* 4. Contador de Resultados & Limpar */}
       <div className="flex items-center justify-between text-xs text-slate-400 px-0.5">
@@ -367,93 +486,7 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
         )}
       </div>
 
-      {/* Modal Compacto de Seleção de Segmento */}
-      {isSegmentFilterModalOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200"
-          onClick={() => setIsSegmentFilterModalOpen(false)}
-        >
-          <div
-            className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl bg-slate-900 border border-slate-800 p-4 space-y-3 shadow-2xl max-h-[75dvh] sm:max-h-[80vh] overflow-y-auto no-scrollbar pb-4 safe-area-pb animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Mobile drag handle discreto */}
-            <div className="pt-0.5 pb-1 flex justify-center sm:hidden shrink-0" aria-hidden="true">
-              <div className="w-10 h-1 bg-slate-700/80 rounded-full" />
-            </div>
 
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-              <div className="flex items-center gap-2">
-                <SlidersHorizontal className="w-4 h-4 text-cyan-400" />
-                <h3 className="text-xs sm:text-sm font-bold text-white">Filtrar por Segmento</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsSegmentFilterModalOpen(false)}
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors -mr-1 active:scale-95"
-                aria-label="Fechar filtros"
-                title="Fechar filtros"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="space-y-1">
-              {allCategories.map((cat) => {
-                const count =
-                  cat.id === 'todos'
-                    ? allProjects.length
-                    : allProjects.filter((p) => p.categoria === cat.id).length;
-
-                if (cat.id !== 'todos' && count === 0) return null;
-
-                const isSelected = selectedSegment === cat.id;
-
-                return (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedSegment(cat.id);
-                      onSegmentFilterChange?.(cat.id);
-                      setIsSegmentFilterModalOpen(false);
-                    }}
-                    className={`w-full min-h-[46px] p-2.5 rounded-xl text-left flex items-center justify-between text-xs transition-all active:scale-[0.985] ${
-                      isSelected
-                        ? 'bg-cyan-500/15 border border-cyan-500/40 text-white font-semibold shadow-sm ring-1 ring-cyan-500/20'
-                        : 'bg-slate-950/60 border border-slate-800/80 text-slate-300 hover:border-slate-700 hover:bg-slate-850/60'
-                    }`}
-                  >
-                    <span>{cat.nome}</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-mono text-slate-500">
-                        {count}
-                      </span>
-                      {isSelected && <Check className="w-3.5 h-3.5 text-cyan-400" />}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="pt-2 border-t border-slate-800 flex justify-end">
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedSegment('todos');
-                  onSegmentFilterChange?.('todos');
-                  setIsSegmentFilterModalOpen(false);
-                }}
-                className="min-h-[44px] px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white active:scale-95 transition-colors"
-              >
-                Limpar segmento
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -19,13 +19,13 @@ import {
   CheckCircle2,
   Clock,
   ArrowRight,
-  ArrowLeft,
   ExternalLink,
   Save,
   X,
   Send,
   Sliders,
 } from 'lucide-react';
+import { BackButton } from './BackButton';
 import { useTranslation } from '../contexts/LanguageContext';
 
 interface AdminScreenProps {
@@ -204,15 +204,11 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
                 <span>Painel Administrativo NexaWeb</span>
               </div>
               {onBack && (
-                <button
-                  type="button"
+                <BackButton
                   onClick={onBack}
-                  className="w-9 h-9 min-h-[36px] min-w-[36px] -mr-0.5 rounded-lg bg-slate-900 border border-slate-800/80 hover:bg-slate-850 text-slate-300 hover:text-white flex items-center justify-center transition-all active:scale-95 shrink-0"
-                  aria-label="←"
-                  title="←"
-                >
-                  <ArrowLeft className="w-4 h-4 text-slate-300" />
-                </button>
+                  label="Voltar"
+                  className="-mr-1.5 ml-0"
+                />
               )}
             </div>
 
@@ -272,17 +268,12 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
         <div className="space-y-4">
           {/* Header do Admin */}
           <div className="rounded-2xl p-4 sm:p-5 bg-slate-900 border border-slate-800 shadow-md flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               {onBack && (
-                <button
-                  type="button"
+                <BackButton
                   onClick={onBack}
-                  className="w-9 h-9 min-h-[36px] min-w-[36px] -ml-0.5 rounded-lg bg-slate-950/80 border border-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center transition-all active:scale-95 shrink-0"
-                  aria-label="←"
-                  title="←"
-                >
-                  <ArrowLeft className="w-4 h-4 text-slate-300" />
-                </button>
+                  label="Voltar"
+                />
               )}
               <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
                 <Shield className="w-5 h-5" />

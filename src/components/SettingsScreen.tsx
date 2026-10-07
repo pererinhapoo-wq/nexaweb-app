@@ -10,11 +10,11 @@ import {
   ExternalLink,
   Check,
   ShieldCheck,
-  ArrowLeft,
   Sun,
   Moon,
   Sparkles,
 } from 'lucide-react';
+import { BackButton } from './BackButton';
 
 interface SettingsScreenProps {
   onOpenLanguageModal?: () => void;
@@ -155,18 +155,13 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         </div>
       )}
 
-      {/* Cabeçalho da Tela: Botão Voltar ← pequeno no canto superior esquerdo + Título Oficial */}
-      <div className="flex items-center gap-2.5 pt-0.5 pb-0.5">
+      {/* Cabeçalho da Tela: Botão Voltar fino e moderno + Título Oficial */}
+      <div className="flex items-center gap-1.5 pt-0.5 pb-0.5">
         {onBack && (
-          <button
-            type="button"
+          <BackButton
             onClick={onBack}
-            className="w-8 h-8 rounded-lg bg-slate-900/90 border border-slate-800/90 hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center transition-all active:scale-95 shrink-0 cursor-pointer -ml-0.5"
-            aria-label={t.header?.back || 'Voltar'}
-            title={t.header?.back || 'Voltar'}
-          >
-            <ArrowLeft className="w-4 h-4 text-slate-300" />
-          </button>
+            label={t.header?.back || 'Voltar'}
+          />
         )}
         <div className="min-w-0">
           <h1 className="text-sm sm:text-base font-bold tracking-tight text-white truncate">

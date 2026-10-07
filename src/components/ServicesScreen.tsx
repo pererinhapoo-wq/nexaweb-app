@@ -15,10 +15,10 @@ import {
   Clock,
   ExternalLink,
   ChevronDown,
-  ArrowLeft,
   AlertCircle,
   Layers,
 } from 'lucide-react';
+import { BackButton } from './BackButton';
 import { useTranslation } from '../contexts/LanguageContext';
 
 interface ServicesScreenProps {
@@ -229,18 +229,13 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
 
   return (
     <div className="space-y-4 pb-6 animate-in fade-in duration-150 overflow-x-hidden">
-      {/* Header Compacto com Botão Voltar ← pequeno no canto superior esquerdo */}
-      <section className="pt-0 flex items-center gap-2.5">
+      {/* Header Compacto com Botão Voltar fino e moderno */}
+      <section className="pt-0 flex items-center gap-1.5">
         {onBack && (
-          <button
-            type="button"
+          <BackButton
             onClick={onBack}
-            className="w-9 h-9 min-h-[36px] min-w-[36px] -ml-0.5 rounded-lg bg-slate-900 border border-slate-800/80 hover:bg-slate-850 text-slate-300 hover:text-white flex items-center justify-center transition-all active:scale-95 shrink-0"
-            aria-label="←"
-            title="←"
-          >
-            <ArrowLeft className="w-4 h-4 text-slate-300" />
-          </button>
+            label={t.header?.back || 'Voltar'}
+          />
         )}
         <div className="min-w-0">
           <h1 className="text-sm sm:text-base font-bold text-white tracking-tight truncate">

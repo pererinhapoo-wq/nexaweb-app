@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { BackButton } from '../BackButton';
 import { BriefingStep, BRIEFING_STEP_NAMES } from './briefingTypes';
 import { useTranslation } from '../../contexts/LanguageContext';
 
@@ -42,17 +42,12 @@ export const BriefingStepHeader: React.FC<BriefingStepHeaderProps> = ({
   return (
     <div className="bg-slate-900 border border-slate-800/80 rounded-xl p-3 sm:p-3.5 shadow-sm space-y-2">
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center gap-1 min-w-0">
           {canGoBack && (
-            <button
-              type="button"
+            <BackButton
               onClick={onBackAction}
-              className="w-9 h-9 min-h-[36px] min-w-[36px] -ml-0.5 rounded-lg bg-slate-950/80 border border-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center transition-all active:scale-95 shrink-0"
-              aria-label={language === 'en' ? 'Back to previous step' : 'Voltar para a etapa anterior'}
-              title={language === 'en' ? 'Back' : 'Voltar'}
-            >
-              <ArrowLeft className="w-4 h-4 text-slate-300" />
-            </button>
+              label={language === 'en' ? 'Back to previous step' : 'Voltar para a etapa anterior'}
+            />
           )}
 
           <div className="min-w-0 flex flex-col">

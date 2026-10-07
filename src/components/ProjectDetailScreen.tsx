@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { PortfolioProject } from '../types';
 import {
-  ArrowLeft,
   ExternalLink,
   Sparkles,
   CheckCircle2,
@@ -11,6 +10,7 @@ import {
   Send,
   Check,
 } from 'lucide-react';
+import { BackButton } from './BackButton';
 import { useTranslation } from '../contexts/LanguageContext';
 import {
   getSegmentConfig,
@@ -181,15 +181,10 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
     <div className="space-y-4 pb-24 sm:pb-28 animate-in fade-in duration-200">
       {/* 1. Barra de Acesso e Voltar Contextual */}
       <div className="flex items-center justify-between gap-2 pb-1 border-b border-slate-800/60">
-        <button
-          type="button"
+        <BackButton
           onClick={onBack}
-          className="w-9 h-9 min-h-[36px] min-w-[36px] inline-flex items-center justify-center p-2 rounded-lg bg-slate-900 border border-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors active:scale-95 -ml-0.5"
-          title="←"
-          aria-label="←"
-        >
-          <ArrowLeft className="w-4 h-4 text-cyan-400" />
-        </button>
+          label="Voltar"
+        />
 
         <span className="text-[9.5px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
           Plano {planName}
