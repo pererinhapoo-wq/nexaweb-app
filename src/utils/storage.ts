@@ -22,12 +22,15 @@ export interface BriefingDraftData {
   businessName?: string;
   siteObjective?: string;
   businessLocation?: string;
+  businessBranches?: string;
   googleMapsLink?: string;
   siteLanguage?: WebsiteLanguage;
   contactName?: string;
   contactPhone?: string;
   contactEmail?: string;
   specificNotes?: string;
+  customProjectIdea?: string;
+  customReferenceLink?: string;
   selectedAdvancedFeatures?: string[];
   // Essencial
   essentialServices?: string;
@@ -114,6 +117,82 @@ export async function clearBriefingDraft(planId: string): Promise<void> {
     await Preferences.remove({ key });
   } catch {
     // Ignora
+  }
+}
+
+export function hasMeaningfulDraftData(draft: BriefingDraftData | null | undefined): boolean {
+  if (!draft) return false;
+  return Boolean(
+    (draft.businessName && draft.businessName.trim()) ||
+      draft.siteObjective ||
+      draft.selectedSegment ||
+      draft.visualStyle ||
+      (draft.contactName && draft.contactName.trim()) ||
+      (draft.contactPhone && draft.contactPhone.trim()) ||
+      (draft.contactEmail && draft.contactEmail.trim()) ||
+      (draft.businessLocation && draft.businessLocation.trim()) ||
+      (draft.customProjectIdea && draft.customProjectIdea.trim()) ||
+      (draft.selectedAdvancedFeatures && draft.selectedAdvancedFeatures.length > 0) ||
+      (draft.selectedFeatureIds && draft.selectedFeatureIds.length > 0)
+  );
+}
+
+export async function findExistingBriefingDraft(): Promise<{ planId: string; draft: BriefingDraftData } | null> {
+  const knownPlans = ['profissional', 'essencial', 'premium', 'personalizado'];
+  for (const planId of knownPlans) {
+    const draft = getBriefingDraftSync(planId) || (await getBriefingDraft(planId));
+    if (draft && hasMeaningfulDraftData(draft)) {
+      return { planId, draft };
+    }
+  }
+
+  // Busca em chaves do localStorage com prefixo
+  if (typeof localStorage !== 'undefined') {
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(KEYS.BRIEFING_DRAFT_PREFIX)) {
+          const raw = localStorage.getItem(key);
+          if (raw) {
+            const parsed = JSON.parse(raw) as BriefingDraftData;
+            if (hasMeaningfulDraftData(parsed)) {
+              const planId = parsed.selectedPlan || key.replace(KEYS.BRIEFING_DRAFT_PREFIX, '');
+              return { planId, draft: parsed };
+            }
+          }
+        }
+      }
+    } catch {
+      // Ignora erro
+    }
+  }
+
+  return null;
+}
+
+export async function clearAllBriefingDrafts(): Promise<void> {
+  const knownPlans = ['profissional', 'essencial', 'premium', 'personalizado'];
+  for (const planId of knownPlans) {
+    await clearBriefingDraft(planId);
+  }
+
+  if (typeof localStorage !== 'undefined') {
+    try {
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(KEYS.BRIEFING_DRAFT_PREFIX)) {
+          keysToRemove.push(key);
+        }
+      }
+      for (const k of keysToRemove) {
+        localStorage.removeItem(k);
+        sessionStorage.removeItem(k);
+        Preferences.remove({ key: k }).catch(() => {});
+      }
+    } catch {
+      // Ignora erro
+    }
   }
 }
 

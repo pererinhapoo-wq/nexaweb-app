@@ -1,7 +1,5 @@
 import React from 'react';
 import {
-  Check,
-  Copy,
   Edit2,
   Send,
   Loader2,
@@ -52,9 +50,9 @@ interface Step9SummaryProps {
     isOfflineFallback?: boolean;
   } | null;
   submissionError: string | null;
-  copied: boolean;
+  copied?: boolean;
   onSubmit: () => void;
-  onCopy: () => void;
+  onCopy?: () => void;
   onRetry: () => void;
   onOfflineProtocol: () => void;
   onEditStep: (step: number) => void;
@@ -570,36 +568,26 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
         </div>
       )}
 
-      {/* Botões de Ação da Etapa 9 (Enviar e Copiar) */}
+      {/* Botão de Envio Oficial da Etapa 9 */}
       {!submissionSuccess && (
-        <div className="space-y-2.5 pt-1">
+        <div className="pt-1">
           <button
             type="button"
             onClick={onSubmit}
             disabled={isSubmitting}
-            className="w-full min-h-[48px] py-3 px-5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black text-xs sm:text-sm shadow-lg shadow-emerald-950/40 flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
+            className="w-full min-h-[44px] py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-950/30 flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
           >
             {isSubmitting ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 <span>Registrando seu projeto...</span>
               </>
             ) : (
               <>
-                <Send className="w-4 h-4" />
+                <Send className="w-3.5 h-3.5" />
                 <span>Enviar Briefing Oficial</span>
               </>
             )}
-          </button>
-
-          {/* Botão para Copiar Briefing Formatado */}
-          <button
-            type="button"
-            onClick={onCopy}
-            className="min-h-[44px] w-full py-2.5 px-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 text-xs font-semibold flex items-center justify-center gap-2 active:scale-[0.98] transition-colors"
-          >
-            {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-cyan-400" />}
-            <span>{copied ? 'Copiado para a área de transferência!' : 'Copiar resumo formatado para o WhatsApp'}</span>
           </button>
         </div>
       )}

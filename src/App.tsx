@@ -21,6 +21,7 @@ import { ContactModal } from './components/ContactModal';
 import { OnboardingModal } from './components/OnboardingModal';
 import { RecommendationModal } from './components/RecommendationModal';
 import { LanguageModal } from './components/LanguageModal';
+import { BriefingDraftModal } from './components/BriefingDraftModal';
 import { IntroSplash } from './components/IntroSplash';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { SplashScreen } from '@capacitor/splash-screen';
@@ -31,6 +32,10 @@ import {
   setOnboardingCompleted,
   getSavedOnboardingAnswers,
   saveOnboardingAnswers,
+  findExistingBriefingDraft,
+  clearBriefingDraft,
+  clearAllBriefingDrafts,
+  BriefingDraftData,
 } from './utils/storage';
 import { calculateRecommendation } from './utils/recommendationEngine';
 import { getPortfolioProjects } from './data/portfolioData';
@@ -113,6 +118,14 @@ function AppContent() {
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState<boolean>(false);
   const [recommendation, setRecommendation] = useState<ProjectRecommendation | null>(null);
 
+  // Modal de Rascunho de Briefing em Andamento (Continuar ou Fechar)
+  const [isDraftModalOpen, setIsDraftModalOpen] = useState<boolean>(false);
+  const [existingDraftInfo, setExistingDraftInfo] = useState<{
+    planId: string;
+    draft: BriefingDraftData;
+  } | null>(null);
+  const hasCheckedStartupDraftRef = useRef<boolean>(false);
+
   // Detecção de teclado virtual Android para ocultação garantida da BottomNav sobre formulários
   const [isKeyboardOpen, setIsKeyboardOpen] = useState<boolean>(false);
 
@@ -158,6 +171,26 @@ function AppContent() {
     checkFirstOpenAndLoadRecommendation();
   }, [language, t]);
 
+  // Verificação de rascunho de Briefing salvo na abertura/reabertura do aplicativo
+  useEffect(() => {
+    if (hasCheckedStartupDraftRef.current) return;
+    hasCheckedStartupDraftRef.current = true;
+
+    async function checkStartupDraft() {
+      try {
+        const found = await findExistingBriefingDraft();
+        if (found) {
+          setExistingDraftInfo(found);
+          setIsDraftModalOpen(true);
+        }
+      } catch {
+        // Fallback silencioso
+      }
+    }
+
+    checkStartupDraft();
+  }, []);
+
   // Função central de avanço de navegação com registro de histórico real
   const navigateTo = useCallback(
     (
@@ -176,6 +209,11 @@ function AppContent() {
         projectStepRef.current = 1;
         projectStepBackRef.current = null;
         canStepBackInProjectRef.current = false;
+      }
+
+      // Garante que a tela de destino sempre abra a partir do topo
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
       }
 
       if (options?.selectedPlan !== undefined) {
@@ -422,6 +460,33 @@ function AppContent() {
     setIsOnboardingOpen(true);
   };
 
+  // Handlers do Modal de Rascunho de Briefing
+  const handleContinueDraft = () => {
+    setIsDraftModalOpen(false);
+    if (existingDraftInfo) {
+      navigateTo('project', {
+        selectedPlan: existingDraftInfo.draft.selectedPlan || existingDraftInfo.planId,
+        selectedModel: existingDraftInfo.draft.selectedModel,
+        modelApproach: existingDraftInfo.draft.modelApproach,
+      });
+    }
+  };
+
+  const handleDiscardDraft = async () => {
+    setIsDraftModalOpen(false);
+    if (existingDraftInfo) {
+      await clearBriefingDraft(existingDraftInfo.planId);
+      if (
+        existingDraftInfo.draft.selectedPlan &&
+        existingDraftInfo.draft.selectedPlan !== existingDraftInfo.planId
+      ) {
+        await clearBriefingDraft(existingDraftInfo.draft.selectedPlan);
+      }
+    }
+    await clearAllBriefingDrafts();
+    setExistingDraftInfo(null);
+  };
+
   // Handlers de navegação cruzada
   const handleSelectPlan = (planId: string) => {
     navigateTo('project', { selectedPlan: planId });
@@ -450,6 +515,9 @@ function AppContent() {
         setHistory((prev) => prev.filter((e) => !e.projectDetail));
       }
       return;
+    }
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
     }
     navigateTo(tab);
   };
@@ -480,8 +548,11 @@ function AppContent() {
       {/* Intro splash suave e não intrusiva */}
       {showIntro && <IntroSplash onFinish={() => setShowIntro(false)} />}
 
-      {/* Header oficial Nexa */}
-      <Header onOpenMenu={() => setIsMenuOpen(true)} />
+      {/* Header oficial Nexa (menu oculto no fluxo do Briefing sem deixar espaço vazio) */}
+      <Header
+        onOpenMenu={() => setIsMenuOpen(true)}
+        showMenu={currentTab !== 'project'}
+      />
 
       {/* Área de conteúdo principal com transição suave entre telas */}
       <main
@@ -530,6 +601,7 @@ function AppContent() {
                     navigateTo('project', { selectedPlan: planId });
                   }}
                   onNavigate={handleNavigate}
+                  onBack={handleGoBack}
                   onSelectProject={handleSelectProject}
                   onSelectProjectForBriefing={handleSelectProjectForBriefing}
                 />
@@ -627,6 +699,13 @@ function AppContent() {
       <LanguageModal
         isOpen={isLanguageModalOpen}
         onClose={() => setIsLanguageModalOpen(false)}
+      />
+
+      {/* Modal de Confirmação de Rascunho de Briefing em Andamento */}
+      <BriefingDraftModal
+        isOpen={isDraftModalOpen}
+        onContinue={handleContinueDraft}
+        onDiscard={handleDiscardDraft}
       />
     </div>
   );

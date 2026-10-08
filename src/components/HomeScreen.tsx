@@ -532,17 +532,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
       {/* 4. SEGMENTOS RÁPIDOS / ATALHOS EM FORMATO APP */}
       <section className="space-y-1.5">
-        <div className="flex items-center justify-between px-0.5">
+        <div className="px-0.5">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
             {language === 'en' ? 'Popular Industries' : 'Segmentos Populares'}
           </span>
-          <button
-            type="button"
-            onClick={() => onNavigate('portfolio')}
-            className="text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 transition-colors"
-          >
-            {language === 'en' ? 'View all' : 'Ver todos'}
-          </button>
         </div>
 
         {/* Chips compactos com ícones dos segmentos */}
@@ -571,20 +564,20 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         </div>
       </section>
 
-      {/* 5. ATALHOS COMPACTOS (Encontrar clientes, Meus leads, Portfólio) */}
+      {/* 5. ATALHOS COMPACTOS (Serviços, Meus leads, Portfólio) */}
       <section className="grid grid-cols-3 gap-2">
-        {/* Atalho 1: Encontrar clientes */}
+        {/* Atalho 1: Serviços */}
         <button
           type="button"
           onClick={() => onNavigate('services')}
-          className="min-h-[48px] p-2 sm:p-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-left flex flex-col justify-between transition-all active:scale-[0.97]"
+          className="min-h-[48px] p-2 sm:p-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-left flex flex-col justify-between transition-all active:scale-[0.97] cursor-pointer"
         >
           <div className="w-6.5 h-6.5 rounded-lg bg-cyan-500/15 text-cyan-400 flex items-center justify-center mb-1">
             <Layers className="w-3.5 h-3.5" />
           </div>
           <div>
             <span className="text-[10.5px] font-bold text-white block leading-tight truncate">
-              {language === 'en' ? 'Find clients' : 'Encontrar clientes'}
+              {language === 'en' ? 'Services' : 'Serviços'}
             </span>
             <span className="text-[9px] text-slate-500 block truncate">
               {language === 'en' ? 'Plans & solutions' : 'Planos & soluções'}
@@ -658,21 +651,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         </button>
       </section>
 
-      {/* 7. PROJETOS EM DESTAQUE (COMPACTO, 6 PROJETOS, LINK "VER TODOS OS SITES") */}
+      {/* 7. PROJETOS EM DESTAQUE (COMPACTO, 6 PROJETOS) */}
       <section className="space-y-2.5 pt-0.5">
-        <div className="flex items-center justify-between px-0.5">
+        <div className="px-0.5">
           <h2 className="text-xs font-bold uppercase tracking-wider text-slate-300">
             {language === 'en' ? 'Featured projects' : 'Projetos em destaque'}
           </h2>
-
-          <button
-            type="button"
-            onClick={() => onNavigate('portfolio')}
-            className="text-xs font-semibold text-cyan-400 hover:text-cyan-300 flex items-center gap-0.5 transition-colors"
-          >
-            <span>{language === 'en' ? 'View all sites' : 'Ver todos os sites'}</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
         </div>
 
         {/* Grid de 2 colunas compacto com 6 projetos */}
@@ -686,18 +670,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               priority={idx < 2}
             />
           ))}
-        </div>
-
-        {/* Botão de rodapé "Ver todos os sites" levando ao Portfólio completo */}
-        <div className="pt-1">
-          <button
-            type="button"
-            onClick={() => onNavigate('portfolio')}
-            className="w-full py-2.5 px-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-center text-xs font-semibold text-slate-300 hover:text-white flex items-center justify-center gap-1.5 transition-all active:scale-[0.985]"
-          >
-            <span>{language === 'en' ? 'View all sites in portfolio' : 'Ver todos os sites no portfólio'}</span>
-            <ArrowRight className="w-3.5 h-3.5 text-cyan-400" />
-          </button>
         </div>
       </section>
     </div>

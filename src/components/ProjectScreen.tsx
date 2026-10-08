@@ -217,6 +217,41 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     prevSegmentRef.current = selectedSegment;
   }, [selectedSegment]);
 
+  // Âncora e controle de scroll garantido para o topo de cada etapa do Briefing
+  const topAnchorRef = useRef<HTMLDivElement>(null);
+
+  const scrollToTop = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    // Desfoca o botão/elemento ativo para evitar que o navegador ancore a rolagem nele
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+    // Reseta imediatamente o scroll do documento e window
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+    if (document.documentElement) document.documentElement.scrollTop = 0;
+    if (document.body) document.body.scrollTop = 0;
+    // Garante o alinhamento com a âncora superior do container do Briefing
+    if (topAnchorRef.current) {
+      topAnchorRef.current.scrollIntoView({ block: 'start', behavior: 'instant' as ScrollBehavior });
+    }
+  }, []);
+
+  // Garante que cada nova etapa (ao avançar ou voltar) inicie sempre rigorosamente no topo
+  useEffect(() => {
+    scrollToTop();
+    const rafId = requestAnimationFrame(() => {
+      scrollToTop();
+    });
+    const timerId = setTimeout(() => {
+      scrollToTop();
+    }, 40);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      clearTimeout(timerId);
+    };
+  }, [currentStep, scrollToTop]);
+
   // Suporte ao teclado virtual Android: assegura que qualquer campo focado permaneça visível sem cortes
   const isKeyboardOpenRef = useRef<boolean>(false);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
@@ -336,12 +371,18 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
           );
           setHasSavedDraftData(hasData);
 
+          if (draft.step && draft.step > 1 && currentStep === 1) {
+            setCurrentStep(draft.step as BriefingStep);
+          }
           if (draft.businessName && !businessName) setBusinessName(draft.businessName);
           if (draft.siteObjective && !siteObjective) setSiteObjective(draft.siteObjective);
           if (draft.selectedSegment && !selectedSegment) setSelectedSegment(draft.selectedSegment);
           if (draft.businessLocation && !businessLocation) setBusinessLocation(draft.businessLocation);
+          if (draft.businessBranches && !businessBranches) setBusinessBranches(draft.businessBranches);
           if (draft.googleMapsLink && !googleMapsLink) setGoogleMapsLink(draft.googleMapsLink);
           if (draft.visualStyle && !visualStyle) setVisualStyle(draft.visualStyle);
+          if (draft.customProjectIdea && !customProjectIdea) setCustomProjectIdea(draft.customProjectIdea);
+          if (draft.customReferenceLink && !customReferenceLink) setCustomReferenceLink(draft.customReferenceLink);
           if (draft.contactName && !contactName) setContactName(draft.contactName);
           if (draft.contactPhone && !contactPhone) setContactPhone(draft.contactPhone);
           if (draft.contactEmail && !contactEmail) setContactEmail(draft.contactEmail);
@@ -375,15 +416,19 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
 
     const timer = setTimeout(() => {
       saveBriefingDraft(planToSave, {
+        step: currentStep,
         selectedPlan: planToSave,
         businessName,
         siteObjective,
         selectedSegment,
         businessLocation,
+        businessBranches,
         googleMapsLink,
         selectedFeatureIds: selectedFeatures,
         selectedAdvancedFeatures,
         visualStyle,
+        customProjectIdea,
+        customReferenceLink,
         contactName,
         contactPhone,
         contactEmail,
@@ -393,16 +438,20 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
 
     return () => clearTimeout(timer);
   }, [
+    currentStep,
     selectedPlan,
     initialPlan,
     businessName,
     siteObjective,
     selectedSegment,
     businessLocation,
+    businessBranches,
     googleMapsLink,
     selectedFeatures,
     selectedAdvancedFeatures,
     visualStyle,
+    customProjectIdea,
+    customReferenceLink,
     colorMode,
     contactName,
     contactPhone,
@@ -441,20 +490,20 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     setStepError(null);
   }, [selectedPlan]);
 
-  // Retorno de etapa unificado
+  // Botão Superior de Voltar do Briefing:
+  // Sempre sai diretamente para a tela Início/Home, sem retroceder etapa e preservando dados salvos
+  const handleExitToHome = useCallback(() => {
+    onNavigate('home');
+  }, [onNavigate]);
+
+  // Retorno de etapa inferior unificado (volta somente para a etapa anterior preservando dados preenchidos)
   const handlePrevStep = useCallback(() => {
     setStepError(null);
     if (currentStep > 1) {
       setCurrentStep((prev) => (Math.max(1, prev - 1) as BriefingStep));
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      if (onBack) {
-        onBack();
-      } else {
-        onNavigate('home');
-      }
+      scrollToTop();
     }
-  }, [currentStep, onBack, onNavigate]);
+  }, [currentStep, scrollToTop]);
 
   // Sincroniza passo interno e botão voltar físico/norteador com App.tsx
   useEffect(() => {
@@ -463,11 +512,11 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
       const goBackStep = () => {
         setStepError(null);
         setCurrentStep((prev) => (Math.max(1, prev - 1) as BriefingStep));
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        scrollToTop();
       };
       onStepChange(currentStep, canGoBackStep, goBackStep);
     }
-  }, [currentStep, onStepChange]);
+  }, [currentStep, onStepChange, scrollToTop]);
 
   // Plano ativo
   const activePlanObj: NexawebPlan = useMemo(() => {
@@ -575,7 +624,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
         setSelectedPlan('personalizado');
       }
       setCurrentStep(2);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      scrollToTop();
       return;
     }
 
@@ -590,7 +639,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
         return;
       }
       setCurrentStep(3);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      scrollToTop();
       return;
     }
 
@@ -601,21 +650,21 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
         return;
       }
       setCurrentStep(4);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      scrollToTop();
       return;
     }
 
     // Etapa 4: Necessidades
     if (currentStep === 4) {
       setCurrentStep(5);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      scrollToTop();
       return;
     }
 
     // Etapa 5: Funcionalidades
     if (currentStep === 5) {
       setCurrentStep(6);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      scrollToTop();
       return;
     }
 
@@ -626,7 +675,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
         return;
       }
       setCurrentStep(7);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      scrollToTop();
       return;
     }
 
@@ -637,14 +686,14 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
         return;
       }
       setCurrentStep(8);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      scrollToTop();
       return;
     }
 
     // Etapa 8: Arquivos
     if (currentStep === 8) {
       setCurrentStep(9);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      scrollToTop();
       return;
     }
 
@@ -901,7 +950,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
   const handleEditStep = (step: number) => {
     setStepError(null);
     setCurrentStep(step as BriefingStep);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToTop();
   };
 
   return (
@@ -911,6 +960,9 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
         isKeyboardOpen ? 'pb-72' : 'pb-3 sm:pb-4'
       } animate-in fade-in duration-150 overflow-x-hidden w-full min-w-0 transition-[padding] duration-150`}
     >
+      {/* Âncora invisível para scroll imediato e preciso ao topo do Briefing */}
+      <div ref={topAnchorRef} className="h-0 w-0 -mt-2 pointer-events-none" aria-hidden="true" />
+
       {/* Cabeçalho Progressivo com Indicador Discreto (Etapa X de 9) */}
       <BriefingStepHeader
         currentStep={currentStep}
@@ -918,7 +970,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
         planName={selectedPlan || initialPlan ? activePlanObj.nome : ''}
         planPrice={selectedPlan || initialPlan ? activePlanObj.preco : ''}
         canGoBack={true}
-        onBackAction={onBack || (() => onNavigate('home'))}
+        onBackAction={handleExitToHome}
       />
 
       {/* Alerta de Validação de Etapa */}

@@ -14,6 +14,8 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
+import { useTheme } from '../contexts/ThemeContext';
+import appIcon from '../assets/app-icon.svg';
 
 interface AppDrawerProps {
   isOpen: boolean;
@@ -35,6 +37,8 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
   onOpenContact,
 }) => {
   const { t, language } = useTranslation();
+  const { animationMode } = useTheme();
+  const isAnimEnabled = animationMode !== 'reduced';
 
   const drawerRef = useRef<HTMLDivElement>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
@@ -468,24 +472,7 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header do Menu */}
-          <div className="p-3.5 border-b border-slate-800/70 flex items-center justify-between shrink-0 bg-slate-900/95 drawer-header">
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-500 to-cyan-400 p-0.5 shadow-sm shadow-indigo-500/20 shrink-0 flex items-center justify-center">
-                <span className="font-mono font-black text-[11px] text-slate-950">N</span>
-              </div>
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-extrabold text-sm tracking-tight text-white drawer-title">Nexa</span>
-                  <span className="text-[9px] px-1.5 py-0.2 rounded font-mono font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                    App
-                  </span>
-                </div>
-                <p className="text-[10px] text-slate-400 leading-tight">
-                  {language === 'en' ? 'Main Navigation' : language === 'es' ? 'Navegación Principal' : language === 'fr' ? 'Navigation Principale' : 'Navegação Principal'}
-                </p>
-              </div>
-            </div>
-
+          <div className="p-3.5 border-b border-slate-800/70 flex items-center justify-end shrink-0 bg-slate-900/95 drawer-header">
             <button
               type="button"
               onClick={onClose}
@@ -498,7 +485,7 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
           </div>
 
           {/* Lista de Navegação com 10 Itens Oficiais e Touch Targets Confortáveis */}
-          <div className="p-2.5 space-y-0.5 flex-1 overflow-y-auto no-scrollbar">
+          <div className="p-2.5 space-y-0.5 flex-1 overflow-y-auto no-scrollbar pb-3">
             {navigationItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -508,7 +495,7 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
                   onClick={item.action}
                   className={`min-h-[44px] w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-[12.5px] font-medium transition-all active:scale-[0.98] cursor-pointer ${
                     item.isActive
-                      ? 'bg-indigo-600/15 text-cyan-300 border border-indigo-500/30 shadow-xs font-semibold drawer-item-active'
+                      ? 'bg-cyan-950/40 text-white border border-cyan-500/25 shadow-xs font-semibold drawer-item-active'
                       : 'text-slate-300 hover:bg-slate-800/60 hover:text-white border border-transparent drawer-item-inactive'
                   }`}
                 >
@@ -519,21 +506,19 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
                     <span className="truncate">{item.label}</span>
                   </div>
 
-                  {item.isActive ? (
-                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400 shrink-0 drawer-dot-active" />
-                  ) : (
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-600 shrink-0" />
-                  )}
+                  <ChevronRight className={`w-3.5 h-3.5 shrink-0 ${item.isActive ? 'text-slate-400' : 'text-slate-600'}`} />
                 </button>
               );
             })}
           </div>
 
-          {/* Footer do Menu */}
-          <div className="p-3 border-t border-slate-800/80 bg-slate-950/60 shrink-0 drawer-footer">
-            <p className="text-center text-[10px] font-medium text-slate-500">
-              {language === 'en' ? 'NexaWeb App · Professional websites' : 'NexaWeb App · Sites profissionais'}
-            </p>
+          {/* Área Inferior: Ícone N oficial centralizado */}
+          <div className="p-4 pt-3 pb-6 sm:pb-7 flex items-center justify-center shrink-0 safe-area-pb">
+            <img
+              src={appIcon}
+              alt="NexaWeb App"
+              className="w-10 h-10 rounded-xl object-contain select-none shadow-sm shadow-indigo-500/10"
+            />
           </div>
         </div>
       </div>
