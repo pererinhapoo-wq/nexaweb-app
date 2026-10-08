@@ -1,5 +1,4 @@
 import React from 'react';
-import { Menu } from 'lucide-react';
 import { BackButton } from './BackButton';
 
 interface HeaderProps {
@@ -18,26 +17,33 @@ export const Header: React.FC<HeaderProps> = React.memo(({
   if (!showMenu && !showBackButton) return null;
 
   return (
-    <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800/60 px-3 sm:px-4 py-1.5 transition-colors">
-      <div className="max-w-3xl mx-auto flex items-center min-h-[42px] justify-between">
-        {/* Lado Esquerdo: Botão Voltar (quando aplicável) e Botão Menu Hamburger ☰ */}
-        <div className="flex items-center gap-1.5">
+    <header className="w-full bg-transparent border-0 shadow-none px-4 pt-3.5 sm:pt-4 pb-0 transition-colors">
+      <div className="max-w-3xl mx-auto flex items-center min-h-[40px] justify-between">
+        {/* Lado Esquerdo: Botão Voltar (quando aplicável) e Gatilho do Menu Lateral (estilo v0) */}
+        <div className="flex items-center gap-2">
           {showBackButton && onBack && (
             <BackButton
               onClick={onBack}
               label="Voltar"
-              className="-ml-1"
             />
           )}
           {showMenu && (
             <button
               type="button"
               onClick={onOpenMenu}
-              className="w-9 h-9 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/80 active:scale-95 transition-all -ml-0.5 cursor-pointer"
               aria-label="Abrir Menu"
               title="Menu"
+              className="nexa-sidebar-trigger inline-flex items-center justify-center w-10 h-10 min-w-[40px] min-h-[40px] -ml-2 bg-transparent border-0 text-slate-200 hover:text-white active:scale-95 transition-all duration-150 cursor-pointer select-none outline-none focus-visible:ring-1 focus-visible:ring-indigo-400"
             >
-              <Menu className="w-4.5 h-4.5 text-slate-200" />
+              <span
+                aria-hidden="true"
+                className="text-[24px] leading-none select-none text-current"
+                style={{
+                  fontFamily: '"Noto Sans Balinese", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Segoe UI Symbol", sans-serif'
+                }}
+              >
+                ᯓ
+              </span>
             </button>
           )}
         </div>

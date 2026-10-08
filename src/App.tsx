@@ -33,6 +33,8 @@ import {
   getSavedOnboardingAnswers,
   saveOnboardingAnswers,
   findExistingBriefingDraft,
+  findExistingBriefingDraftSync,
+  hasMeaningfulDraftData,
   clearBriefingDraft,
   clearAllBriefingDrafts,
   BriefingDraftData,
@@ -173,7 +175,11 @@ function AppContent() {
     planId: string;
     draft: BriefingDraftData;
   } | null>(null);
+  const [shouldRestoreDraft, setShouldRestoreDraft] = useState<boolean>(false);
+  const [isDraftPendingConfirmation, setIsDraftPendingConfirmation] = useState<boolean>(false);
+  const [draftResetSignal, setDraftResetSignal] = useState<number>(0);
   const hasCheckedStartupDraftRef = useRef<boolean>(false);
+  const hasDraftBeenDecidedRef = useRef<boolean>(false);
 
   // Notificação de estado de aprovação/sucesso do briefing ativo
   const [isBriefingApproved, setIsBriefingApproved] = useState<boolean>(false);
@@ -231,7 +237,7 @@ function AppContent() {
     async function checkStartupDraft() {
       try {
         const found = await findExistingBriefingDraft();
-        if (found) {
+        if (found && hasMeaningfulDraftData(found.draft)) {
           setExistingDraftInfo(found);
           setIsDraftModalOpen(true);
         }
@@ -242,6 +248,43 @@ function AppContent() {
 
     checkStartupDraft();
   }, []);
+
+  // Bloco 3.6 — Verificação e confirmação ao ENTRAR no Briefing
+  useEffect(() => {
+    if (currentTab !== 'project') {
+      // Quando sai do Briefing, reseta a decisão para que uma nova entrada valide novamente
+      hasDraftBeenDecidedRef.current = false;
+      setIsDraftPendingConfirmation(false);
+      setShouldRestoreDraft(false);
+      return;
+    }
+
+    // Se a decisão já foi tomada nesta entrada no Briefing, não abre o modal novamente
+    if (hasDraftBeenDecidedRef.current) {
+      return;
+    }
+
+    async function checkDraftOnEnter() {
+      try {
+        const planToCheck = selectedPlanForProject || savedPlan;
+        const found =
+          findExistingBriefingDraftSync(planToCheck) ||
+          (await findExistingBriefingDraft(planToCheck));
+
+        if (found && hasMeaningfulDraftData(found.draft)) {
+          setExistingDraftInfo(found);
+          setIsDraftPendingConfirmation(true);
+          setIsDraftModalOpen(true);
+        } else {
+          setIsDraftPendingConfirmation(false);
+        }
+      } catch {
+        setIsDraftPendingConfirmation(false);
+      }
+    }
+
+    checkDraftOnEnter();
+  }, [currentTab, selectedPlanForProject, savedPlan]);
 
   // Função central de avanço de navegação com registro de histórico real
   const navigateTo = useCallback(
@@ -261,6 +304,17 @@ function AppContent() {
         projectStepRef.current = 1;
         projectStepBackRef.current = null;
         canStepBackInProjectRef.current = false;
+      }
+
+      // Bloco 3.6 — Ao navegar para o Briefing a partir de outra aba
+      if (tab === 'project' && !hasDraftBeenDecidedRef.current) {
+        const planToCheck = options?.selectedPlan || savedPlan;
+        const syncDraft = findExistingBriefingDraftSync(planToCheck);
+        if (syncDraft && hasMeaningfulDraftData(syncDraft.draft)) {
+          setExistingDraftInfo(syncDraft);
+          setIsDraftPendingConfirmation(true);
+          setIsDraftModalOpen(true);
+        }
       }
 
       if (options?.selectedPlan !== undefined) {
@@ -403,6 +457,10 @@ function AppContent() {
   // Suporte aprimorado e intuitivo ao botão físico/gestual de voltar do Android
   const handleAndroidBack = useCallback(() => {
     // 1. Modais têm prioridade máxima de fechamento
+    if (isDraftModalOpen) {
+      handleDiscardDraft();
+      return;
+    }
     if (isContactOpen) {
       setIsContactOpen(false);
       return;
@@ -429,6 +487,7 @@ function AppContent() {
     // 3. Executa a exata mesma lógica do botão Voltar visual
     handleGoBack();
   }, [
+    isDraftModalOpen,
     isContactOpen,
     isLanguageModalOpen,
     isOnboardingOpen,
@@ -449,6 +508,10 @@ function AppContent() {
         return;
       }
       // 2. Modais têm prioridade de fechamento isolado
+      if (isDraftModalOpen) {
+        handleDiscardDraft();
+        return;
+      }
       if (isContactOpen) {
         setIsContactOpen(false);
         return;
@@ -481,6 +544,7 @@ function AppContent() {
   }, [
     handleAndroidBack,
     handleGoBack,
+    isDraftModalOpen,
     isContactOpen,
     isLanguageModalOpen,
     isOnboardingOpen,
@@ -532,17 +596,25 @@ function AppContent() {
   // Handlers do Modal de Rascunho de Briefing
   const handleContinueDraft = () => {
     setIsDraftModalOpen(false);
+    hasDraftBeenDecidedRef.current = true;
+    setIsDraftPendingConfirmation(false);
+    setShouldRestoreDraft(true);
     if (existingDraftInfo) {
       navigateTo('project', {
         selectedPlan: existingDraftInfo.draft.selectedPlan || existingDraftInfo.planId,
         selectedModel: existingDraftInfo.draft.selectedModel,
         modelApproach: existingDraftInfo.draft.modelApproach,
       });
+    } else {
+      navigateTo('project');
     }
   };
 
   const handleDiscardDraft = async () => {
     setIsDraftModalOpen(false);
+    hasDraftBeenDecidedRef.current = true;
+    setIsDraftPendingConfirmation(false);
+    setShouldRestoreDraft(false);
     if (existingDraftInfo) {
       await clearBriefingDraft(existingDraftInfo.planId);
       if (
@@ -554,6 +626,7 @@ function AppContent() {
     }
     await clearAllBriefingDrafts();
     setExistingDraftInfo(null);
+    setDraftResetSignal((prev) => prev + 1);
   };
 
   // Handlers de navegação cruzada
@@ -636,7 +709,7 @@ function AppContent() {
       <main
         className={`${
           isApprovalScreenActive ? 'flex-none' : 'flex-1'
-        } max-w-3xl w-full mx-auto px-4 pt-4 sm:pt-6 ${
+        } max-w-3xl w-full mx-auto px-4 pt-1 sm:pt-2 ${
           isBottomNavVisible ? 'pb-16 sm:pb-16' : 'pb-3 sm:pb-4'
         }`}
       >
@@ -708,6 +781,11 @@ function AppContent() {
                     projectStepBackRef.current = goBackStep;
                   }}
                   onApprovalStateChange={setIsBriefingApproved}
+                  shouldRestoreDraft={shouldRestoreDraft}
+                  onDraftRestored={() => setShouldRestoreDraft(false)}
+                  isDraftPendingConfirmation={isDraftPendingConfirmation}
+                  confirmedDraft={existingDraftInfo?.draft}
+                  resetSignal={draftResetSignal}
                 />
               )}
 
@@ -720,6 +798,7 @@ function AppContent() {
               {currentTab === 'settings' && (
                 <SettingsScreen
                   onOpenLanguageModal={() => setIsLanguageModalOpen(true)}
+                  onOpenContact={() => setIsContactOpen(true)}
                   onBack={handleGoBack}
                 />
               )}

@@ -3,14 +3,11 @@ import { ViewTab } from '../types';
 import {
   Home,
   Sparkles,
-  Briefcase,
-  Layers,
   Users,
   UserCheck,
   MessageSquare,
   HelpCircle,
   Settings,
-  X,
   ChevronRight,
 } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
@@ -357,20 +354,6 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
       isActive: currentTab === 'project',
     },
     {
-      id: 'portfolio',
-      label: t.nav.portfolio,
-      icon: Briefcase,
-      action: () => handleSelectTab('portfolio'),
-      isActive: currentTab === 'portfolio',
-    },
-    {
-      id: 'services',
-      label: t.nav.services,
-      icon: Layers,
-      action: () => handleSelectTab('services'),
-      isActive: currentTab === 'services',
-    },
-    {
       id: 'portal',
       label: t.nav.client,
       icon: UserCheck,
@@ -472,15 +455,30 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header do Menu */}
-          <div className="p-3.5 border-b border-slate-800/70 flex items-center justify-end shrink-0 bg-slate-900/95 drawer-header">
+          <div className="p-3 border-b border-slate-800/70 flex items-center justify-end shrink-0 bg-transparent drawer-header">
             <button
               type="button"
               onClick={onClose}
-              className="w-8 h-8 min-h-[32px] min-w-[32px] flex items-center justify-center rounded-lg bg-slate-800/80 hover:bg-slate-750 text-slate-300 hover:text-white transition-colors active:scale-95 cursor-pointer drawer-close-btn"
+              className="w-9 h-9 flex items-center justify-center rounded-lg bg-transparent hover:bg-white/5 text-slate-400 hover:text-white transition-colors cursor-pointer drawer-close-btn p-0"
               aria-label={t.portfolio?.close || (language === 'en' ? 'Close menu' : 'Fechar menu')}
               title={t.portfolio?.close || (language === 'en' ? 'Close menu' : 'Fechar menu')}
             >
-              <X className="w-4 h-4" />
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-4 h-4"
+              >
+                <path
+                  d="M12 4L4 12M4 4L12 12"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
             </button>
           </div>
 

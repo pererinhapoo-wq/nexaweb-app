@@ -12,6 +12,8 @@ import {
   getBriefingDraft,
   saveBriefingDraft,
   clearBriefingDraft,
+  clearAllBriefingDrafts,
+  BriefingDraftData,
 } from '../utils/storage';
 import {
   CANONICAL_SEGMENTS,
@@ -60,6 +62,12 @@ interface ProjectScreenProps {
   onBack?: () => void;
   onStepChange?: (step: number, canGoBackStep: boolean, goBackStep: () => void) => void;
   onApprovalStateChange?: (isApproved: boolean) => void;
+  // Bloco 3.6 — Controle de Confirmação e Restauração de Rascunho
+  shouldRestoreDraft?: boolean;
+  onDraftRestored?: () => void;
+  isDraftPendingConfirmation?: boolean;
+  confirmedDraft?: BriefingDraftData | null;
+  resetSignal?: number;
 }
 
 export const ProjectScreen: React.FC<ProjectScreenProps> = ({
@@ -71,6 +79,11 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
   onBack,
   onStepChange,
   onApprovalStateChange,
+  shouldRestoreDraft,
+  onDraftRestored,
+  isDraftPendingConfirmation,
+  confirmedDraft,
+  resetSignal,
 }) => {
   const { language } = useTranslation();
 
@@ -415,51 +428,99 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
   }, [initialPlan]);
 
   const [hasSavedDraftData, setHasSavedDraftData] = useState<boolean>(false);
+  const isDiscardingDraftRef = useRef<boolean>(false);
 
-  // Carrega rascunho salvo do armazenamento local
+  // Função controlada para restaurar os dados do rascunho confirmado
+  const doRestoreDraft = useCallback((draft: BriefingDraftData) => {
+    setHasSavedDraftData(true);
+    if (draft.step && draft.step > 1) {
+      setCurrentStep(draft.step as BriefingStep);
+    }
+    if (draft.selectedPlan) {
+      setSelectedPlan(draft.selectedPlan);
+    }
+    if (draft.startType) {
+      setStartMode(draft.startType === 'propria' ? 'propria' : 'plano');
+    }
+    if (draft.selectedModel) {
+      setSelectedModel(draft.selectedModel);
+    }
+    if (draft.modelApproach) {
+      setModelApproach(draft.modelApproach);
+    }
+    if (draft.siteLanguage) {
+      setSiteLanguage(draft.siteLanguage);
+    }
+    if (draft.businessName) setBusinessName(draft.businessName);
+    if (draft.siteObjective) setSiteObjective(draft.siteObjective);
+    if (draft.selectedSegment) setSelectedSegment(draft.selectedSegment);
+    if (draft.businessLocation) setBusinessLocation(draft.businessLocation);
+    if (draft.businessBranches) setBusinessBranches(draft.businessBranches);
+    if (draft.googleMapsLink) setGoogleMapsLink(draft.googleMapsLink);
+
+    // Bloco 3.6 - Restauração das funcionalidades salvas
+    const featuresToRestore =
+      draft.selectedFeatureIds || (draft as unknown as { selectedFeatures?: string[] }).selectedFeatures;
+    if (featuresToRestore && Array.isArray(featuresToRestore) && featuresToRestore.length > 0) {
+      setSelectedFeatures(featuresToRestore);
+    }
+    if (
+      draft.selectedAdvancedFeatures &&
+      Array.isArray(draft.selectedAdvancedFeatures) &&
+      draft.selectedAdvancedFeatures.length > 0
+    ) {
+      setSelectedAdvancedFeatures(draft.selectedAdvancedFeatures);
+    }
+
+    if (draft.visualStyle) setVisualStyle(draft.visualStyle);
+    if (draft.customProjectIdea) setCustomProjectIdea(draft.customProjectIdea);
+    if (draft.customReferenceLink) setCustomReferenceLink(draft.customReferenceLink);
+    if (draft.contactName) setContactName(draft.contactName);
+    if (draft.contactPhone) setContactPhone(draft.contactPhone);
+    if (draft.contactEmail) setContactEmail(draft.contactEmail);
+    if (draft.specificNotes) setSpecificNotes(draft.specificNotes);
+  }, []);
+
+  // Restauração controlada acionada SOMENTE após confirmação ("Continuar")
   useEffect(() => {
-    async function loadDraft() {
-      const planToLoad = selectedPlan || initialPlan;
-      if (!planToLoad) return;
-      try {
-        const draft = getBriefingDraftSync(planToLoad) || (await getBriefingDraft(planToLoad));
-        if (draft) {
-          const hasData = Boolean(
-            draft.businessName ||
-              draft.siteObjective ||
-              draft.selectedSegment ||
-              draft.visualStyle ||
-              draft.contactName ||
-              (draft.selectedAdvancedFeatures && draft.selectedAdvancedFeatures.length > 0) ||
-              (draft.selectedFeatureIds && draft.selectedFeatureIds.length > 0)
-          );
-          setHasSavedDraftData(hasData);
-
-          if (draft.step && draft.step > 1 && currentStep === 1) {
-            setCurrentStep(draft.step as BriefingStep);
+    if (shouldRestoreDraft) {
+      if (confirmedDraft) {
+        doRestoreDraft(confirmedDraft);
+        onDraftRestored?.();
+      } else {
+        const planToLoad = selectedPlan || initialPlan;
+        if (planToLoad) {
+          const syncDraft = getBriefingDraftSync(planToLoad);
+          if (syncDraft) {
+            doRestoreDraft(syncDraft);
+            onDraftRestored?.();
+          } else {
+            getBriefingDraft(planToLoad).then((asyncDraft) => {
+              if (asyncDraft) {
+                doRestoreDraft(asyncDraft);
+              }
+              onDraftRestored?.();
+            });
           }
-          if (draft.businessName && !businessName) setBusinessName(draft.businessName);
-          if (draft.siteObjective && !siteObjective) setSiteObjective(draft.siteObjective);
-          if (draft.selectedSegment && !selectedSegment) setSelectedSegment(draft.selectedSegment);
-          if (draft.businessLocation && !businessLocation) setBusinessLocation(draft.businessLocation);
-          if (draft.businessBranches && !businessBranches) setBusinessBranches(draft.businessBranches);
-          if (draft.googleMapsLink && !googleMapsLink) setGoogleMapsLink(draft.googleMapsLink);
-          if (draft.visualStyle && !visualStyle) setVisualStyle(draft.visualStyle);
-          if (draft.customProjectIdea && !customProjectIdea) setCustomProjectIdea(draft.customProjectIdea);
-          if (draft.customReferenceLink && !customReferenceLink) setCustomReferenceLink(draft.customReferenceLink);
-          if (draft.contactName && !contactName) setContactName(draft.contactName);
-          if (draft.contactPhone && !contactPhone) setContactPhone(draft.contactPhone);
-          if (draft.contactEmail && !contactEmail) setContactEmail(draft.contactEmail);
+        } else {
+          onDraftRestored?.();
         }
-      } catch {
-        // Fallback silencioso
       }
     }
-    loadDraft();
-  }, [selectedPlan, initialPlan]);
+  }, [
+    shouldRestoreDraft,
+    confirmedDraft,
+    selectedPlan,
+    initialPlan,
+    doRestoreDraft,
+    onDraftRestored,
+  ]);
 
   // Salva rascunho automaticamente SOMENTE após interação real do usuário
   useEffect(() => {
+    if (isDiscardingDraftRef.current) return;
+    if (isDraftPendingConfirmation) return;
+
     const hasUserMadeAnyChoice = Boolean(
       businessName.trim() ||
         siteObjective ||
@@ -479,6 +540,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     if (!planToSave) return;
 
     const timer = setTimeout(() => {
+      if (isDiscardingDraftRef.current) return;
       saveBriefingDraft(planToSave, {
         step: currentStep,
         selectedPlan: planToSave,
@@ -520,11 +582,17 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     contactName,
     contactPhone,
     contactEmail,
+    isDraftPendingConfirmation,
   ]);
 
   // Reinicia o briefing do zero e limpa qualquer rascunho persistido
   const handleResetBriefing = useCallback(async () => {
-    await clearBriefingDraft(selectedPlan);
+    isDiscardingDraftRef.current = true;
+    const planToClear = selectedPlan || initialPlan;
+    if (planToClear) {
+      await clearBriefingDraft(planToClear);
+    }
+    await clearAllBriefingDrafts();
     setHasSavedDraftData(false);
     setCurrentStep(1);
     setSelectedModel('');
@@ -553,7 +621,17 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     setAttachedFiles([]);
     setSubmissionSuccess(null);
     handleClearError();
-  }, [selectedPlan, handleClearError]);
+    setTimeout(() => {
+      isDiscardingDraftRef.current = false;
+    }, 1000);
+  }, [selectedPlan, initialPlan, handleClearError]);
+
+  // Reseta estado interno quando o usuário escolher "Fechar" no modal externo
+  useEffect(() => {
+    if (resetSignal && resetSignal > 0) {
+      handleResetBriefing();
+    }
+  }, [resetSignal, handleResetBriefing]);
 
   // Botão Superior de Voltar do Briefing:
   // Retorna para a tela de origem contextual (Serviços se veio de Serviços, ou Início), preservando dados salvos

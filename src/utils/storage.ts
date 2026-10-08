@@ -137,10 +137,58 @@ export function hasMeaningfulDraftData(draft: BriefingDraftData | null | undefin
   );
 }
 
-export async function findExistingBriefingDraft(): Promise<{ planId: string; draft: BriefingDraftData } | null> {
-  const knownPlans = ['profissional', 'essencial', 'premium', 'personalizado'];
+export function findExistingBriefingDraftSync(
+  preferredPlan?: string
+): { planId: string; draft: BriefingDraftData } | null {
+  const defaultPlans = ['profissional', 'essencial', 'premium', 'personalizado'];
+  const knownPlans = preferredPlan
+    ? [preferredPlan, ...defaultPlans.filter((p) => p !== preferredPlan)]
+    : defaultPlans;
+
   for (const planId of knownPlans) {
-    const draft = getBriefingDraftSync(planId) || (await getBriefingDraft(planId));
+    const draft = getBriefingDraftSync(planId);
+    if (draft && hasMeaningfulDraftData(draft)) {
+      return { planId, draft };
+    }
+  }
+
+  // Busca síncrona em chaves do localStorage com prefixo
+  if (typeof localStorage !== 'undefined') {
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(KEYS.BRIEFING_DRAFT_PREFIX)) {
+          const raw = localStorage.getItem(key);
+          if (raw) {
+            const parsed = JSON.parse(raw) as BriefingDraftData;
+            if (hasMeaningfulDraftData(parsed)) {
+              const planId = parsed.selectedPlan || key.replace(KEYS.BRIEFING_DRAFT_PREFIX, '');
+              return { planId, draft: parsed };
+            }
+          }
+        }
+      }
+    } catch {
+      // Ignora erro
+    }
+  }
+
+  return null;
+}
+
+export async function findExistingBriefingDraft(
+  preferredPlan?: string
+): Promise<{ planId: string; draft: BriefingDraftData } | null> {
+  const sync = findExistingBriefingDraftSync(preferredPlan);
+  if (sync) return sync;
+
+  const defaultPlans = ['profissional', 'essencial', 'premium', 'personalizado'];
+  const knownPlans = preferredPlan
+    ? [preferredPlan, ...defaultPlans.filter((p) => p !== preferredPlan)]
+    : defaultPlans;
+
+  for (const planId of knownPlans) {
+    const draft = await getBriefingDraft(planId);
     if (draft && hasMeaningfulDraftData(draft)) {
       return { planId, draft };
     }

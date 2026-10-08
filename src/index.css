@@ -252,6 +252,84 @@ html.dark .nexa-back-button:hover {
 }
 
 /* ==================================================
+   TRIGGER DO MENU LATERAL (SÍMBOLO LITERAL ᯓ)
+   Sem quadrado, sem borda e sem fundo visível
+   ================================================== */
+.nexa-sidebar-trigger {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 0;
+  border: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  color: #e2e8f0;
+  box-shadow: none !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+}
+
+.nexa-sidebar-trigger:hover {
+  color: #ffffff;
+  background: transparent !important;
+  border: 0 !important;
+}
+
+.nexa-sidebar-trigger:active {
+  color: #ffffff;
+  background: transparent !important;
+  border: 0 !important;
+}
+
+/* Tema Claro */
+html[data-theme="light"] .nexa-sidebar-trigger,
+html.light .nexa-sidebar-trigger {
+  border: 0 !important;
+  background: transparent !important;
+  color: #334155;
+}
+
+html[data-theme="light"] .nexa-sidebar-trigger:hover,
+html.light .nexa-sidebar-trigger:hover {
+  color: #0f172a;
+  background: transparent !important;
+  border: 0 !important;
+}
+
+html[data-theme="light"] .nexa-sidebar-trigger:active,
+html.light .nexa-sidebar-trigger:active {
+  color: #0f172a;
+  background: transparent !important;
+  border: 0 !important;
+}
+
+/* Tema Escuro AMOLED */
+html[data-theme="dark"] .nexa-sidebar-trigger,
+html.dark .nexa-sidebar-trigger {
+  border: 0 !important;
+  background: transparent !important;
+  color: #f4f4f5;
+}
+
+html[data-theme="dark"] .nexa-sidebar-trigger:hover,
+html.dark .nexa-sidebar-trigger:hover {
+  color: #ffffff;
+  background: transparent !important;
+  border: 0 !important;
+}
+
+html[data-theme="dark"] .nexa-sidebar-trigger:active,
+html.dark .nexa-sidebar-trigger:active {
+  color: #ffffff;
+  background: transparent !important;
+  border: 0 !important;
+}
+
+/* ==================================================
    SISTEMA DE TEMA ESCURO AMOLED (PITCH BLACK / TRUE DARK)
    ================================================== */
 
@@ -291,12 +369,22 @@ html[data-theme="dark"] .bg-slate-950\/30 {
   border-color: #1f2026 !important;
 }
 
-/* 2. Header e Barra de Navegação */
+/* 2. Header transparente integrado e sem faixa */
+header {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 0 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
 html.dark header,
 html[data-theme="dark"] header {
-  background-color: rgba(0, 0, 0, 0.95) !important;
-  border-color: #1f2026 !important;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.6);
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 0 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
 }
 
 html.dark nav,
@@ -341,14 +429,15 @@ html[data-theme="dark"] .drawer-title {
 
 html.dark .drawer-close-btn,
 html[data-theme="dark"] .drawer-close-btn {
-  background-color: #121215 !important;
-  color: #e4e4e7 !important;
-  border: 1px solid #272830 !important;
+  background-color: transparent !important;
+  color: #94a3b8 !important;
+  border: 0 !important;
+  box-shadow: none !important;
 }
 
 html.dark .drawer-close-btn:hover,
 html[data-theme="dark"] .drawer-close-btn:hover {
-  background-color: #1f2026 !important;
+  background-color: rgba(255, 255, 255, 0.06) !important;
   color: #ffffff !important;
 }
 
@@ -563,12 +652,14 @@ html[data-theme="light"] .bg-slate-950\/80 {
   background-color: rgba(15, 23, 42, 0.72) !important;
 }
 
-/* 2. Headers e Barra de Navegação */
+/* 2. Headers transparentes e Barra de Navegação */
 html.light header,
 html[data-theme="light"] header {
-  background-color: rgba(255, 255, 255, 0.96) !important;
-  border-color: #e2e8f0 !important;
-  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05);
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 0 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
 }
 
 html.light nav,
@@ -613,14 +704,15 @@ html[data-theme="light"] .drawer-title {
 
 html.light .drawer-close-btn,
 html[data-theme="light"] .drawer-close-btn {
-  background-color: #f1f5f9 !important;
-  color: #334155 !important;
-  border: 1px solid #e2e8f0 !important;
+  background-color: transparent !important;
+  color: #64748b !important;
+  border: 0 !important;
+  box-shadow: none !important;
 }
 
 html.light .drawer-close-btn:hover,
 html[data-theme="light"] .drawer-close-btn:hover {
-  background-color: #e2e8f0 !important;
+  background-color: rgba(0, 0, 0, 0.05) !important;
   color: #0f172a !important;
 }
 
