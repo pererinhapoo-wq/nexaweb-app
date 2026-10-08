@@ -203,12 +203,6 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
                 <Shield className="w-3.5 h-3.5 text-amber-400" />
                 <span>Painel Administrativo NexaWeb</span>
               </div>
-              {onBack && (
-                <BackButton
-                  onClick={onBack}
-                  label="Voltar"
-                />
-              )}
             </div>
 
             <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
@@ -268,12 +262,6 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
           {/* Header do Admin */}
           <div className="rounded-2xl p-4 sm:p-5 bg-slate-900 border border-slate-800 shadow-md flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              {onBack && (
-                <BackButton
-                  onClick={onBack}
-                  label="Voltar"
-                />
-              )}
               <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
                 <Shield className="w-5 h-5" />
               </div>

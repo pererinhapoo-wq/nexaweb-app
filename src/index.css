@@ -175,44 +175,80 @@ html.reduced-motion *::after {
    ================================================== */
 .nexa-back-button {
   color: #94a3b8;
-  background-color: transparent;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+.nexa-back-button:hover,
+.nexa-back-button:active,
+.nexa-back-button:focus,
+.nexa-back-button:focus-visible {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
 }
 .nexa-back-button:hover {
   color: #ffffff;
-  background-color: rgba(255, 255, 255, 0.08);
-}
-.nexa-back-button:active {
-  background-color: rgba(255, 255, 255, 0.14);
 }
 
 html[data-theme="light"] .nexa-back-button,
 html.light .nexa-back-button {
   color: #475569 !important;
+  background: transparent !important;
   background-color: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+html[data-theme="light"] .nexa-back-button:hover,
+html.light .nexa-back-button:hover,
+html[data-theme="light"] .nexa-back-button:active,
+html.light .nexa-back-button:active,
+html[data-theme="light"] .nexa-back-button:focus,
+html.light .nexa-back-button:focus,
+html[data-theme="light"] .nexa-back-button:focus-visible,
+html.light .nexa-back-button:focus-visible {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
 }
 html[data-theme="light"] .nexa-back-button:hover,
 html.light .nexa-back-button:hover {
   color: #0f172a !important;
-  background-color: rgba(0, 0, 0, 0.06) !important;
-}
-html[data-theme="light"] .nexa-back-button:active,
-html.light .nexa-back-button:active {
-  background-color: rgba(0, 0, 0, 0.1) !important;
 }
 
 html[data-theme="dark"] .nexa-back-button,
 html.dark .nexa-back-button {
   color: #a1a1aa !important;
+  background: transparent !important;
   background-color: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+html[data-theme="dark"] .nexa-back-button:hover,
+html.dark .nexa-back-button:hover,
+html[data-theme="dark"] .nexa-back-button:active,
+html.dark .nexa-back-button:active,
+html[data-theme="dark"] .nexa-back-button:focus,
+html.dark .nexa-back-button:focus,
+html[data-theme="dark"] .nexa-back-button:focus-visible,
+html.dark .nexa-back-button:focus-visible {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
 }
 html[data-theme="dark"] .nexa-back-button:hover,
 html.dark .nexa-back-button:hover {
   color: #ffffff !important;
-  background-color: rgba(255, 255, 255, 0.08) !important;
-}
-html[data-theme="dark"] .nexa-back-button:active,
-html.dark .nexa-back-button:active {
-  background-color: rgba(255, 255, 255, 0.14) !important;
 }
 
 /* ==================================================

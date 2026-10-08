@@ -25,7 +25,7 @@ export const BackButton: React.FC<BackButtonProps> = React.memo(({
     <button
       type="button"
       onClick={onClick}
-      className={`nexa-back-button inline-flex items-center justify-center w-11 h-11 min-w-[44px] min-h-[44px] rounded-full transition-all duration-150 cursor-pointer shrink-0 border-0 bg-transparent shadow-none focus:outline-none focus-visible:ring-1 focus-visible:ring-cyan-400/60 active:scale-95 group ${className}`}
+      className={`nexa-back-button inline-flex items-center justify-center w-11 h-11 min-w-[44px] min-h-[44px] transition-all duration-150 cursor-pointer shrink-0 border-0 bg-transparent shadow-none outline-none focus:outline-none active:scale-95 group ${className}`}
       aria-label={label}
       title={label}
     >

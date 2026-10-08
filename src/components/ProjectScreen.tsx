@@ -27,6 +27,7 @@ import {
 } from '../data/advancedFeaturesData';
 import { AlertCircle } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
+import { BackButton } from './BackButton';
 
 // Importações dos Componentes Modulares de Etapas do Briefing Oficial (Etapa 6)
 import { BriefingStepHeader } from './briefing/BriefingStepHeader';
@@ -87,11 +88,10 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
   // 9: Resumo & Envio (Revisão estruturada com atalhos de edição e envio oficial)
   const [currentStep, setCurrentStep] = useState<BriefingStep>(1);
 
-  // Modo de início da Etapa 1: 'amostra' | 'propria' | 'plano'
-  const [startMode, setStartMode] = useState<'amostra' | 'propria' | 'plano'>(() => {
-    if (initialModel) return 'amostra';
+  // Modo de início da Etapa 1: 'propria' | 'plano' (inicia null sem seleção automática)
+  const [startMode, setStartMode] = useState<'propria' | 'plano' | null>(() => {
     if (initialPlan) return 'plano';
-    return 'amostra';
+    return null;
   });
 
   // Modelo de referência selecionado
@@ -104,13 +104,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
   const [selectedPlan, setSelectedPlan] = useState<string>(initialPlan || '');
 
   // Segmento dinâmico selecionado: inicia vazio para o usuário escolher
-  const [selectedSegment, setSelectedSegment] = useState<string>(() => {
-    if (initialModel) return normalizeSegmentKey(initialModel);
-    return '';
-  });
-
-  // Filtro de amostras por categoria na Etapa 1
-  const [sampleFilter, setSampleFilter] = useState<string>('todos');
+  const [selectedSegment, setSelectedSegment] = useState<string>('');
 
   // Configuração ativa do segmento dinâmico
   const segmentConfig = useMemo(() => {
@@ -333,22 +327,13 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     };
   }, [scrollActiveFieldIntoView]);
 
-  // Se inicializado com modelo específico ou plano específico
+  // Se inicializado com plano específico
   useEffect(() => {
-    if (initialModel) {
-      setSelectedModel(initialModel);
-      setStartMode('amostra');
-      const mapped = normalizeSegmentKey(initialModel);
-      setSelectedSegment(mapped);
-      const proj = portfolioProjects.find((p) => p.titulo === initialModel);
-      if (proj?.planoId) {
-        setSelectedPlan(proj.planoId);
-      }
-    } else if (initialPlan) {
+    if (initialPlan) {
       setSelectedPlan(initialPlan);
       setStartMode('plano');
     }
-  }, [initialModel, initialPlan, portfolioProjects]);
+  }, [initialPlan]);
 
   const [hasSavedDraftData, setHasSavedDraftData] = useState<boolean>(false);
 
@@ -526,39 +511,6 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     return plans.find((p) => p.id === 'profissional') || plans[1] || plans[0];
   }, [plans, selectedPlan, initialPlan]);
 
-  // Amostra atualmente selecionada (se houver)
-  const selectedProjectObj = useMemo(() => {
-    if (!selectedModel) return null;
-    return portfolioProjects.find((p) => p.titulo === selectedModel) || null;
-  }, [selectedModel, portfolioProjects]);
-
-  // Lista filtrada de demonstrações para a escolha de amostra
-  const filteredDemos = useMemo(() => {
-    if (sampleFilter === 'todos') return portfolioProjects;
-    return portfolioProjects.filter((p) => {
-      if (sampleFilter === 'barbearia') return p.id.includes('barbearia');
-      if (sampleFilter === 'beleza') return p.categoria === 'beleza-estetica';
-      if (sampleFilter === 'fitness') return p.categoria === 'saude-fitness' && (p.id.includes('academia') || p.id.includes('fitness'));
-      if (sampleFilter === 'clinica') return p.id.includes('clinica') || p.id.includes('saude');
-      if (sampleFilter === 'gastronomia') return p.categoria === 'gastronomia';
-      if (sampleFilter === 'imobiliaria') return p.categoria === 'imobiliario';
-      if (sampleFilter === 'loja') return p.categoria === 'comercio';
-      if (sampleFilter === 'engenharia') return p.categoria === 'engenharia' || p.categoria === 'arquitetura';
-      return true;
-    });
-  }, [portfolioProjects, sampleFilter]);
-
-  // Manipulador de escolha de demonstração
-  const handleSelectDemo = (proj: PortfolioProject) => {
-    setSelectedModel(proj.titulo);
-    if (proj.planoId) {
-      setSelectedPlan(proj.planoId);
-    }
-    const detectedSegment = normalizeSegmentKey(proj.titulo);
-    setSelectedSegment(detectedSegment);
-    setStepError(null);
-  };
-
   // Alterna chip primário
   const togglePrimaryOption = (opt: string) => {
     setSelectedPrimaryOptions((prev) =>
@@ -616,6 +568,10 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
 
     // Etapa 1: Ponto de partida
     if (currentStep === 1) {
+      if (!startMode) {
+        setStepError('Por favor, escolha uma das 2 opções para iniciar seu projeto.');
+        return;
+      }
       if (startMode === 'plano' && !selectedPlan) {
         setStepError('Por favor, selecione um dos 4 planos oficiais para continuar.');
         return;
@@ -712,14 +668,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     lines.push(`💼 *Plano Selecionado:* Plano ${activePlanObj.nome} (${activePlanObj.preco})`);
     lines.push(`⏱️ *Prazo Previsto:* ${activePlanObj.prazo}`);
 
-    if (startMode === 'amostra' && selectedModel) {
-      lines.push(`🎯 *Ponto de Partida:* Demonstração "${selectedModel}"`);
-      lines.push(
-        modelApproach === 'exact'
-          ? '📌 *Abordagem:* Quero exatamente este formato'
-          : '📌 *Abordagem:* Usar como inspiração sob medida'
-      );
-    } else if (startMode === 'propria') {
+    if (startMode === 'propria') {
       lines.push('🎯 *Ponto de Partida:* Ideia própria / Projeto sob medida');
     } else {
       lines.push('🎯 *Ponto de Partida:* Escolha direta de plano');
@@ -963,6 +912,14 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
       {/* Âncora invisível para scroll imediato e preciso ao topo do Briefing */}
       <div ref={topAnchorRef} className="h-0 w-0 -mt-2 pointer-events-none" aria-hidden="true" />
 
+      {/* Botão Superior do Briefing: área própria transparente e discreta, alinhada à esquerda, que volta para a Home */}
+      <div className="flex items-center -ml-2 -mt-1 -mb-1 bg-transparent">
+        <BackButton
+          onClick={handleExitToHome}
+          label="Voltar para o início"
+        />
+      </div>
+
       {/* Cabeçalho Progressivo com Indicador Discreto (Etapa X de 9) */}
       <BriefingStepHeader
         currentStep={currentStep}
@@ -986,19 +943,10 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
         <Step1Origin
           startMode={startMode}
           setStartMode={setStartMode}
-          selectedModel={selectedModel}
-          setSelectedModel={setSelectedModel}
-          modelApproach={modelApproach}
-          setModelApproach={setModelApproach}
           selectedPlan={selectedPlan}
           setSelectedPlan={setSelectedPlan}
           activePlanObj={activePlanObj}
           plans={plans}
-          filteredDemos={filteredDemos}
-          sampleFilter={sampleFilter}
-          setSampleFilter={setSampleFilter}
-          selectedProjectObj={selectedProjectObj}
-          handleSelectDemo={handleSelectDemo}
           hasInitialPlan={Boolean(initialPlan && selectedPlan)}
           hasSavedData={hasSavedDraftData}
           onResetBriefing={handleResetBriefing}

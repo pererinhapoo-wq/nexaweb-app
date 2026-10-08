@@ -42,23 +42,13 @@ export const BriefingStepHeader: React.FC<BriefingStepHeaderProps> = ({
   return (
     <div className="bg-slate-900 border border-slate-800/80 rounded-xl p-3 sm:p-3.5 shadow-sm space-y-2">
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5 min-w-0">
-          {canGoBack && (
-            <BackButton
-              onClick={onBackAction}
-              label={language === 'en' ? 'Exit to Home' : 'Sair para o início'}
-              className="-ml-1 shrink-0"
-            />
-          )}
-
-          <div className="min-w-0 flex flex-col justify-center">
-            <span className="text-[9.5px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 w-fit">
-              {language === 'en' ? `Step ${currentStep} of ${totalSteps}` : `Etapa ${currentStep} de ${totalSteps}`}
-            </span>
-            <span className="text-xs sm:text-[13px] font-bold text-white truncate mt-0.5">
-              {stepName}
-            </span>
-          </div>
+        <div className="min-w-0 flex flex-col justify-center">
+          <span className="text-[9.5px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 w-fit">
+            {language === 'en' ? `Step ${currentStep} of ${totalSteps}` : `Etapa ${currentStep} de ${totalSteps}`}
+          </span>
+          <span className="text-xs sm:text-[13px] font-bold text-white truncate mt-0.5">
+            {stepName}
+          </span>
         </div>
 
         <div className="text-right shrink-0">

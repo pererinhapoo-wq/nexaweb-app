@@ -155,14 +155,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         </div>
       )}
 
-      {/* Cabeçalho da Tela: Botão Voltar fino e moderno + Título Oficial */}
-      <div className="flex items-center gap-1.5 pt-0.5 pb-0.5">
-        {onBack && (
-          <BackButton
-            onClick={onBack}
-            label={t.header?.back || 'Voltar'}
-          />
-        )}
+      {/* Cabeçalho da Tela: Título Oficial */}
+      <div className="pt-0.5 pb-0.5">
         <div className="min-w-0">
           <h1 className="text-sm sm:text-base font-bold tracking-tight text-white truncate">
             {t.settings.title}

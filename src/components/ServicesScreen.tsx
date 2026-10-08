@@ -47,9 +47,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(selectedPlan || null);
 
   useEffect(() => {
-    if (selectedPlan) {
-      setSelectedPlanId(selectedPlan);
-    }
+    setSelectedPlanId(selectedPlan || null);
   }, [selectedPlan]);
 
   // Controle local dos acordeões "Ver o que está incluído" por plano
@@ -229,14 +227,8 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
 
   return (
     <div className="space-y-4 pb-4 animate-in fade-in duration-150 overflow-x-hidden">
-      {/* Header Compacto com Botão Voltar fino e moderno */}
-      <section className="pt-0 flex items-center gap-1.5">
-        {onBack && (
-          <BackButton
-            onClick={onBack}
-            label={t.header?.back || 'Voltar'}
-          />
-        )}
+      {/* Header Compacto */}
+      <section className="pt-0">
         <div className="min-w-0">
           <h1 className="text-sm sm:text-base font-bold text-white tracking-tight truncate">
             {t.services.title}

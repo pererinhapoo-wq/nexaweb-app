@@ -218,7 +218,7 @@ function AppContent() {
 
       if (options?.selectedPlan !== undefined) {
         setSavedPlan(options.selectedPlan);
-      } else if (tab === 'project') {
+      } else if (tab === 'project' || tab === 'services') {
         setSavedPlan(undefined);
       }
       if (options?.modelApproach) setSavedModelApproach(options.modelApproach);
@@ -241,7 +241,12 @@ function AppContent() {
         const nextEntry: HistoryEntry = {
           tab,
           projectDetail: options?.projectDetail !== undefined ? options.projectDetail : null,
-          selectedPlan: options?.selectedPlan !== undefined ? options.selectedPlan : current?.selectedPlan,
+          selectedPlan:
+            options?.selectedPlan !== undefined
+              ? options.selectedPlan
+              : tab === 'services'
+              ? undefined
+              : current?.selectedPlan,
           selectedModel: options?.selectedModel !== undefined ? options.selectedModel : undefined,
           modelApproach:
             options?.modelApproach !== undefined ? options.modelApproach : current?.modelApproach,
@@ -330,6 +335,17 @@ function AppContent() {
       }, 15);
     }
   }, [currentTab]);
+
+  // Ação específica do botão superior do cabeçalho:
+  // No Briefing (currentTab === 'project'): sai diretamente para a HOME
+  // Nas demais telas: executa o desempilhamento padrão (handleGoBack)
+  const handleHeaderBack = useCallback(() => {
+    if (currentTab === 'project') {
+      navigateTo('home');
+      return;
+    }
+    handleGoBack();
+  }, [currentTab, navigateTo, handleGoBack]);
 
   // Suporte aprimorado e intuitivo ao botão físico/gestual de voltar do Android
   const handleAndroidBack = useCallback(() => {
@@ -548,10 +564,17 @@ function AppContent() {
       {/* Intro splash suave e não intrusiva */}
       {showIntro && <IntroSplash onFinish={() => setShowIntro(false)} />}
 
-      {/* Header oficial Nexa (menu oculto no fluxo do Briefing sem deixar espaço vazio) */}
+      {/* Header oficial Nexa (menu lateral + botão voltar posicionado no cabeçalho fixo quando aplicável) */}
       <Header
         onOpenMenu={() => setIsMenuOpen(true)}
         showMenu={currentTab !== 'project'}
+        onBack={handleHeaderBack}
+        showBackButton={Boolean(
+          selectedProjectDetail ||
+          currentTab === 'services' ||
+          currentTab === 'settings' ||
+          currentTab === 'admin'
+        )}
       />
 
       {/* Área de conteúdo principal com transição suave entre telas */}
@@ -568,11 +591,9 @@ function AppContent() {
             <ProjectDetailScreen
               project={selectedProjectDetail}
               onBack={handleGoBack}
-              onStartBriefing={(proj, approach) => {
+              onStartBriefing={(proj) => {
                 navigateTo('project', {
-                  selectedModel: proj.titulo,
                   selectedPlan: proj.planoId || undefined,
-                  modelApproach: approach,
                 });
               }}
             />
@@ -595,6 +616,14 @@ function AppContent() {
                   selectedPlan={currentEntry.selectedPlan}
                   onSelectPlan={(planId) => {
                     setSavedPlan(planId);
+                    setHistory((prev) => {
+                      if (prev.length === 0) return prev;
+                      const last = prev[prev.length - 1];
+                      if (last.tab === 'services') {
+                        return [...prev.slice(0, prev.length - 1), { ...last, selectedPlan: planId }];
+                      }
+                      return prev;
+                    });
                   }}
                   onContinueToBriefing={(planId) => {
                     setSavedPlan(planId);
