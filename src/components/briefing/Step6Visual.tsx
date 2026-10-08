@@ -13,6 +13,8 @@ interface Step6VisualProps {
   planName: string;
   onNext: () => void;
   onPrev?: () => void;
+  highlightedFieldId?: string | null;
+  onClearError?: () => void;
 }
 
 export const Step6Visual: React.FC<Step6VisualProps> = ({
@@ -25,6 +27,8 @@ export const Step6Visual: React.FC<Step6VisualProps> = ({
   planName,
   onNext,
   onPrev,
+  highlightedFieldId,
+  onClearError,
 }) => {
   return (
     <div className="space-y-4 animate-in fade-in duration-150">
@@ -48,9 +52,16 @@ export const Step6Visual: React.FC<Step6VisualProps> = ({
 
       <div className="rounded-2xl p-4 sm:p-5 bg-slate-900 border border-slate-800 space-y-4 shadow-sm">
         {/* 1. Estilo Visual do Site (5 estilos canônicos) */}
-        <div className="space-y-1.5">
+        <div
+          id="briefing-field-visual-style"
+          className={`space-y-1.5 rounded-2xl p-1 -m-1 transition-all duration-300 ${
+            highlightedFieldId === 'briefing-field-visual-style'
+              ? 'ring-2 ring-rose-500/70'
+              : ''
+          }`}
+        >
           <label className="text-[11px] font-bold text-cyan-300 uppercase tracking-wider block">
-            1. Estilo Visual Desejado
+            1. Estilo Visual Desejado *
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
             {VISUAL_STYLES.map((st) => {
@@ -58,7 +69,10 @@ export const Step6Visual: React.FC<Step6VisualProps> = ({
               return (
                 <div
                   key={st.id}
-                  onClick={() => setVisualStyle(st.id)}
+                  onClick={() => {
+                    setVisualStyle(st.id);
+                    onClearError?.();
+                  }}
                   className={`p-2.5 rounded-xl border text-left cursor-pointer transition-all active:scale-[0.99] flex flex-col justify-between ${
                     isChecked
                       ? 'bg-cyan-500/15 border-cyan-500 text-white shadow-sm ring-1 ring-cyan-500/30'

@@ -93,6 +93,55 @@ function AppContent() {
   const selectedWebsiteLanguageForProject =
     currentEntry.selectedWebsiteLanguage || savedWebsiteLanguage;
 
+  const activeScreenId = selectedProjectDetail
+    ? `detail-${selectedProjectDetail.id}`
+    : currentTab;
+
+  // Reset global e determinístico de rolagem ao navegar para uma NOVA TELA
+  // Garante que qualquer nova tela sempre inicie no topo após o React renderizar o DOM
+  useEffect(() => {
+    // Exceção estrita de restauração do Portfólio:
+    // Ao fechar ProjectDetailScreen com posição salva na vitrine (portfolioScrollPosRef > 0),
+    // não reseta para o topo para permitir a restauração exata da posição da lista
+    if (!selectedProjectDetail && portfolioScrollPosRef.current > 0) {
+      return;
+    }
+
+    if (typeof window === 'undefined') return;
+
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: 'instant' as ScrollBehavior,
+    });
+
+    if (document.documentElement) {
+      document.documentElement.scrollTop = 0;
+    }
+
+    if (document.body) {
+      document.body.scrollTop = 0;
+    }
+
+    const rafId = requestAnimationFrame(() => {
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: 'instant' as ScrollBehavior,
+      });
+
+      if (document.documentElement) {
+        document.documentElement.scrollTop = 0;
+      }
+
+      if (document.body) {
+        document.body.scrollTop = 0;
+      }
+    });
+
+    return () => cancelAnimationFrame(rafId);
+  }, [activeScreenId, selectedProjectDetail]);
+
   // Restaura posição da lista ao fechar detalhes (sem conflito com smooth scroll)
   useEffect(() => {
     if (!selectedProjectDetail && portfolioScrollPosRef.current > 0) {
@@ -211,15 +260,8 @@ function AppContent() {
         canStepBackInProjectRef.current = false;
       }
 
-      // Garante que a tela de destino sempre abra a partir do topo
-      if (typeof window !== 'undefined') {
-        window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
-      }
-
       if (options?.selectedPlan !== undefined) {
         setSavedPlan(options.selectedPlan);
-      } else if (tab === 'project' || tab === 'services') {
-        setSavedPlan(undefined);
       }
       if (options?.modelApproach) setSavedModelApproach(options.modelApproach);
       if (options?.selectedWebsiteLanguage) setSavedWebsiteLanguage(options.selectedWebsiteLanguage);
@@ -244,8 +286,6 @@ function AppContent() {
           selectedPlan:
             options?.selectedPlan !== undefined
               ? options.selectedPlan
-              : tab === 'services'
-              ? undefined
               : current?.selectedPlan,
           selectedModel: options?.selectedModel !== undefined ? options.selectedModel : undefined,
           modelApproach:
@@ -299,8 +339,6 @@ function AppContent() {
       try {
         window.history.pushState({ appTab: tab }, '');
       } catch {}
-
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     },
     []
   );
@@ -336,16 +374,27 @@ function AppContent() {
     }
   }, [currentTab]);
 
+  // Ação de saída do Briefing (botão superior do cabeçalho / topo do formulário):
+  // Desempilha para a tela de origem (Serviços se veio de Serviços, ou Home se veio de Home)
+  const handleExitProject = useCallback(() => {
+    setHistory((prev) => {
+      if (prev.length > 1) {
+        return prev.slice(0, prev.length - 1);
+      }
+      return [{ tab: 'home', projectDetail: null }];
+    });
+  }, []);
+
   // Ação específica do botão superior do cabeçalho:
-  // No Briefing (currentTab === 'project'): sai diretamente para a HOME
+  // No Briefing (currentTab === 'project'): desempilha para a tela de origem
   // Nas demais telas: executa o desempilhamento padrão (handleGoBack)
   const handleHeaderBack = useCallback(() => {
     if (currentTab === 'project') {
-      navigateTo('home');
+      handleExitProject();
       return;
     }
     handleGoBack();
-  }, [currentTab, navigateTo, handleGoBack]);
+  }, [currentTab, handleExitProject, handleGoBack]);
 
   // Suporte aprimorado e intuitivo ao botão físico/gestual de voltar do Android
   const handleAndroidBack = useCallback(() => {
@@ -532,9 +581,6 @@ function AppContent() {
       }
       return;
     }
-    if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
-    }
     navigateTo(tab);
   };
 
@@ -613,20 +659,8 @@ function AppContent() {
 
               {currentTab === 'services' && (
                 <ServicesScreen
-                  selectedPlan={currentEntry.selectedPlan}
-                  onSelectPlan={(planId) => {
-                    setSavedPlan(planId);
-                    setHistory((prev) => {
-                      if (prev.length === 0) return prev;
-                      const last = prev[prev.length - 1];
-                      if (last.tab === 'services') {
-                        return [...prev.slice(0, prev.length - 1), { ...last, selectedPlan: planId }];
-                      }
-                      return prev;
-                    });
-                  }}
+                  onSelectPlan={handleSelectPlan}
                   onContinueToBriefing={(planId) => {
-                    setSavedPlan(planId);
                     navigateTo('project', { selectedPlan: planId });
                   }}
                   onNavigate={handleNavigate}
@@ -656,7 +690,7 @@ function AppContent() {
                   initialModelApproach={selectedModelApproachForProject}
                   initialWebsiteLanguage={selectedWebsiteLanguageForProject}
                   onNavigate={handleNavigate}
-                  onBack={handleGoBack}
+                  onBack={handleExitProject}
                   onStepChange={(step, canGoBackStep, goBackStep) => {
                     projectStepRef.current = step;
                     canStepBackInProjectRef.current = canGoBackStep;

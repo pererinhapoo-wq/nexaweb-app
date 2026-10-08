@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { ViewTab, WebsiteLanguage, PortfolioProject } from '../types';
+import { ViewTab, WebsiteLanguage } from '../types';
 import { getNexawebPlans, NexawebPlan } from '../data/servicesData';
-import { getPortfolioProjects } from '../data/portfolioData';
 import {
   createBriefing,
   uploadBriefingImages,
@@ -74,7 +73,6 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
   const { language } = useTranslation();
 
   const plans = getNexawebPlans(language);
-  const portfolioProjects = getPortfolioProjects(language);
 
   // Fluxo oficial progressivo em 9 etapas:
   // 1: Tipo / Origem (Amostra / Ideia própria / Escolher plano)
@@ -193,12 +191,68 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
   const [stepError, setStepError] = useState<string | null>(null);
+  const [highlightedFieldId, setHighlightedFieldId] = useState<string | null>(null);
+  const highlightTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [submissionSuccess, setSubmissionSuccess] = useState<{
     projectId: string;
     message: string;
     isOfflineFallback?: boolean;
   } | null>(null);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
+
+  // Limpa timer do destaque de campo ao desmontar
+  useEffect(() => {
+    return () => {
+      if (highlightTimeoutRef.current) {
+        clearTimeout(highlightTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Localiza o campo pelo ID e o rola suavemente para baixo do cabeçalho fixo (sem focus/abrir teclado)
+  const scrollToField = useCallback((elementId: string) => {
+    if (typeof window === 'undefined') return;
+    const element = document.getElementById(elementId);
+    if (!element) return;
+
+    const rect = element.getBoundingClientRect();
+    const headerOffset = 85;
+    const targetY = window.scrollY + rect.top - headerOffset;
+
+    window.scrollTo({
+      top: Math.max(0, targetY),
+      left: 0,
+      behavior: 'smooth',
+    });
+  }, []);
+
+  // Aciona erro, destaque temporário de ~2.5s e scroll nativo suave
+  const triggerFieldError = useCallback(
+    (message: string, fieldId: string) => {
+      setStepError(message);
+      setHighlightedFieldId(fieldId);
+      if (highlightTimeoutRef.current) {
+        clearTimeout(highlightTimeoutRef.current);
+      }
+      highlightTimeoutRef.current = setTimeout(() => {
+        setHighlightedFieldId(null);
+      }, 2500);
+
+      requestAnimationFrame(() => {
+        scrollToField(fieldId);
+      });
+    },
+    [scrollToField]
+  );
+
+  // Limpa erro e destaque de campo antecipadamente quando o usuário interage
+  const handleClearError = useCallback(() => {
+    setStepError(null);
+    setHighlightedFieldId(null);
+    if (highlightTimeoutRef.current) {
+      clearTimeout(highlightTimeoutRef.current);
+    }
+  }, []);
 
   // Limpa seleções de nicho caso o usuário altere o segmento explicitamente na Etapa 3
   const prevSegmentRef = useRef(selectedSegment);
@@ -472,36 +526,40 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     setContactEmail('');
     setSpecificNotes('');
     setAttachedFiles([]);
-    setStepError(null);
-  }, [selectedPlan]);
+    handleClearError();
+  }, [selectedPlan, handleClearError]);
 
   // Botão Superior de Voltar do Briefing:
-  // Sempre sai diretamente para a tela Início/Home, sem retroceder etapa e preservando dados salvos
+  // Retorna para a tela de origem contextual (Serviços se veio de Serviços, ou Início), preservando dados salvos
   const handleExitToHome = useCallback(() => {
+    if (onBack) {
+      onBack();
+      return;
+    }
     onNavigate('home');
-  }, [onNavigate]);
+  }, [onBack, onNavigate]);
 
   // Retorno de etapa inferior unificado (volta somente para a etapa anterior preservando dados preenchidos)
   const handlePrevStep = useCallback(() => {
-    setStepError(null);
+    handleClearError();
     if (currentStep > 1) {
       setCurrentStep((prev) => (Math.max(1, prev - 1) as BriefingStep));
       scrollToTop();
     }
-  }, [currentStep, scrollToTop]);
+  }, [currentStep, scrollToTop, handleClearError]);
 
   // Sincroniza passo interno e botão voltar físico/norteador com App.tsx
   useEffect(() => {
     if (onStepChange) {
       const canGoBackStep = currentStep > 1;
       const goBackStep = () => {
-        setStepError(null);
+        handleClearError();
         setCurrentStep((prev) => (Math.max(1, prev - 1) as BriefingStep));
         scrollToTop();
       };
       onStepChange(currentStep, canGoBackStep, goBackStep);
     }
-  }, [currentStep, onStepChange, scrollToTop]);
+  }, [currentStep, onStepChange, scrollToTop, handleClearError]);
 
   // Plano ativo
   const activePlanObj: NexawebPlan = useMemo(() => {
@@ -564,16 +622,22 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
 
   // Validação progressiva e avanço de etapa
   const handleNextStep = () => {
-    setStepError(null);
+    handleClearError();
 
     // Etapa 1: Ponto de partida
     if (currentStep === 1) {
       if (!startMode) {
-        setStepError('Por favor, escolha uma das 2 opções para iniciar seu projeto.');
+        triggerFieldError(
+          'Por favor, escolha uma das 2 opções para iniciar seu projeto.',
+          'briefing-field-origin-options'
+        );
         return;
       }
       if (startMode === 'plano' && !selectedPlan) {
-        setStepError('Por favor, selecione um dos 4 planos oficiais para continuar.');
+        triggerFieldError(
+          'Por favor, selecione um dos 4 planos oficiais para continuar.',
+          'briefing-field-plan-grid'
+        );
         return;
       }
       if (startMode === 'propria' && !selectedPlan) {
@@ -587,11 +651,17 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     // Etapa 2: Informações Principais & Objetivo
     if (currentStep === 2) {
       if (!businessName.trim()) {
-        setStepError('Por favor, informe o Nome do seu negócio ou projeto para avançar.');
+        triggerFieldError(
+          'Por favor, informe o Nome do seu negócio ou projeto para avançar.',
+          'briefing-field-business-name'
+        );
         return;
       }
       if (!siteObjective) {
-        setStepError('Por favor, selecione o Objetivo Principal do site para prosseguir.');
+        triggerFieldError(
+          'Por favor, selecione o Objetivo Principal do site para prosseguir.',
+          'briefing-field-site-objective'
+        );
         return;
       }
       setCurrentStep(3);
@@ -602,7 +672,10 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     // Etapa 3: Segmento
     if (currentStep === 3) {
       if (!selectedSegment) {
-        setStepError('Por favor, selecione o Segmento de atuação do seu negócio para prosseguir.');
+        triggerFieldError(
+          'Por favor, selecione o Segmento de atuação do seu negócio para prosseguir.',
+          'briefing-field-segment-grid'
+        );
         return;
       }
       setCurrentStep(4);
@@ -627,7 +700,10 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     // Etapa 6: Visual
     if (currentStep === 6) {
       if (!visualStyle) {
-        setStepError('Por favor, selecione o Estilo Visual desejado para o seu site.');
+        triggerFieldError(
+          'Por favor, selecione o Estilo Visual desejado para o seu site.',
+          'briefing-field-visual-style'
+        );
         return;
       }
       setCurrentStep(7);
@@ -637,8 +713,18 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
 
     // Etapa 7: Conteúdo & Contato
     if (currentStep === 7) {
-      if (!contactName.trim() || !contactPhone.trim()) {
-        setStepError('Por favor, preencha o Nome do responsável e o WhatsApp de contato para prosseguir.');
+      if (!contactName.trim()) {
+        triggerFieldError(
+          'Por favor, preencha o Nome do responsável e o WhatsApp de contato para prosseguir.',
+          'briefing-field-contact-name'
+        );
+        return;
+      }
+      if (!contactPhone.trim()) {
+        triggerFieldError(
+          'Por favor, preencha o Nome do responsável e o WhatsApp de contato para prosseguir.',
+          'briefing-field-contact-phone'
+        );
         return;
       }
       setCurrentStep(8);
@@ -897,7 +983,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
   };
 
   const handleEditStep = (step: number) => {
-    setStepError(null);
+    handleClearError();
     setCurrentStep(step as BriefingStep);
     scrollToTop();
   };
@@ -951,6 +1037,8 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
           hasSavedData={hasSavedDraftData}
           onResetBriefing={handleResetBriefing}
           onNext={handleNextStep}
+          highlightedFieldId={highlightedFieldId}
+          onClearError={handleClearError}
         />
       )}
 
@@ -972,7 +1060,8 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
           planName={activePlanObj.nome}
           onNext={handleNextStep}
           onPrev={handlePrevStep}
-          onClearError={() => setStepError(null)}
+          onClearError={handleClearError}
+          highlightedFieldId={highlightedFieldId}
         />
       )}
 
@@ -984,6 +1073,8 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
           segmentConfig={segmentConfig}
           onNext={handleNextStep}
           onPrev={handlePrevStep}
+          highlightedFieldId={highlightedFieldId}
+          onClearError={handleClearError}
         />
       )}
 
@@ -1034,6 +1125,8 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
           planName={activePlanObj.nome}
           onNext={handleNextStep}
           onPrev={handlePrevStep}
+          highlightedFieldId={highlightedFieldId}
+          onClearError={handleClearError}
         />
       )}
 
@@ -1055,7 +1148,8 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
           planName={activePlanObj.nome}
           onNext={handleNextStep}
           onPrev={handlePrevStep}
-          onClearError={() => setStepError(null)}
+          onClearError={handleClearError}
+          highlightedFieldId={highlightedFieldId}
         />
       )}
 

@@ -9,6 +9,8 @@ interface Step3SegmentProps {
   segmentConfig: SegmentBriefingConfig;
   onNext: () => void;
   onPrev?: () => void;
+  highlightedFieldId?: string | null;
+  onClearError?: () => void;
 }
 
 export const Step3Segment: React.FC<Step3SegmentProps> = ({
@@ -17,6 +19,8 @@ export const Step3Segment: React.FC<Step3SegmentProps> = ({
   segmentConfig,
   onNext,
   onPrev,
+  highlightedFieldId,
+  onClearError,
 }) => {
   return (
     <div className="space-y-4 animate-in fade-in duration-150">
@@ -39,7 +43,14 @@ export const Step3Segment: React.FC<Step3SegmentProps> = ({
       </div>
 
       {/* Grid Compacta de Segmentos */}
-      <div className="rounded-2xl p-4 sm:p-5 bg-slate-900 border border-slate-800 space-y-3 shadow-sm">
+      <div
+        id="briefing-field-segment-grid"
+        className={`rounded-2xl p-4 sm:p-5 bg-slate-900 border space-y-3 shadow-sm transition-all duration-300 ${
+          highlightedFieldId === 'briefing-field-segment-grid'
+            ? 'border-rose-500 ring-2 ring-rose-500/70'
+            : 'border-slate-800'
+        }`}
+      >
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {Object.values(CANONICAL_SEGMENTS).map((seg) => {
             const isSelected = selectedSegment === seg.segmentKey;
@@ -47,7 +58,10 @@ export const Step3Segment: React.FC<Step3SegmentProps> = ({
               <button
                 key={seg.segmentKey}
                 type="button"
-                onClick={() => onSelectSegment(seg.segmentKey)}
+                onClick={() => {
+                  onSelectSegment(seg.segmentKey);
+                  onClearError?.();
+                }}
                 className={`min-h-[48px] p-2.5 rounded-xl border text-left transition-all active:scale-[0.99] flex items-center justify-between gap-2.5 ${
                   isSelected
                     ? 'bg-indigo-950/70 border-cyan-500/80 ring-1 ring-cyan-500/30 text-white shadow-sm'

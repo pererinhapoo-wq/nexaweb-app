@@ -19,6 +19,7 @@ interface Step7ContentProps {
   onNext: () => void;
   onPrev?: () => void;
   onClearError: () => void;
+  highlightedFieldId?: string | null;
 }
 
 export const Step7Content: React.FC<Step7ContentProps> = ({
@@ -38,6 +39,7 @@ export const Step7Content: React.FC<Step7ContentProps> = ({
   onNext,
   onPrev,
   onClearError,
+  highlightedFieldId,
 }) => {
   return (
     <div className="space-y-4 animate-in fade-in duration-150">
@@ -103,6 +105,7 @@ export const Step7Content: React.FC<Step7ContentProps> = ({
           <div>
             <span className="text-[10.5px] text-slate-300 block mb-1">Seu Nome Completo *</span>
             <input
+              id="briefing-field-contact-name"
               type="text"
               value={contactName}
               onChange={(e) => {
@@ -110,7 +113,11 @@ export const Step7Content: React.FC<Step7ContentProps> = ({
                 onClearError();
               }}
               placeholder="Ex: João da Silva"
-              className="w-full min-h-[46px] bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 scroll-mt-24"
+              className={`w-full min-h-[46px] bg-slate-950 border rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 scroll-mt-24 transition-all duration-300 ${
+                highlightedFieldId === 'briefing-field-contact-name'
+                  ? 'border-rose-500 ring-2 ring-rose-500/70'
+                  : 'border-slate-800'
+              }`}
             />
           </div>
 
@@ -118,6 +125,7 @@ export const Step7Content: React.FC<Step7ContentProps> = ({
             <div>
               <span className="text-[10.5px] text-slate-300 block mb-1">WhatsApp para Contato *</span>
               <input
+                id="briefing-field-contact-phone"
                 type="tel"
                 inputMode="tel"
                 value={contactPhone}
@@ -126,7 +134,11 @@ export const Step7Content: React.FC<Step7ContentProps> = ({
                   onClearError();
                 }}
                 placeholder="Ex: (11) 99999-9999"
-                className="w-full min-h-[46px] bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 font-mono scroll-mt-24"
+                className={`w-full min-h-[46px] bg-slate-950 border rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 font-mono scroll-mt-24 transition-all duration-300 ${
+                  highlightedFieldId === 'briefing-field-contact-phone'
+                    ? 'border-rose-500 ring-2 ring-rose-500/70'
+                    : 'border-slate-800'
+                }`}
               />
             </div>
 

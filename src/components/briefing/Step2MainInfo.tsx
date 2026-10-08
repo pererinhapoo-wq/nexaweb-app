@@ -21,6 +21,7 @@ interface Step2MainInfoProps {
   onNext: () => void;
   onPrev?: () => void;
   onClearError: () => void;
+  highlightedFieldId?: string | null;
 }
 
 export const Step2MainInfo: React.FC<Step2MainInfoProps> = ({
@@ -40,6 +41,7 @@ export const Step2MainInfo: React.FC<Step2MainInfoProps> = ({
   onNext,
   onPrev,
   onClearError,
+  highlightedFieldId,
 }) => {
   return (
     <div className="space-y-4 animate-in fade-in duration-150">
@@ -68,6 +70,7 @@ export const Step2MainInfo: React.FC<Step2MainInfoProps> = ({
             1. Nome do Negócio ou Projeto *
           </label>
           <input
+            id="briefing-field-business-name"
             type="text"
             value={businessName}
             onChange={(e) => {
@@ -75,7 +78,11 @@ export const Step2MainInfo: React.FC<Step2MainInfoProps> = ({
               onClearError();
             }}
             placeholder="Ex: Minha Empresa, Studio Bella, Barbearia Nobre..."
-            className="w-full min-h-[46px] bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 scroll-mt-20"
+            className={`w-full min-h-[46px] bg-slate-950 border rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 scroll-mt-20 transition-all duration-300 ${
+              highlightedFieldId === 'briefing-field-business-name'
+                ? 'border-rose-500 ring-2 ring-rose-500/70'
+                : 'border-slate-800'
+            }`}
           />
         </div>
 
@@ -91,7 +98,14 @@ export const Step2MainInfo: React.FC<Step2MainInfoProps> = ({
             Qual é a prioridade número 1 do site para o seu negócio?
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+          <div
+            id="briefing-field-site-objective"
+            className={`grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 rounded-2xl p-0.5 transition-all duration-300 ${
+              highlightedFieldId === 'briefing-field-site-objective'
+                ? 'ring-2 ring-rose-500/70'
+                : ''
+            }`}
+          >
             {SITE_OBJECTIVES.map((obj) => {
               const isChecked = siteObjective === obj.id;
               return (

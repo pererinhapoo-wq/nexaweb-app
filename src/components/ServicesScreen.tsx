@@ -207,7 +207,6 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
   // Ação de seleção do plano: atualiza o estado visual sem navegar automaticamente (Regra 4)
   const handleSelect = (planId: string) => {
     setSelectedPlanId(planId);
-    onSelectPlan?.(planId);
   };
 
   // Ação explícita para iniciar o Briefing com o plano escolhido

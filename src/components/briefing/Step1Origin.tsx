@@ -13,6 +13,8 @@ interface Step1OriginProps {
   hasSavedData?: boolean;
   onResetBriefing?: () => void;
   onNext: () => void;
+  highlightedFieldId?: string | null;
+  onClearError?: () => void;
 }
 
 export const Step1Origin: React.FC<Step1OriginProps> = ({
@@ -26,6 +28,8 @@ export const Step1Origin: React.FC<Step1OriginProps> = ({
   hasSavedData,
   onResetBriefing,
   onNext,
+  highlightedFieldId,
+  onClearError,
 }) => {
   const [showPlanGrid, setShowPlanGrid] = useState<boolean>(!hasInitialPlan);
 
@@ -55,11 +59,21 @@ export const Step1Origin: React.FC<Step1OriginProps> = ({
       </div>
 
       {/* 2 Opções de Entrada Canônicas */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+      <div
+        id="briefing-field-origin-options"
+        className={`grid grid-cols-1 sm:grid-cols-2 gap-2.5 rounded-2xl p-0.5 transition-all duration-300 ${
+          highlightedFieldId === 'briefing-field-origin-options'
+            ? 'ring-2 ring-rose-500/70'
+            : ''
+        }`}
+      >
         {/* Opção 1: Ideia própria / Sob medida */}
         <button
           type="button"
-          onClick={() => setStartMode('propria')}
+          onClick={() => {
+            setStartMode('propria');
+            onClearError?.();
+          }}
           className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between min-h-[92px] active:scale-[0.98] cursor-pointer ${
             startMode === 'propria'
               ? 'bg-indigo-600/20 border-cyan-500 text-white shadow-md ring-1 ring-cyan-500/40'
@@ -92,6 +106,7 @@ export const Step1Origin: React.FC<Step1OriginProps> = ({
           onClick={() => {
             setStartMode('plano');
             setShowPlanGrid(true);
+            onClearError?.();
           }}
           className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between min-h-[92px] active:scale-[0.98] cursor-pointer ${
             startMode === 'plano'
@@ -185,13 +200,23 @@ export const Step1Origin: React.FC<Step1OriginProps> = ({
                 )}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div
+                id="briefing-field-plan-grid"
+                className={`grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-xl p-0.5 transition-all duration-300 ${
+                  highlightedFieldId === 'briefing-field-plan-grid'
+                    ? 'ring-2 ring-rose-500/70'
+                    : ''
+                }`}
+              >
                 {plans.map((p) => {
                   const isSelected = selectedPlan === p.id;
                   return (
                     <div
                       key={p.id}
-                      onClick={() => setSelectedPlan(p.id)}
+                      onClick={() => {
+                        setSelectedPlan(p.id);
+                        onClearError?.();
+                      }}
                       className={`p-3 rounded-xl border text-left cursor-pointer transition-all active:scale-[0.985] flex flex-col justify-between ${
                         isSelected
                           ? 'bg-indigo-600/20 border-cyan-500 shadow-md ring-1 ring-cyan-500/40'

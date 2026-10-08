@@ -16,7 +16,7 @@ import { findAdvancedFeatureById } from '../../data/advancedFeaturesData';
 
 interface Step9SummaryProps {
   activePlanObj: NexawebPlan;
-  startMode: 'amostra' | 'propria' | 'plano';
+  startMode: 'propria' | 'plano' | null;
   selectedModel: string;
   modelApproach: 'exact' | 'inspiration';
   businessName: string;
