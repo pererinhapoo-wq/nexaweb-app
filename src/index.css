@@ -146,6 +146,52 @@ html.reduced-motion *::after {
 }
 
 /* ==================================================
+   BOTÃO VOLTAR UNIFICADO NEXAWEB
+   Minimalista, fino, sem bloco pesado, sem borda/sombra
+   ================================================== */
+.nexa-back-button {
+  color: #94a3b8;
+  background-color: transparent;
+}
+.nexa-back-button:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.08);
+}
+.nexa-back-button:active {
+  background-color: rgba(255, 255, 255, 0.14);
+}
+
+html[data-theme="light"] .nexa-back-button,
+html.light .nexa-back-button {
+  color: #475569 !important;
+  background-color: transparent !important;
+}
+html[data-theme="light"] .nexa-back-button:hover,
+html.light .nexa-back-button:hover {
+  color: #0f172a !important;
+  background-color: rgba(0, 0, 0, 0.06) !important;
+}
+html[data-theme="light"] .nexa-back-button:active,
+html.light .nexa-back-button:active {
+  background-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+html[data-theme="dark"] .nexa-back-button,
+html.dark .nexa-back-button {
+  color: #a1a1aa !important;
+  background-color: transparent !important;
+}
+html[data-theme="dark"] .nexa-back-button:hover,
+html.dark .nexa-back-button:hover {
+  color: #ffffff !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+html[data-theme="dark"] .nexa-back-button:active,
+html.dark .nexa-back-button:active {
+  background-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+/* ==================================================
    SISTEMA DE TEMA ESCURO AMOLED (PITCH BLACK / TRUE DARK)
    ================================================== */
 

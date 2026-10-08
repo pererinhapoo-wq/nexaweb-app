@@ -1,6 +1,7 @@
 import React from 'react';
 import { Check, ChevronRight } from 'lucide-react';
 import { VISUAL_STYLES } from './briefingTypes';
+import { BackButton } from '../BackButton';
 
 interface Step6VisualProps {
   visualStyle: string;
@@ -11,6 +12,7 @@ interface Step6VisualProps {
   setCustomColorDetails: (val: string) => void;
   planName: string;
   onNext: () => void;
+  onPrev?: () => void;
 }
 
 export const Step6Visual: React.FC<Step6VisualProps> = ({
@@ -22,6 +24,7 @@ export const Step6Visual: React.FC<Step6VisualProps> = ({
   setCustomColorDetails,
   planName,
   onNext,
+  onPrev,
 }) => {
   return (
     <div className="space-y-4 animate-in fade-in duration-150">
@@ -137,15 +140,24 @@ export const Step6Visual: React.FC<Step6VisualProps> = ({
         </div>
       </div>
 
-      {/* Ação Principal */}
-      <div className="pt-2">
+      {/* Ações de Navegação da Etapa 6 */}
+      <div className="pt-0.5 pb-0.5 flex items-center justify-between gap-3 w-full">
+        {onPrev ? (
+          <BackButton
+            onClick={onPrev}
+            label="Voltar"
+          />
+        ) : (
+          <div className="w-11 h-11 shrink-0" aria-hidden="true" />
+        )}
+
         <button
           type="button"
           onClick={onNext}
-          className="w-full min-h-[48px] py-3 px-5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs sm:text-sm shadow-md shadow-indigo-950/50 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+          className="min-h-[44px] h-11 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white font-semibold text-xs shadow-sm shadow-indigo-950/30 border border-indigo-400/20 inline-flex items-center justify-center gap-1.5 transition-all duration-150 cursor-pointer shrink-0 ml-auto"
         >
-          <span>Avançar para Conteúdo & Inspirações</span>
-          <ChevronRight className="w-4 h-4" />
+          <span>Avançar</span>
+          <ChevronRight className="w-3.5 h-3.5 shrink-0 -mr-0.5" strokeWidth={2} />
         </button>
       </div>
     </div>

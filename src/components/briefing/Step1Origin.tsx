@@ -431,14 +431,14 @@ export const Step1Origin: React.FC<Step1OriginProps> = ({
       )}
 
       {/* Ação Principal da Etapa 1 */}
-      <div className="pt-2">
+      <div className="pt-0.5 pb-0.5 flex items-center justify-end w-full">
         <button
           type="button"
           onClick={onNext}
-          className="min-h-[48px] w-full py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs sm:text-sm shadow-md shadow-indigo-950/50 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+          className="min-h-[44px] h-11 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white font-semibold text-xs shadow-sm shadow-indigo-950/30 border border-indigo-400/20 inline-flex items-center justify-center gap-1.5 transition-all duration-150 cursor-pointer shrink-0 ml-auto"
         >
-          <span>Continuar para Informações</span>
-          <ChevronRight className="w-4 h-4" />
+          <span>Avançar</span>
+          <ChevronRight className="w-3.5 h-3.5 shrink-0 -mr-0.5" strokeWidth={2} />
         </button>
       </div>
     </div>

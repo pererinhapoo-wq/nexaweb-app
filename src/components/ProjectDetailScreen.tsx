@@ -178,7 +178,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
   };
 
   return (
-    <div className="space-y-4 pb-24 sm:pb-28 animate-in fade-in duration-200">
+    <div className="space-y-4 pb-20 sm:pb-20 animate-in fade-in duration-200">
       {/* 1. Barra de Acesso e Voltar Contextual */}
       <div className="flex items-center justify-between gap-2 pb-1 border-b border-slate-800/60">
         <BackButton

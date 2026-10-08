@@ -46,7 +46,7 @@ export const BriefingStepHeader: React.FC<BriefingStepHeaderProps> = ({
           {canGoBack && (
             <BackButton
               onClick={onBackAction}
-              label={language === 'en' ? 'Back to previous step' : 'Voltar para a etapa anterior'}
+              label={language === 'en' ? 'Exit to Home' : 'Sair para o início'}
             />
           )}
 

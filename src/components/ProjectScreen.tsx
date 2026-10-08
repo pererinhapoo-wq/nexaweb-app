@@ -567,10 +567,6 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
 
     // Etapa 1: Ponto de partida
     if (currentStep === 1) {
-      if (startMode === 'amostra' && !selectedModel) {
-        setStepError('Por favor, selecione uma das demonstrações abaixo para continuar.');
-        return;
-      }
       if (startMode === 'plano' && !selectedPlan) {
         setStepError('Por favor, selecione um dos 4 planos oficiais para continuar.');
         return;
@@ -911,8 +907,8 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
   return (
     <div
       onFocusCapture={handleFormFocusCapture}
-      className={`space-y-4 ${
-        isKeyboardOpen ? 'pb-72' : 'pb-10'
+      className={`space-y-3.5 ${
+        isKeyboardOpen ? 'pb-72' : 'pb-3 sm:pb-4'
       } animate-in fade-in duration-150 overflow-x-hidden w-full min-w-0 transition-[padding] duration-150`}
     >
       {/* Cabeçalho Progressivo com Indicador Discreto (Etapa X de 9) */}
@@ -921,8 +917,8 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
         totalSteps={9}
         planName={selectedPlan || initialPlan ? activePlanObj.nome : ''}
         planPrice={selectedPlan || initialPlan ? activePlanObj.preco : ''}
-        canGoBack={currentStep > 1 || !!onBack}
-        onBackAction={currentStep > 1 ? handlePrevStep : (onBack || (() => onNavigate('home')))}
+        canGoBack={true}
+        onBackAction={onBack || (() => onNavigate('home'))}
       />
 
       {/* Alerta de Validação de Etapa */}
@@ -975,6 +971,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
           setGoogleMapsLink={setGoogleMapsLink}
           planName={activePlanObj.nome}
           onNext={handleNextStep}
+          onPrev={handlePrevStep}
           onClearError={() => setStepError(null)}
         />
       )}
@@ -986,6 +983,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
           onSelectSegment={setSelectedSegment}
           segmentConfig={segmentConfig}
           onNext={handleNextStep}
+          onPrev={handlePrevStep}
         />
       )}
 
@@ -1006,6 +1004,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
           freeServicesText={freeServicesText}
           setFreeServicesText={setFreeServicesText}
           onNext={handleNextStep}
+          onPrev={handlePrevStep}
         />
       )}
 
@@ -1019,6 +1018,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
           featureLimitMessage={featureLimitMessage}
           handleToggleAdvancedFeature={handleToggleAdvancedFeature}
           onNext={handleNextStep}
+          onPrev={handlePrevStep}
         />
       )}
 
@@ -1033,6 +1033,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
           setCustomColorDetails={setCustomColorDetails}
           planName={activePlanObj.nome}
           onNext={handleNextStep}
+          onPrev={handlePrevStep}
         />
       )}
 
@@ -1053,6 +1054,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
           setSpecificNotes={setSpecificNotes}
           planName={activePlanObj.nome}
           onNext={handleNextStep}
+          onPrev={handlePrevStep}
           onClearError={() => setStepError(null)}
         />
       )}
@@ -1064,6 +1066,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
           setAttachedFiles={setAttachedFiles}
           planName={activePlanObj.nome}
           onNext={handleNextStep}
+          onPrev={handlePrevStep}
         />
       )}
 

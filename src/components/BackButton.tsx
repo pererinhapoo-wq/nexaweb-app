@@ -9,11 +9,12 @@ interface BackButtonProps {
 
 /**
  * Botão Voltar unificado do NexaWeb App:
- * - Ícone ChevronLeft fino e moderno (stroke-[1.75] ~ stroke-[2], 18-20px);
- * - Sem caixa/quadrado pesado, sem borda grossa, sem fundo escuro permanente, sem sombra pesada;
- * - Área de toque confortável (min 44x44px);
- * - Feedback suave e discreto no hover/active mantendo a identidade visual;
- * - Respeita o fluxo normal de layout, sem risco de overflow ou corte.
+ * - Ícone ChevronLeft fino e moderno (strokeWidth 1.5, tamanho visual ~19px);
+ * - Visual minimalista, sem quadrado pesado, sem borda grossa, sem fundo permanente, sem sombra;
+ * - Área de toque acessível e confortável (44x44px);
+ * - Feedback sutil e fluido ao toque;
+ * - Totalmente compatível com os temas Original, Claro e Escuro;
+ * - Alinhamento seguro, sem margens negativas frágeis, sem risco de overflow ou corte.
  */
 export const BackButton: React.FC<BackButtonProps> = React.memo(({
   onClick,
@@ -24,13 +25,18 @@ export const BackButton: React.FC<BackButtonProps> = React.memo(({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex items-center justify-center w-11 h-11 min-w-[44px] min-h-[44px] -ml-2 rounded-full text-slate-400 hover:text-white hover:bg-slate-800/40 active:bg-slate-800/60 active:scale-95 transition-all cursor-pointer shrink-0 focus:outline-none focus-visible:ring-1 focus-visible:ring-cyan-400/60 ${className}`}
+      className={`nexa-back-button inline-flex items-center justify-center w-11 h-11 min-w-[44px] min-h-[44px] rounded-full transition-all duration-150 cursor-pointer shrink-0 border-0 bg-transparent shadow-none focus:outline-none focus-visible:ring-1 focus-visible:ring-cyan-400/60 active:scale-95 group ${className}`}
       aria-label={label}
       title={label}
     >
-      <ChevronLeft className="w-5 h-5 text-current stroke-[2] shrink-0 transition-transform group-active:-translate-x-0.5" />
+      <ChevronLeft
+        size={19}
+        strokeWidth={1.5}
+        className="text-current shrink-0 transition-transform duration-150 group-active:-translate-x-0.5"
+      />
     </button>
   );
 });
 
 BackButton.displayName = 'BackButton';
+

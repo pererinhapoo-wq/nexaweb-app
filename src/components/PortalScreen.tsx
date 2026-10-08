@@ -316,7 +316,6 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
                 <BackButton
                   onClick={onBack}
                   label="Voltar"
-                  className="-mr-1.5 ml-0"
                 />
               )}
             </div>

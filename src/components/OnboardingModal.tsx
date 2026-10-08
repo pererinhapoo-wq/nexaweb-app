@@ -10,7 +10,6 @@ import {
 import {
   Sparkles,
   ArrowRight,
-  ArrowLeft,
   Check,
   Rocket,
   RefreshCw,
@@ -19,6 +18,7 @@ import {
   ShieldCheck,
   ShoppingBag,
 } from 'lucide-react';
+import { BackButton } from './BackButton';
 import { setOnboardingCompleted, saveOnboardingAnswers } from '../utils/storage';
 
 interface OnboardingModalProps {
@@ -499,17 +499,12 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
         <div className="p-4 border-t border-slate-800/80 bg-slate-900/95 flex items-center justify-between gap-3 shrink-0">
           {/* Botão de retorno: Só aparece a partir da etapa 2 */}
           {step > 1 ? (
-            <button
-              type="button"
+            <BackButton
               onClick={handleBack}
-              className="min-h-[48px] min-w-[48px] px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-850 hover:bg-slate-800 active:scale-[0.98] text-slate-300 flex items-center justify-center transition-all"
-              aria-label="←"
-              title="←"
-            >
-              <ArrowLeft className="w-5 h-5 text-slate-300" />
-            </button>
+              label="Voltar"
+            />
           ) : (
-            <div />
+            <div className="w-11 h-11 shrink-0" aria-hidden="true" />
           )}
 
           {/* Botão Principal: "Próximo" nas etapas 1 e 2 | "Começar a usar" na etapa 3 */}

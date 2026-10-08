@@ -486,7 +486,7 @@ function AppContent() {
       {/* Área de conteúdo principal com transição suave entre telas */}
       <main
         className={`flex-1 max-w-3xl w-full mx-auto px-4 pt-4 sm:pt-6 ${
-          isBottomNavVisible ? 'pb-20 sm:pb-24' : 'pb-6 sm:pb-8'
+          isBottomNavVisible ? 'pb-16 sm:pb-16' : 'pb-3 sm:pb-4'
         }`}
       >
         <div

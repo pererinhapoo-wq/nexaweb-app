@@ -2,7 +2,8 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { getPortfolioProjects, getPortfolioCategories } from '../data/portfolioData';
 import { PortfolioProject } from '../types';
 import { ProjectCardImage } from './ProjectCardImage';
-import { Search, X, SlidersHorizontal, Check, ArrowLeft, ChevronDown } from 'lucide-react';
+import { Search, X, SlidersHorizontal, Check, ChevronDown } from 'lucide-react';
+import { BackButton } from './BackButton';
 import { useTranslation } from '../contexts/LanguageContext';
 
 interface PortfolioScreenProps {
@@ -235,15 +236,10 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
       {/* 1. Cabeçalho Compacto */}
       <section className="pt-0 flex items-center gap-2.5">
         {onBack && (
-          <button
-            type="button"
+          <BackButton
             onClick={onBack}
-            className="w-9 h-9 min-h-[36px] min-w-[36px] -ml-0.5 rounded-lg bg-slate-900 border border-slate-800/80 hover:bg-slate-850 text-slate-300 hover:text-white flex items-center justify-center transition-all active:scale-95 shrink-0"
-            aria-label="←"
-            title="←"
-          >
-            <ArrowLeft className="w-4 h-4 text-slate-300" />
-          </button>
+            label={t.header?.back || 'Voltar'}
+          />
         )}
         <div className="min-w-0">
           <h1 className="text-sm sm:text-base font-bold text-white tracking-tight truncate">

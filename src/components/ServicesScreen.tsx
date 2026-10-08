@@ -228,7 +228,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
   const activePlanTheme = selectedPlanId ? getThemeStyles(selectedPlanId, true) : null;
 
   return (
-    <div className="space-y-4 pb-6 animate-in fade-in duration-150 overflow-x-hidden">
+    <div className="space-y-4 pb-4 animate-in fade-in duration-150 overflow-x-hidden">
       {/* Header Compacto com Botão Voltar fino e moderno */}
       <section className="pt-0 flex items-center gap-1.5">
         {onBack && (
