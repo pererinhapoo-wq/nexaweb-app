@@ -59,6 +59,7 @@ interface ProjectScreenProps {
   onNavigate: (tab: ViewTab) => void;
   onBack?: () => void;
   onStepChange?: (step: number, canGoBackStep: boolean, goBackStep: () => void) => void;
+  onApprovalStateChange?: (isApproved: boolean) => void;
 }
 
 export const ProjectScreen: React.FC<ProjectScreenProps> = ({
@@ -69,6 +70,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
   onNavigate,
   onBack,
   onStepChange,
+  onApprovalStateChange,
 }) => {
   const { language } = useTranslation();
 
@@ -300,6 +302,29 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     };
   }, [currentStep, scrollToTop]);
 
+  // Garante scroll imediato para o topo exclusivamente ao entrar na tela de aprovação
+  useEffect(() => {
+    if (submissionSuccess) {
+      scrollToTop();
+      const rafId = requestAnimationFrame(() => {
+        scrollToTop();
+      });
+      const timerId = setTimeout(() => {
+        scrollToTop();
+      }, 40);
+
+      return () => {
+        cancelAnimationFrame(rafId);
+        clearTimeout(timerId);
+      };
+    }
+  }, [submissionSuccess, scrollToTop]);
+
+  // Notifica o container pai (App.tsx) sobre a transição para a tela de aprovação
+  useEffect(() => {
+    onApprovalStateChange?.(Boolean(submissionSuccess));
+  }, [submissionSuccess, onApprovalStateChange]);
+
   // Suporte ao teclado virtual Android: assegura que qualquer campo focado permaneça visível sem cortes
   const isKeyboardOpenRef = useRef<boolean>(false);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
@@ -526,6 +551,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     setContactEmail('');
     setSpecificNotes('');
     setAttachedFiles([]);
+    setSubmissionSuccess(null);
     handleClearError();
   }, [selectedPlan, handleClearError]);
 
@@ -992,7 +1018,11 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     <div
       onFocusCapture={handleFormFocusCapture}
       className={`space-y-3.5 ${
-        isKeyboardOpen ? 'pb-72' : 'pb-3 sm:pb-4'
+        submissionSuccess
+          ? 'pb-2 sm:pb-3'
+          : isKeyboardOpen
+          ? 'pb-72'
+          : 'pb-3 sm:pb-4'
       } animate-in fade-in duration-150 overflow-x-hidden w-full min-w-0 transition-[padding] duration-150`}
     >
       {/* Âncora invisível para scroll imediato e preciso ao topo do Briefing */}
@@ -1205,7 +1235,6 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
           onOfflineProtocol={handleGenerateOfflineProtocol}
           onEditStep={handleEditStep}
           onNavigate={onNavigate}
-          onResetBriefing={handleResetBriefing}
         />
       )}
     </div>

@@ -57,7 +57,6 @@ interface Step9SummaryProps {
   onOfflineProtocol: () => void;
   onEditStep: (step: number) => void;
   onNavigate: (tab: any) => void;
-  onResetBriefing?: () => void;
 }
 
 export const Step9Summary: React.FC<Step9SummaryProps> = ({
@@ -99,10 +98,47 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
   onOfflineProtocol,
   onEditStep,
   onNavigate,
-  onResetBriefing,
 }) => {
   const objectiveLabel =
     SITE_OBJECTIVES.find((o) => o.id === siteObjective)?.label || siteObjective;
+
+  // Quando o briefing é concluído com sucesso, exibe exclusivamente a tela de aprovação/sucesso
+  if (submissionSuccess) {
+    return (
+      <div className="p-4 sm:p-5 rounded-2xl bg-emerald-950/80 border border-emerald-500/40 space-y-3 animate-in fade-in duration-150">
+        <div className="flex items-center gap-2 text-emerald-300 font-bold text-sm">
+          <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+          <span>Briefing Registrado com Sucesso!</span>
+        </div>
+        <p className="text-xs text-slate-200 leading-relaxed">
+          {submissionSuccess.message}
+        </p>
+        <div className="p-2.5 rounded-xl bg-slate-950/80 border border-emerald-500/30 flex items-center justify-between text-xs">
+          <span className="text-slate-400">Protocolo do Projeto:</span>
+          <span className="font-mono font-bold text-emerald-400">
+            {submissionSuccess.projectId}
+          </span>
+        </div>
+        <div className="pt-1.5 flex flex-col sm:flex-row gap-2.5">
+          <button
+            type="button"
+            onClick={() => onNavigate('portal')}
+            className="min-h-[44px] h-11 flex-1 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-slate-950 font-bold text-xs shadow-sm shadow-emerald-950/40 flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer"
+          >
+            <span>Acompanhar na Área do Cliente</span>
+            <ChevronRight className="w-4 h-4 shrink-0" />
+          </button>
+          <button
+            type="button"
+            onClick={() => onNavigate('home')}
+            className="min-h-[44px] h-11 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.98] border border-slate-700/80 text-slate-300 hover:text-white text-xs font-semibold flex items-center justify-center transition-all duration-150 cursor-pointer"
+          >
+            <span>Voltar ao Início</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 animate-in fade-in duration-150">
@@ -492,53 +528,8 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
         </div>
       </div>
 
-      {/* Feedback de Sucesso no Envio */}
-      {submissionSuccess && (
-        <div className="p-4 rounded-2xl bg-emerald-950/80 border border-emerald-500/50 space-y-2 animate-in fade-in">
-          <div className="flex items-center gap-2 text-emerald-300 font-bold text-sm">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-            <span>Briefing Registrado com Sucesso!</span>
-          </div>
-          <p className="text-xs text-slate-200 leading-relaxed">
-            {submissionSuccess.message}
-          </p>
-          <div className="p-2.5 rounded-xl bg-slate-950/80 border border-emerald-500/30 flex items-center justify-between text-xs">
-            <span className="text-slate-400">Protocolo do Projeto:</span>
-            <span className="font-mono font-bold text-emerald-400">
-              {submissionSuccess.projectId}
-            </span>
-          </div>
-          <div className="pt-2 flex flex-col sm:flex-row gap-2">
-            <button
-              type="button"
-              onClick={() => onNavigate('portal')}
-              className="min-h-[44px] flex-1 py-2 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-2"
-            >
-              <span>Acompanhar na Área do Cliente</span>
-              <ChevronRight className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => onNavigate('home')}
-              className="min-h-[44px] py-2 px-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white text-xs font-semibold"
-            >
-              Voltar ao Início
-            </button>
-            {onResetBriefing && (
-              <button
-                type="button"
-                onClick={onResetBriefing}
-                className="min-h-[44px] py-2 px-3 rounded-xl bg-slate-900 border border-cyan-800/60 text-cyan-300 hover:text-white text-xs font-semibold"
-              >
-                Iniciar Novo Briefing
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* Erro de Envio com Opção de Protocolo Offline */}
-      {submissionError && !submissionSuccess && (
+      {submissionError && (
         <div className="p-4 rounded-2xl bg-rose-950/80 border border-rose-500/50 space-y-2.5 animate-in fade-in">
           <div className="flex items-center gap-2 text-rose-300 font-bold text-xs">
             <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
@@ -569,28 +560,26 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
       )}
 
       {/* Botão de Envio Oficial da Etapa 9 */}
-      {!submissionSuccess && (
-        <div className="pt-1">
-          <button
-            type="button"
-            onClick={onSubmit}
-            disabled={isSubmitting}
-            className="w-full min-h-[44px] py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-950/30 flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                <span>Registrando seu projeto...</span>
-              </>
-            ) : (
-              <>
-                <Send className="w-3.5 h-3.5" />
-                <span>Enviar Briefing Oficial</span>
-              </>
-            )}
-          </button>
-        </div>
-      )}
+      <div className="pt-1">
+        <button
+          type="button"
+          onClick={onSubmit}
+          disabled={isSubmitting}
+          className="w-full min-h-[44px] h-11 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white font-bold text-xs shadow-sm shadow-indigo-950/40 border border-indigo-400/20 flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <span>Registrando seu projeto...</span>
+            </>
+          ) : (
+            <>
+              <Send className="w-3.5 h-3.5" />
+              <span>Enviar Briefing Oficial</span>
+            </>
+          )}
+        </button>
+      </div>
     </div>
   );
 };

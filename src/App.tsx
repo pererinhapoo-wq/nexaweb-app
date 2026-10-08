@@ -175,6 +175,9 @@ function AppContent() {
   } | null>(null);
   const hasCheckedStartupDraftRef = useRef<boolean>(false);
 
+  // Notificação de estado de aprovação/sucesso do briefing ativo
+  const [isBriefingApproved, setIsBriefingApproved] = useState<boolean>(false);
+
   // Detecção de teclado virtual Android para ocultação garantida da BottomNav sobre formulários
   const [isKeyboardOpen, setIsKeyboardOpen] = useState<boolean>(false);
 
@@ -377,6 +380,7 @@ function AppContent() {
   // Ação de saída do Briefing (botão superior do cabeçalho / topo do formulário):
   // Desempilha para a tela de origem (Serviços se veio de Serviços, ou Home se veio de Home)
   const handleExitProject = useCallback(() => {
+    setIsBriefingApproved(false);
     setHistory((prev) => {
       if (prev.length > 1) {
         return prev.slice(0, prev.length - 1);
@@ -597,9 +601,14 @@ function AppContent() {
     !isKeyboardOpen &&
     isMainTab;
 
+  // Exceção de flex-1 estritamente restrita à tela final de aprovação do Briefing
+  const isApprovalScreenActive = currentTab === 'project' && isBriefingApproved;
+
   return (
     <div
-      className={`min-h-screen flex flex-col font-sans selection:bg-indigo-500 selection:text-white transition-colors duration-200 ${
+      className={`${
+        isApprovalScreenActive ? 'min-h-0' : 'min-h-screen'
+      } flex flex-col font-sans selection:bg-indigo-500 selection:text-white transition-colors duration-200 ${
         resolvedTheme === 'light'
           ? 'bg-slate-50 text-slate-900'
           : resolvedTheme === 'dark'
@@ -625,7 +634,9 @@ function AppContent() {
 
       {/* Área de conteúdo principal com transição suave entre telas */}
       <main
-        className={`flex-1 max-w-3xl w-full mx-auto px-4 pt-4 sm:pt-6 ${
+        className={`${
+          isApprovalScreenActive ? 'flex-none' : 'flex-1'
+        } max-w-3xl w-full mx-auto px-4 pt-4 sm:pt-6 ${
           isBottomNavVisible ? 'pb-16 sm:pb-16' : 'pb-3 sm:pb-4'
         }`}
       >
@@ -696,6 +707,7 @@ function AppContent() {
                     canStepBackInProjectRef.current = canGoBackStep;
                     projectStepBackRef.current = goBackStep;
                   }}
+                  onApprovalStateChange={setIsBriefingApproved}
                 />
               )}
 
