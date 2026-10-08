@@ -17,13 +17,61 @@ export const getPortfolioCategories = (lang: Language = 'pt-BR'): PortfolioCateg
     ];
   }
 
-  // pt-BR, pt-PT, es, fr padrão
+  if (lang === 'es') {
+    return [
+      { id: 'todos', nome: 'Todos los Sectores' },
+      { id: 'beleza-estetica', nome: 'Belleza & Estética' },
+      { id: 'saude-fitness', nome: 'Salud & Fitness' },
+      { id: 'imobiliario', nome: 'Inmobiliaria' },
+      { id: 'gastronomia', nome: 'Gastronomía & Restaurante' },
+      { id: 'arquitetura', nome: 'Arquitectura' },
+      { id: 'tecnologia', nome: 'Tecnología' },
+      { id: 'pet', nome: 'Mascotas' },
+      { id: 'engenharia', nome: 'Ingeniería' },
+      { id: 'comercio', nome: 'Comercio & Tienda' },
+      { id: 'juridico', nome: 'Legal & Consultoría' },
+    ];
+  }
+
+  if (lang === 'fr') {
+    return [
+      { id: 'todos', nome: 'Tous les Secteurs' },
+      { id: 'beleza-estetica', nome: 'Beauté & Esthétique' },
+      { id: 'saude-fitness', nome: 'Santé & Fitness' },
+      { id: 'imobiliario', nome: 'Immobilier' },
+      { id: 'gastronomia', nome: 'Gastronomie & Restaurant' },
+      { id: 'arquitetura', nome: 'Architecture' },
+      { id: 'tecnologia', nome: 'Technologie' },
+      { id: 'pet', nome: 'Animaux & Vétérinaire' },
+      { id: 'engenharia', nome: 'Ingénierie' },
+      { id: 'comercio', nome: 'Commerce & Boutique' },
+      { id: 'juridico', nome: 'Juridique & Conseil' },
+    ];
+  }
+
+  if (lang === 'pt-PT') {
+    return [
+      { id: 'todos', nome: 'Todos os Segmentos' },
+      { id: 'beleza-estetica', nome: 'Beleza & Estética' },
+      { id: 'saude-fitness', nome: 'Saúde & Fitness' },
+      { id: 'imobiliario', nome: 'Imobiliário' },
+      { id: 'gastronomia', nome: 'Gastronomia / Restaurante' },
+      { id: 'arquitetura', nome: 'Arquitetura' },
+      { id: 'tecnologia', nome: 'Tecnologia' },
+      { id: 'pet', nome: 'Animais de Estimação' },
+      { id: 'engenharia', nome: 'Engenharia' },
+      { id: 'comercio', nome: 'Comércio & Loja' },
+      { id: 'juridico', nome: 'Jurídico' },
+    ];
+  }
+
+  // pt-BR padrão
   return [
     { id: 'todos', nome: 'Todos os Segmentos' },
     { id: 'beleza-estetica', nome: 'Beleza & Estética' },
     { id: 'saude-fitness', nome: 'Saúde & Fitness' },
     { id: 'imobiliario', nome: 'Imobiliário' },
-    { id: 'gastronomia', nome: 'Gastronomy / Restaurante' },
+    { id: 'gastronomia', nome: 'Gastronomia / Restaurante' },
     { id: 'arquitetura', nome: 'Arquitetura' },
     { id: 'tecnologia', nome: 'Tecnologia' },
     { id: 'pet', nome: 'Pet Shop' },

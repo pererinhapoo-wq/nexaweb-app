@@ -46,7 +46,12 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 function normalizeLoadedLanguage(val: string | null | undefined): Language {
   if (!val) return 'pt-BR';
-  if (val === 'pt') return 'pt-BR';
+  const clean = val.trim().toLowerCase();
+  if (clean === 'pt' || clean === 'pt-br' || clean === 'pt_br') return 'pt-BR';
+  if (clean === 'pt-pt' || clean === 'pt_pt') return 'pt-PT';
+  if (clean === 'en' || clean === 'en-us' || clean === 'en_us' || clean.startsWith('en')) return 'en';
+  if (clean === 'es' || clean === 'es-es' || clean === 'es_es' || clean.startsWith('es')) return 'es';
+  if (clean === 'fr' || clean === 'fr-fr' || clean === 'fr_fr' || clean.startsWith('fr')) return 'fr';
   if (['pt-BR', 'pt-PT', 'en', 'es', 'fr'].includes(val)) {
     return val as Language;
   }

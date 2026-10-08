@@ -348,7 +348,16 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
     },
     {
       id: 'project',
-      label: language === 'en' ? 'Create website' : language === 'es' ? 'Crear sitio' : language === 'fr' ? 'Créer un site' : 'Criar site',
+      label:
+        language === 'en'
+          ? 'Create website'
+          : language === 'es'
+          ? 'Crear sitio'
+          : language === 'fr'
+          ? 'Créer un site'
+          : language === 'pt-PT'
+          ? 'Criar sítio web'
+          : 'Criar site',
       icon: Sparkles,
       action: () => handleSelectTab('project'),
       isActive: currentTab === 'project',
@@ -362,14 +371,23 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
     },
     {
       id: 'leads',
-      label: language === 'en' ? 'My leads' : language === 'es' ? 'Mis leads' : language === 'fr' ? 'Mes pistes' : 'Meus leads',
+      label:
+        language === 'en'
+          ? 'My leads'
+          : language === 'es'
+          ? 'Mis leads'
+          : language === 'fr'
+          ? 'Mes pistes'
+          : language === 'pt-PT'
+          ? 'Os meus leads'
+          : 'Meus leads',
       icon: Users,
       action: () => handleSelectTab('admin'),
       isActive: currentTab === 'admin',
     },
     {
       id: 'feedback',
-      label: language === 'en' ? 'Feedback' : 'Feedback',
+      label: 'Feedback',
       icon: MessageSquare,
       action: () => {
         onClose();
@@ -379,7 +397,14 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
     },
     {
       id: 'help',
-      label: language === 'en' ? 'Help' : language === 'es' ? 'Ayuda' : language === 'fr' ? 'Aide' : 'Ajuda',
+      label:
+        language === 'en'
+          ? 'Help'
+          : language === 'es'
+          ? 'Ayuda'
+          : language === 'fr'
+          ? 'Aide'
+          : 'Ajuda',
       icon: HelpCircle,
       action: () => {
         onClose();

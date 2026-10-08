@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   ViewTab,
+  SettingsSubView,
   OnboardingAnswers,
   ProjectRecommendation,
   WebsiteLanguage,
@@ -28,7 +29,6 @@ import { SplashScreen } from '@capacitor/splash-screen';
 import { LanguageProvider, useTranslation } from './contexts/LanguageContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import {
-  isOnboardingCompleted,
   setOnboardingCompleted,
   getSavedOnboardingAnswers,
   saveOnboardingAnswers,
@@ -50,6 +50,7 @@ interface HistoryEntry {
   selectedWebsiteLanguage?: WebsiteLanguage;
   modelApproach?: 'exact' | 'inspiration';
   scrollY?: number;
+  settingsSubView?: SettingsSubView;
 }
 
 function AppContent() {
@@ -94,9 +95,12 @@ function AppContent() {
     currentEntry.modelApproach || savedModelApproach;
   const selectedWebsiteLanguageForProject =
     currentEntry.selectedWebsiteLanguage || savedWebsiteLanguage;
+  const currentSettingsSubView = currentEntry.settingsSubView;
 
   const activeScreenId = selectedProjectDetail
     ? `detail-${selectedProjectDetail.id}`
+    : currentTab === 'settings' && currentSettingsSubView
+    ? `settings-${currentSettingsSubView}`
     : currentTab;
 
   // Reset global e determinístico de rolagem ao navegar para uma NOVA TELA
@@ -206,27 +210,22 @@ function AppContent() {
     SplashScreen.hide().catch(() => {});
   }, []);
 
-  // Verificação de primeira abertura e carregamento de respostas salvas
+  // Carregamento de respostas salvas sem bloqueio de entrada na Home
   useEffect(() => {
-    async function checkFirstOpenAndLoadRecommendation() {
+    async function loadSavedRecommendation() {
       try {
-        const completed = await isOnboardingCompleted();
-        if (!completed) {
-          setIsOnboardingOpen(true);
-        } else {
-          const savedAnswers = await getSavedOnboardingAnswers();
-          if (savedAnswers) {
-            const rec = calculateRecommendation(savedAnswers, language, t);
-            setRecommendation(rec);
-            setSavedWebsiteLanguage(savedAnswers.websiteLanguage);
-          }
+        const savedAnswers = await getSavedOnboardingAnswers();
+        if (savedAnswers) {
+          const rec = calculateRecommendation(savedAnswers, language, t);
+          setRecommendation(rec);
+          setSavedWebsiteLanguage(savedAnswers.websiteLanguage);
         }
       } catch {
         // Fallback gracioso
       }
     }
 
-    checkFirstOpenAndLoadRecommendation();
+    loadSavedRecommendation();
   }, [language, t]);
 
   // Verificação de rascunho de Briefing salvo na abertura/reabertura do aplicativo
@@ -297,6 +296,7 @@ function AppContent() {
         selectedWebsiteLanguage?: WebsiteLanguage;
         modelApproach?: 'exact' | 'inspiration';
         resetToRoot?: boolean;
+        settingsSubView?: SettingsSubView;
       }
     ) => {
       // Se saindo do criador de projetos, reseta refs de wizard
@@ -327,7 +327,7 @@ function AppContent() {
         // Ao navegar para a home sem detalhe ou resetando raiz (ex.: toque no BottomNav Início):
         if (
           tab === 'home' &&
-          (options?.resetToRoot || (!options?.projectDetail && !options?.selectedPlan && !options?.selectedModel))
+          (options?.resetToRoot || (!options?.projectDetail && !options?.selectedPlan && !options?.selectedModel && !options?.settingsSubView))
         ) {
           return [{ tab: 'home', projectDetail: null }];
         }
@@ -351,6 +351,7 @@ function AppContent() {
             options?.selectedWebsiteLanguage !== undefined
               ? options.selectedWebsiteLanguage
               : current?.selectedWebsiteLanguage,
+          settingsSubView: options?.settingsSubView,
         };
 
         // Não empilha duplicata se o destino for estritamente idêntico ao topo atual
@@ -360,7 +361,8 @@ function AppContent() {
           current.projectDetail?.id === nextEntry.projectDetail?.id &&
           current.selectedPlan === nextEntry.selectedPlan &&
           current.selectedModel === nextEntry.selectedModel &&
-          current.modelApproach === nextEntry.modelApproach
+          current.modelApproach === nextEntry.modelApproach &&
+          current.settingsSubView === nextEntry.settingsSubView
         ) {
           return prev;
         }
@@ -374,7 +376,8 @@ function AppContent() {
             prevEntry.projectDetail?.id === nextEntry.projectDetail?.id &&
             prevEntry.selectedPlan === nextEntry.selectedPlan &&
             prevEntry.selectedModel === nextEntry.selectedModel &&
-            prevEntry.modelApproach === nextEntry.modelApproach
+            prevEntry.modelApproach === nextEntry.modelApproach &&
+            prevEntry.settingsSubView === nextEntry.settingsSubView
           ) {
             return prev.slice(0, prev.length - 1);
           }
@@ -382,8 +385,8 @@ function AppContent() {
 
         // Se for troca direta de aba de menu principal (sem contexto/plano/modelo específico)
         // e a aba já existe na pilha, trunca até ela para evitar ciclos infinitos entre abas
-        if (!options?.projectDetail && !options?.selectedModel && !options?.selectedPlan) {
-          const existingIndex = prev.findIndex((e) => e.tab === tab && !e.projectDetail);
+        if (!options?.projectDetail && !options?.selectedModel && !options?.selectedPlan && !options?.settingsSubView) {
+          const existingIndex = prev.findIndex((e) => e.tab === tab && !e.projectDetail && !e.settingsSubView);
           if (existingIndex !== -1 && existingIndex > 0) {
             return [...prev.slice(0, existingIndex), nextEntry];
           }
@@ -394,7 +397,7 @@ function AppContent() {
 
       // Registra histórico no navegador para suporte ao botão voltar físico e gestual do Android
       try {
-        window.history.pushState({ appTab: tab }, '');
+        window.history.pushState({ appTab: tab, settingsSubView: options?.settingsSubView }, '');
       } catch {}
     },
     []
@@ -528,8 +531,12 @@ function AppContent() {
         setIsRecommendationOpen(false);
         return;
       }
-      // 3. Se o estado do popstate for da mesma aba atual, não desempilha a tela
-      if (e?.state?.appTab && e.state.appTab === currentTab) {
+      // 3. Se o estado do popstate for da mesma aba e subtela atual, não desempilha a tela
+      if (
+        e?.state?.appTab &&
+        e.state.appTab === currentTab &&
+        e.state.settingsSubView === currentSettingsSubView
+      ) {
         return;
       }
       handleGoBack();
@@ -693,17 +700,22 @@ function AppContent() {
       {showIntro && <IntroSplash onFinish={() => setShowIntro(false)} />}
 
       {/* Header oficial Nexa (menu lateral + botão voltar posicionado no cabeçalho fixo quando aplicável) */}
-      <Header
-        onOpenMenu={() => setIsMenuOpen(true)}
-        showMenu={currentTab !== 'project'}
-        onBack={handleHeaderBack}
-        showBackButton={Boolean(
-          selectedProjectDetail ||
-          currentTab === 'services' ||
-          currentTab === 'settings' ||
-          currentTab === 'admin'
-        )}
-      />
+      {currentTab !== 'settings' && (
+        <Header
+          onOpenMenu={() => setIsMenuOpen(true)}
+          showMenu={
+            currentTab !== 'project' &&
+            currentTab !== 'admin' &&
+            !selectedProjectDetail
+          }
+          onBack={handleHeaderBack}
+          showBackButton={Boolean(
+            selectedProjectDetail ||
+            currentTab === 'services' ||
+            currentTab === 'admin'
+          )}
+        />
+      )}
 
       {/* Área de conteúdo principal com transição suave entre telas */}
       <main
@@ -797,9 +809,12 @@ function AppContent() {
 
               {currentTab === 'settings' && (
                 <SettingsScreen
-                  onOpenLanguageModal={() => setIsLanguageModalOpen(true)}
-                  onOpenContact={() => setIsContactOpen(true)}
+                  activeSubView={currentSettingsSubView}
+                  onNavigateSubView={(subView) =>
+                    navigateTo('settings', { settingsSubView: subView })
+                  }
                   onBack={handleGoBack}
+                  onOpenContact={() => setIsContactOpen(true)}
                 />
               )}
             </>

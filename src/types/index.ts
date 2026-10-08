@@ -20,6 +20,18 @@ export type WebsiteLanguage =
 
 export type ViewTab = 'home' | 'services' | 'portfolio' | 'project' | 'portal' | 'admin' | 'settings';
 
+export type SettingsSubView =
+  | 'language'
+  | 'theme'
+  | 'animations'
+  | 'feedback'
+  | 'help'
+  | 'instagram'
+  | 'email'
+  | 'privacy'
+  | 'terms'
+  | 'about';
+
 export type ThemeMode = 'original' | 'light' | 'dark' | 'system' | 'official';
 
 export type AnimationMode = 'enabled' | 'reduced';
