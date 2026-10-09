@@ -38,23 +38,14 @@ import { BackButton } from './BackButton';
 import { useTranslation } from '../contexts/LanguageContext';
 
 // 6 Etapas Oficiais NexaWeb
-const NEXAWEB_STAGES = [
-  { id: 'briefing', label: 'Briefing', icon: FileText, desc: 'Alinhamento de objetivo, público e referências' },
-  { id: 'estrutura', label: 'Estrutura', icon: Layers, desc: 'Wireframe, arquitetura de páginas e seções' },
-  { id: 'design', label: 'Design', icon: Palette, desc: 'Identidade visual moderna e layout mobile first' },
-  { id: 'desenvolvimento', label: 'Desenvolvimento', icon: Code, desc: 'Codificação de alta performance e responsividade' },
-  { id: 'revisao', label: 'Revisão', icon: Eye, desc: 'Homologação, testes e validação técnica' },
-  { id: 'publicado', label: 'Publicado', icon: Globe, desc: 'Site oficial no ar com domínio e velocidade' },
-] as const;
-
-// Categorias Oficiais para Nova Solicitação
-const REQUEST_CATEGORIES: { id: RequestCategory; label: string; icon: string }[] = [
-  { id: 'Ajuste de Design', label: 'Ajuste de Design', icon: '🎨' },
-  { id: 'Troca de Conteúdo', label: 'Troca de Conteúdo', icon: '📝' },
-  { id: 'Dúvida', label: 'Dúvida', icon: '❓' },
-  { id: 'Correção', label: 'Correção', icon: '🔧' },
-  { id: 'Outro', label: 'Outro', icon: '💬' },
-];
+const STAGE_ICONS = {
+  briefing: FileText,
+  estrutura: Layers,
+  design: Palette,
+  desenvolvimento: Code,
+  revisao: Eye,
+  publicado: Globe,
+} as const;
 
 interface PortalScreenProps {
   onNavigate?: (tab: ViewTab) => void;
@@ -67,6 +58,24 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [project, setProject] = useState<ClientProject | null>(null);
+
+  // Etapas e Categorias localizadas reativas ao idioma atual
+  const nexawebStages = useMemo(() => [
+    { id: 'briefing', label: t.portal.stages.briefing, icon: STAGE_ICONS.briefing, desc: t.portal.stages.briefingDesc },
+    { id: 'estrutura', label: t.portal.stages.estrutura, icon: STAGE_ICONS.estrutura, desc: t.portal.stages.estruturaDesc },
+    { id: 'design', label: t.portal.stages.design, icon: STAGE_ICONS.design, desc: t.portal.stages.designDesc },
+    { id: 'desenvolvimento', label: t.portal.stages.desenvolvimento, icon: STAGE_ICONS.desenvolvimento, desc: t.portal.stages.desenvolvimentoDesc },
+    { id: 'revisao', label: t.portal.stages.revisao, icon: STAGE_ICONS.revisao, desc: t.portal.stages.revisaoDesc },
+    { id: 'publicado', label: t.portal.stages.publicado, icon: STAGE_ICONS.publicado, desc: t.portal.stages.publicadoDesc },
+  ], [t]);
+
+  const requestCategories: { id: RequestCategory; label: string; icon: string }[] = useMemo(() => [
+    { id: 'Ajuste de Design', label: t.portal.categories.design, icon: '🎨' },
+    { id: 'Troca de Conteúdo', label: t.portal.categories.content, icon: '📝' },
+    { id: 'Dúvida', label: t.portal.categories.question, icon: '❓' },
+    { id: 'Correção', label: t.portal.categories.correction, icon: '🔧' },
+    { id: 'Outro', label: t.portal.categories.other, icon: '💬' },
+  ], [t]);
 
   // Modal para nova solicitação
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
@@ -135,7 +144,7 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!accessKey.trim()) {
-      setErrorMsg('Por favor, informe sua chave de acesso.');
+      setErrorMsg(t.portal.errorFillKey);
       return;
     }
 
@@ -147,10 +156,10 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
       if (proj) {
         setProject(proj);
       } else {
-        setErrorMsg('Chave de acesso não encontrada. Use DEMO-2026 para demonstração.');
+        setErrorMsg(t.portal.errorKeyNotFound);
       }
     } catch {
-      setErrorMsg('Falha ao conectar. Tente novamente.');
+      setErrorMsg(t.portal.errorConnection);
     } finally {
       setLoading(false);
     }
@@ -167,15 +176,15 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
     if (!project) return;
 
     if (!reqCategory) {
-      setReqErrorMsg('Selecione uma categoria para a sua solicitação.');
+      setReqErrorMsg(t.portal.errorCategory);
       return;
     }
     if (!reqSubject.trim()) {
-      setReqErrorMsg('Por favor, informe o assunto da solicitação.');
+      setReqErrorMsg(t.portal.errorSubject);
       return;
     }
     if (!reqMessage.trim()) {
-      setReqErrorMsg('Por favor, descreva detalhadamente a sua solicitação.');
+      setReqErrorMsg(t.portal.errorMessage);
       return;
     }
 
@@ -201,11 +210,11 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
       setReqCategory('Ajuste de Design');
       setReqErrorMsg(null);
       setIsRequestModalOpen(false);
-      setReqSuccessMsg('Solicitação enviada com sucesso para a equipe NexaWeb!');
+      setReqSuccessMsg(t.portal.requestSuccessFeedback);
       if (reqSuccessTimerRef.current) clearTimeout(reqSuccessTimerRef.current);
       reqSuccessTimerRef.current = setTimeout(() => setReqSuccessMsg(null), 4500);
     } catch {
-      setReqErrorMsg('Não foi possível enviar a solicitação. Verifique sua conexão e tente novamente.');
+      setReqErrorMsg(t.portal.errorSendRequest);
     } finally {
       setSubmittingReq(false);
     }
@@ -235,16 +244,16 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
   const formatProjectStatus = (status: ClientProject['status']) => {
     switch (status) {
       case 'publicado':
-        return 'Publicado';
+        return t.portal.statuses.publicado;
       case 'revisao':
-        return 'Em Revisão';
+        return t.portal.statuses.revisao;
       case 'desenvolvimento':
-        return 'Em Desenvolvimento';
+        return t.portal.statuses.desenvolvimento;
       case 'planejamento':
-        return 'Em Planejamento';
+        return t.portal.statuses.planejamento;
       case 'em_andamento':
       default:
-        return 'Em Andamento';
+        return t.portal.statuses.em_andamento;
     }
   };
 
@@ -252,32 +261,53 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
   // Essencial -> azul | Profissional -> laranja/dourado | Personalizado -> roxo | Premium -> dourado/âmbar
   const getPlanBadge = (planoId: string) => {
     const id = (planoId || '').toLowerCase();
+    const prefix = t.briefing?.planPrefix || 'Plano';
     if (id.includes('essencial')) {
       return {
-        label: 'Plano Essencial',
+        label: `${prefix} ${t.services.essentialBadge || 'Essencial'}`,
         className: 'bg-blue-500/15 text-blue-300 border-blue-500/30',
         iconColor: 'text-blue-400',
       };
     }
     if (id.includes('personalizado')) {
       return {
-        label: 'Plano Personalizado',
+        label: `${prefix} ${t.services.customBadge || 'Personalizado'}`,
         className: 'bg-purple-500/15 text-purple-300 border-purple-500/30',
         iconColor: 'text-purple-400',
       };
     }
     if (id.includes('profissional')) {
       return {
-        label: 'Plano Profissional',
+        label: `${prefix} Profissional`,
         className: 'bg-amber-500/15 text-amber-300 border-amber-500/40',
         iconColor: 'text-amber-400',
       };
     }
     return {
-      label: 'Plano Premium',
+      label: `${prefix} Premium`,
       className: 'bg-yellow-500/15 text-yellow-300 border-yellow-500/40',
       iconColor: 'text-yellow-400',
     };
+  };
+
+  // Formata o nome traduzido da categoria
+  const formatCategoryLabel = (category?: string) => {
+    switch (category) {
+      case 'Ajuste de Design':
+        return t.portal.categories.design;
+      case 'Troca de Conteúdo':
+        return t.portal.categories.content;
+      case 'Dúvida':
+        return t.portal.categories.question;
+      case 'Correção':
+        return t.portal.categories.correction;
+      case 'Outro':
+        return t.portal.categories.other;
+      case 'Briefing':
+        return 'Briefing';
+      default:
+        return category || t.portal.categories.other;
+    }
   };
 
   // Formata a cor do badge de categoria
@@ -309,54 +339,54 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
             <div className="flex items-center justify-between">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-semibold">
                 <UserCheck className="w-3.5 h-3.5 text-cyan-400" />
-                <span>{t.nav.client || (language === 'en' ? 'Client Area' : 'Área do Cliente')}</span>
+                <span>{t.portal.title}</span>
               </div>
 
               {onBack && (
                 <BackButton
                   onClick={onBack}
-                  label="Voltar"
+                  label={t.header?.back || 'Voltar'}
                 />
               )}
             </div>
 
             <div>
               <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
-                {language === 'en' ? 'Track your Project' : 'Acompanhe seu Projeto'}
+                {t.portal.trackProjectTitle}
               </h1>
               <p className="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">
-                {language === 'en' ? 'You do not have an active project in this session yet.' : 'Você ainda não possui um projeto ativo nesta sessão.'}
+                {t.portal.noProjectDesc}
               </p>
             </div>
 
             {/* Explicação clara do que aparecerá quando houver um projeto */}
             <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-2.5 text-xs text-slate-300">
               <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-400 block">
-                {language === 'en' ? 'What you will track when a project is linked:' : 'O que você poderá acompanhar quando houver um projeto:'}
+                {t.portal.whatYouWillTrack}
               </span>
               <ul className="space-y-1.5 text-slate-400 leading-relaxed text-[11.5px]">
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
                   <span>
-                    <strong className="text-slate-200">Evolução em tempo real:</strong> percentual concluído (0% a 100%) e etapa atual do desenvolvimento.
+                    <strong className="text-slate-200">{t.portal.trackItem1Title}</strong> {t.portal.trackItem1Desc}
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
                   <span>
-                    <strong className="text-slate-200">Sequência oficial NexaWeb:</strong> Briefing → Estrutura → Design → Desenvolvimento → Revisão → Publicado.
+                    <strong className="text-slate-200">{t.portal.trackItem2Title}</strong> {t.portal.trackItem2Desc}
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
                   <span>
-                    <strong className="text-slate-200">Homologação e entrega:</strong> links diretos para a versão de teste e o site oficial publicado.
+                    <strong className="text-slate-200">{t.portal.trackItem3Title}</strong> {t.portal.trackItem3Desc}
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
                   <span>
-                    <strong className="text-slate-200">Canal direto:</strong> linha do tempo com atualizações da equipe técnica e envio de solicitações e dúvidas.
+                    <strong className="text-slate-200">{t.portal.trackItem4Title}</strong> {t.portal.trackItem4Desc}
                   </span>
                 </li>
               </ul>
@@ -366,7 +396,7 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
             <form onSubmit={handleLogin} className="space-y-3 pt-1">
               <div>
                 <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-                  {language === 'en' ? 'Already have an Access Key for your project?' : 'Já possui uma Chave de Acesso do seu Projeto?'}
+                  {t.portal.haveAccessKey}
                 </label>
                 <div className="relative">
                   <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -377,7 +407,7 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
                     spellCheck={false}
                     value={accessKey}
                     onChange={(e) => setAccessKey(e.target.value.toUpperCase())}
-                    placeholder={language === 'en' ? 'e.g. DEMO-2026 or your key' : 'Ex: DEMO-2026 ou sua chave'}
+                    placeholder={t.portal.accessKeyPlaceholder}
                     className="min-h-[48px] w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 text-xs sm:text-sm text-white uppercase placeholder:normal-case placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 font-mono tracking-wider transition-colors"
                   />
                 </div>
@@ -396,10 +426,10 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
                 className="min-h-[48px] w-full py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs sm:text-sm shadow-lg shadow-indigo-950/40 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
               >
                 {loading ? (
-                  <span>{language === 'en' ? 'Connecting...' : 'Conectando...'}</span>
+                  <span>{t.portal.connectingBtn}</span>
                 ) : (
                   <>
-                    <span>{language === 'en' ? 'Access Client Portal' : 'Entrar na Área do Cliente'}</span>
+                    <span>{t.portal.connectBtn}</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -408,27 +438,27 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
 
             {/* Acesso rápido para teste */}
             <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-              <span>{language === 'en' ? 'To test the demo experience:' : 'Para testar a experiência:'}</span>
+              <span>{t.portal.testDemoText}</span>
               <button
                 type="button"
                 onClick={() => setAccessKey('DEMO-2026')}
                 className="font-mono text-cyan-400 hover:underline font-semibold"
               >
-                {language === 'en' ? 'Use DEMO-2026' : 'Usar DEMO-2026'}
+                {t.portal.useDemoBtn}
               </button>
             </div>
 
             {/* Ação 2 existente: Se não possui projeto, iniciar pelo Briefing */}
             {onNavigate && (
               <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between gap-3 flex-wrap">
-                <span className="text-xs text-slate-400">Ainda não enviou seu projeto?</span>
+                <span className="text-xs text-slate-400">{t.portal.notSentProjectYet}</span>
                 <button
                   type="button"
                   onClick={() => onNavigate('project')}
                   className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition-colors"
                 >
                   <FileText className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>Criar Meu Site (Briefing)</span>
+                  <span>{t.portal.createMySiteBtn}</span>
                 </button>
               </div>
             )}
@@ -454,7 +484,7 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
                 {/* Selo: Projeto Verificado */}
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold shadow-sm">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span>Projeto Verificado</span>
+                  <span>{t.portal.verifiedProject}</span>
                 </div>
 
                 <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-950/80 text-slate-400 border border-slate-800 text-[10px] font-mono">
@@ -467,18 +497,18 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
                 type="button"
                 onClick={handleLogout}
                 className="p-1.5 sm:px-2.5 sm:py-1 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors flex items-center gap-1.5 text-xs shrink-0"
-                title="Sair da Área do Cliente"
-                aria-label="Sair da Área do Cliente"
+                title={t.portal.logout}
+                aria-label={t.portal.logout}
               >
                 <LogOut className="w-4 h-4" />
-                <span className="hidden xs:inline text-[11px] font-medium">Sair</span>
+                <span className="hidden xs:inline text-[11px] font-medium">{t.portal.logout}</span>
               </button>
             </div>
 
             {/* Saudação do Cliente & Nome da Empresa */}
             <div className="space-y-1">
               <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
-                Olá, {project.nomeCliente}!
+                {t.portal.helloClient.replace('{name}', project.nomeCliente)}
               </h1>
               <p className="text-sm font-semibold text-cyan-300">
                 {project.nomeProjeto}
@@ -501,7 +531,7 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
 
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-950/80 text-cyan-300 border border-cyan-800/60 font-semibold">
                 <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-                <span>Status: {formatProjectStatus(project.status)}</span>
+                <span>{t.portal.statusLabel.replace('{status}', formatProjectStatus(project.status))}</span>
               </div>
             </div>
           </div>
@@ -529,7 +559,7 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
             <div className="flex items-center justify-between">
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                  Etapa Atual
+                  {t.portal.currentStage}
                 </span>
                 <h3 className="text-sm sm:text-base font-extrabold text-white mt-0.5">
                   {project.etapaAtual}
@@ -537,7 +567,7 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
               </div>
               <div className="text-right">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                  Concluído
+                  {t.portal.completed}
                 </span>
                 <span className="text-sm font-black font-mono text-cyan-400 bg-cyan-950/90 px-2.5 py-0.5 rounded-lg border border-cyan-800/60 inline-block mt-0.5">
                   {project.progresso}%
@@ -557,7 +587,7 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
             {project.mensagemStatus && (
               <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800/90 space-y-1">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 block">
-                  Mensagem da NexaWeb
+                  {t.portal.nexawebMessage}
                 </span>
                 <p className="text-xs text-slate-300 leading-relaxed">
                   {project.mensagemStatus}
@@ -575,21 +605,23 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-cyan-400" />
                 <h3 className="text-xs sm:text-sm font-bold text-white">
-                  Status do Projeto
+                  {t.portal.projectStatus}
                 </h3>
               </div>
               <span className="text-[11px] text-slate-400 font-medium">
-                Etapa {currentStageIndex + 1} de {NEXAWEB_STAGES.length}
+                {t.portal.stageXofY
+                  .replace('{current}', String(currentStageIndex + 1))
+                  .replace('{total}', String(nexawebStages.length))}
               </span>
             </div>
 
             <p className="text-xs text-slate-400 leading-snug">
-              Sequência oficial de desenvolvimento NexaWeb:
+              {t.portal.officialSequenceDesc}
             </p>
 
             {/* Sequência Visual Vertical com Conectores ↓ */}
             <div className="space-y-1 pt-1">
-              {NEXAWEB_STAGES.map((stage, idx) => {
+              {nexawebStages.map((stage, idx) => {
                 const isCompleted = idx < currentStageIndex;
                 const isCurrent = idx === currentStageIndex;
                 const isPending = idx > currentStageIndex;
@@ -652,24 +684,24 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
                       <div className="shrink-0">
                         {isCompleted && (
                           <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
-                            Concluído
+                            {t.portal.completed}
                           </span>
                         )}
                         {isCurrent && (
                           <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-[10px] font-bold animate-pulse">
-                            Em Andamento
+                            {t.portal.statuses.em_andamento}
                           </span>
                         )}
                         {isPending && (
                           <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-800 text-slate-500 border border-slate-700 text-[10px] font-medium">
-                            Pendente
+                            {t.portal.pending}
                           </span>
                         )}
                       </div>
                     </div>
 
                     {/* Seta conectora vertical entre as etapas */}
-                    {idx < NEXAWEB_STAGES.length - 1 && (
+                    {idx < nexawebStages.length - 1 && (
                       <div className="flex justify-center py-0.5" aria-hidden="true">
                         <ArrowDown className="w-3.5 h-3.5 text-slate-600" />
                       </div>
@@ -695,9 +727,9 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
                   </div>
                   <div>
                     <span className="text-xs font-bold text-white group-hover:text-cyan-300 transition-colors block">
-                      Versão de Teste
+                      {t.portal.previewSite}
                     </span>
-                    <span className="text-[10px] text-slate-400">Homologação ao vivo</span>
+                    <span className="text-[10px] text-slate-400">{t.portal.previewLiveSub}</span>
                   </div>
                 </div>
                 <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-cyan-400 transition-colors" />
@@ -706,8 +738,8 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
               <div className="flex items-center gap-2.5 p-3.5 rounded-xl bg-slate-900/40 border border-slate-800/50 opacity-60">
                 <Clock className="w-5 h-5 text-slate-500 shrink-0" />
                 <div>
-                  <span className="text-xs font-semibold text-slate-400 block">Versão de Teste</span>
-                  <span className="text-[10px] text-slate-500">Em preparação pela equipe</span>
+                  <span className="text-xs font-semibold text-slate-400 block">{t.portal.previewSite}</span>
+                  <span className="text-[10px] text-slate-500">{t.portal.previewPendingSub}</span>
                 </div>
               </div>
             )}
@@ -725,9 +757,9 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
                   </div>
                   <div>
                     <span className="text-xs font-bold text-white group-hover:text-emerald-300 transition-colors block">
-                      Site Oficial Publicado
+                      {t.portal.liveSite}
                     </span>
-                    <span className="text-[10px] text-slate-400">Acessar produção</span>
+                    <span className="text-[10px] text-slate-400">{t.portal.liveAccessSub}</span>
                   </div>
                 </div>
                 <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-emerald-400 transition-colors" />
@@ -736,8 +768,8 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
               <div className="flex items-center gap-2.5 p-3.5 rounded-xl bg-slate-900/40 border border-slate-800/50 opacity-60">
                 <Clock className="w-5 h-5 text-slate-500 shrink-0" />
                 <div>
-                  <span className="text-xs font-semibold text-slate-400 block">Site Publicado</span>
-                  <span className="text-[10px] text-slate-500">Será liberado na entrega final</span>
+                  <span className="text-xs font-semibold text-slate-400 block">{t.portal.liveSite}</span>
+                  <span className="text-[10px] text-slate-500">{t.portal.livePendingSub}</span>
                 </div>
               </div>
             )}
@@ -751,7 +783,7 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 text-cyan-400" />
               <h3 className="text-xs sm:text-sm font-bold text-white">
-                Linha do Tempo do Desenvolvimento
+                {t.portal.timelineTitle}
               </h3>
             </div>
 
@@ -781,7 +813,7 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
               <div className="p-6 rounded-xl bg-slate-950/60 border border-slate-800 text-center space-y-2">
                 <Clock className="w-6 h-6 text-slate-500 mx-auto" />
                 <p className="text-xs text-slate-400 font-medium">
-                  Nenhuma atualização publicada ainda.
+                  {t.portal.projectCreated}
                 </p>
               </div>
             )}
@@ -795,7 +827,7 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
               <div className="flex items-center gap-2">
                 <MessageSquare className="w-4 h-4 text-indigo-400" />
                 <h3 className="text-xs sm:text-sm font-bold text-white">
-                  Solicitações e Briefing
+                  {t.portal.requestsTitle}
                 </h3>
               </div>
 
@@ -806,7 +838,7 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-all shadow-sm active:scale-95"
               >
                 <PlusCircle className="w-3.5 h-3.5" />
-                <span>Nova Solicitação</span>
+                <span>{t.portal.newRequestBtn}</span>
               </button>
             </div>
 
@@ -844,7 +876,7 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
                             req.categoria
                           )}`}
                         >
-                          {req.categoria || 'Outro'}
+                          {formatCategoryLabel(req.categoria)}
                         </span>
                       </div>
 
@@ -859,10 +891,10 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
                         }`}
                       >
                         {req.status === 'respondido'
-                          ? 'Respondido'
+                          ? t.portal.requestStatusAnswered
                           : req.status === 'em_analise'
-                          ? 'Em Análise'
-                          : 'Pendente'}
+                          ? t.portal.requestStatusInAnalysis
+                          : t.portal.requestStatusPending}
                       </span>
                     </div>
 
@@ -877,7 +909,7 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
                     </p>
 
                     <span className="text-[10px] text-slate-500 block">
-                      Enviado em {req.dataEnvio}
+                      {t.portal.sentOn.replace('{date}', req.dataEnvio)}
                     </span>
 
                     {/* Resposta da Equipe NexaWeb (se houver) */}
@@ -886,7 +918,7 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
                         <div className="flex items-center justify-between text-[10px] text-indigo-300 font-semibold">
                           <span className="flex items-center gap-1">
                             <Sparkles className="w-3 h-3 text-cyan-400" />
-                            Resposta da NexaWeb
+                            {t.portal.nexawebTeamResponse}
                           </span>
                           {req.dataResposta && <span>{req.dataResposta}</span>}
                         </div>
@@ -901,13 +933,13 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
             ) : (
               /* Estado vazio de solicitações */
               <div className="text-center py-6 text-slate-500 text-xs space-y-2">
-                <p>Nenhuma solicitação ou briefing registrado ainda.</p>
+                <p>{t.portal.noRequestsYet}</p>
                 <button
                   type="button"
                   onClick={handleOpenRequestModal}
                   className="text-cyan-400 hover:underline font-semibold"
                 >
-                  Enviar a primeira solicitação
+                  {t.portal.newRequestBtn}
                 </button>
               </div>
             )}
@@ -941,17 +973,17 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
 
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div>
-                <h3 className="text-sm font-bold text-white">Nova Solicitação</h3>
+                <h3 className="text-sm font-bold text-white">{t.portal.modalNewRequestTitle}</h3>
                 <p className="text-[11px] text-slate-400">
-                  Envie pedidos para a equipe técnica da NexaWeb
+                  {t.portal.modalNewRequestSubtitle}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={handleCloseRequestModal}
                 className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors active:scale-95"
-                aria-label="Fechar"
-                title="Fechar"
+                aria-label={t.draftModal.close}
+                title={t.draftModal.close}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -968,10 +1000,10 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
               {/* Seletor de Categoria */}
               <div>
                 <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-                  Categoria da Solicitação <span className="text-cyan-400">*</span>
+                  {t.portal.categoryLabel}
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {REQUEST_CATEGORIES.map((cat) => {
+                  {requestCategories.map((cat) => {
                     const isSelected = reqCategory === cat.id;
                     return (
                       <button
@@ -1022,7 +1054,7 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
               {/* Assunto */}
               <div>
                 <label className="text-xs font-semibold text-slate-300 block mb-1">
-                  Assunto da Solicitação <span className="text-cyan-400">*</span>
+                  {t.portal.subjectLabel}
                 </label>
                 <input
                   type="text"
@@ -1032,17 +1064,7 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
                     setReqSubject(e.target.value);
                     if (reqErrorMsg) setReqErrorMsg(null);
                   }}
-                  placeholder={
-                    reqCategory === 'Ajuste de Design'
-                      ? 'Ex: Ajustar cor dos botões, espaçamento...'
-                      : reqCategory === 'Troca de Conteúdo'
-                      ? 'Ex: Atualizar telefone, endereço ou horários...'
-                      : reqCategory === 'Dúvida'
-                      ? 'Ex: Dúvida sobre homologação ou domínio...'
-                      : reqCategory === 'Correção'
-                      ? 'Ex: Link ou imagem com problema na versão de teste...'
-                      : 'Ex: Descreva brevemente o assunto...'
-                  }
+                  placeholder={t.portal.subjectPlaceholder}
                   className="min-h-[44px] w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500"
                 />
               </div>
@@ -1050,7 +1072,7 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
               {/* Descrição Detalhada */}
               <div>
                 <label className="text-xs font-semibold text-slate-300 block mb-1">
-                  Descrição Detalhada <span className="text-cyan-400">*</span>
+                  {t.portal.messageLabel}
                 </label>
                 <textarea
                   rows={4}
@@ -1060,7 +1082,7 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
                     setReqMessage(e.target.value);
                     if (reqErrorMsg) setReqErrorMsg(null);
                   }}
-                  placeholder="Explique detalhadamente o que você precisa que seja feito no projeto..."
+                  placeholder={t.portal.messagePlaceholder}
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 resize-none"
                 />
               </div>
@@ -1072,7 +1094,7 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
                   onClick={handleCloseRequestModal}
                   className="min-h-[44px] flex-1 py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 text-xs font-semibold"
                 >
-                  Cancelar
+                  {t.portal.cancelBtn}
                 </button>
                 <button
                   type="submit"
@@ -1082,12 +1104,12 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
                   {submittingReq ? (
                     <>
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Enviando...</span>
+                      <span>{t.portal.sendingRequestBtn}</span>
                     </>
                   ) : (
                     <>
                       <Send className="w-3.5 h-3.5" />
-                      <span>Enviar Solicitação</span>
+                      <span>{t.portal.sendRequestBtn}</span>
                     </>
                   )}
                 </button>

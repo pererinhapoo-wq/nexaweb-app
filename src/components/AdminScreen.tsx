@@ -111,7 +111,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
       setErrorMsg(null);
       await loadProjects();
     } else {
-      setErrorMsg('Senha administrativa inválida. Use admin2026 para testar.');
+      setErrorMsg(t.admin.invalidPassword);
     }
   };
 
@@ -146,7 +146,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
 
     await loadProjects();
     setEditingProject(null);
-    setFeedbackMsg('Projeto atualizado com sucesso!');
+    setFeedbackMsg(t.admin.projectUpdated);
     if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
     feedbackTimerRef.current = setTimeout(() => setFeedbackMsg(null), 3000);
   };
@@ -169,7 +169,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
     await loadProjects();
     setReplyingRequest(null);
     setReplyText('');
-    setFeedbackMsg('Resposta enviada ao cliente com sucesso!');
+    setFeedbackMsg(t.admin.replySent);
     if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
     feedbackTimerRef.current = setTimeout(() => setFeedbackMsg(null), 3000);
   };
@@ -201,21 +201,21 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
             <div className="flex items-center justify-between mb-3">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-semibold">
                 <Shield className="w-3.5 h-3.5 text-amber-400" />
-                <span>Painel Administrativo NexaWeb</span>
+                <span>{t.admin.badge}</span>
               </div>
             </div>
 
             <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
-              Acesso da Gestão
+              {t.admin.title}
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-md leading-relaxed">
-              Área restrita para atualização de status, progresso das etapas, homologação e respostas às solicitações dos clientes.
+              {t.admin.desc}
             </p>
 
             <form onSubmit={handleLogin} className="mt-5 space-y-3.5">
               <div>
                 <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-                  Senha de Administrador
+                  {t.admin.passwordLabel}
                 </label>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -223,7 +223,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Digite a senha administrativa"
+                    placeholder={t.admin.passwordPlaceholder}
                     className="min-h-[46px] w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 text-xs sm:text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-amber-500"
                   />
                 </div>
@@ -239,13 +239,13 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
                 type="submit"
                 className="min-h-[48px] w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-bold text-xs shadow-lg shadow-amber-950/40 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
               >
-                <span>Acessar Painel</span>
+                <span>{t.admin.loginBtn}</span>
                 <ArrowRight className="w-4 h-4 text-slate-950" />
               </button>
             </form>
 
             <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-              <span>Senha padrão de teste:</span>
+              <span>{t.admin.testPasswordNotice}</span>
               <button
                 type="button"
                 onClick={() => setPassword('admin2026')}
@@ -282,10 +282,10 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
               type="button"
               onClick={handleLogout}
               className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors flex items-center gap-1 text-xs shrink-0"
-              title="Encerrar Sessão de Admin"
+              title={t.portal.logout}
             >
               <LogOut className="w-4 h-4" />
-              <span className="hidden xs:inline">Sair</span>
+              <span className="hidden xs:inline">{t.portal.logout}</span>
             </button>
           </div>
 
@@ -308,7 +308,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
               }`}
             >
               <FolderKanban className="w-4 h-4" />
-              <span>Projetos ({projects.length})</span>
+              <span>{t.admin.projectsTab} ({projects.length})</span>
             </button>
 
             <button
@@ -321,7 +321,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
               }`}
             >
               <MessageSquare className="w-4 h-4" />
-              <span>Solicitações ({allRequests.length})</span>
+              <span>{t.admin.requestsTab} ({allRequests.length})</span>
             </button>
           </div>
 
@@ -344,7 +344,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
                         </span>
                       </div>
                       <h3 className="text-sm font-bold text-white">{proj.nomeProjeto}</h3>
-                      <p className="text-xs text-slate-400">Cliente: {proj.nomeCliente}</p>
+                      <p className="text-xs text-slate-400">{t.portal.clientName}: {proj.nomeCliente}</p>
                     </div>
 
                     <button
@@ -353,7 +353,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
                       className="p-2 rounded-xl bg-slate-800 hover:bg-slate-750 text-amber-400 border border-slate-700 transition-colors flex items-center gap-1.5 text-xs font-semibold shrink-0"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
-                      <span>Gerenciar</span>
+                      <span>{t.admin.editProject}</span>
                     </button>
                   </div>
 
@@ -374,7 +374,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
                   {/* Mensagem atual ao cliente */}
                   <div className="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800 text-xs text-slate-300 leading-relaxed">
                     <span className="text-[10px] font-semibold text-slate-500 block uppercase">
-                      Mensagem no Portal:
+                      {t.admin.statusMessage}:
                     </span>
                     {proj.mensagemStatus}
                   </div>
@@ -389,7 +389,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
                         className="flex-1 flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg bg-slate-800 hover:bg-slate-750 text-cyan-400 text-xs font-semibold border border-slate-700 transition-colors"
                       >
                         <ExternalLink className="w-3 h-3" />
-                        <span>Ver Staging</span>
+                        <span>{t.admin.stagingUrl}</span>
                       </a>
                     )}
                     {proj.sitePublicadoUrl && (
@@ -400,7 +400,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
                         className="flex-1 flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg bg-slate-800 hover:bg-slate-750 text-emerald-400 text-xs font-semibold border border-slate-700 transition-colors"
                       >
                         <ExternalLink className="w-3 h-3" />
-                        <span>Ver Produção</span>
+                        <span>{t.admin.prodUrl}</span>
                       </a>
                     )}
                   </div>
@@ -414,7 +414,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
             <div className="space-y-3.5">
               {allRequests.length === 0 ? (
                 <div className="text-center py-8 text-slate-500 text-xs">
-                  Nenhuma solicitação de cliente registrada no momento.
+                  {t.admin.noRequestsYet}
                 </div>
               ) : (
                 allRequests.map(({ projectId, projectName, clientName, req }) => (
@@ -437,7 +437,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
                                 : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
                             }`}
                           >
-                            {req.status === 'respondido' ? 'Respondido' : 'Pendente de Resposta'}
+                            {req.status === 'respondido' ? t.portal.requestStatusAnswered : t.portal.requestStatusPending}
                           </span>
                           <span className="text-[10px] text-slate-500 font-mono">{req.dataEnvio}</span>
                         </div>
@@ -453,13 +453,13 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
                         className="p-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0"
                       >
                         <Send className="w-3.5 h-3.5" />
-                        <span>{req.respostaAdmin ? 'Editar Resposta' : 'Responder'}</span>
+                        <span>{req.respostaAdmin ? t.admin.editReply : t.admin.replyRequest}</span>
                       </button>
                     </div>
 
                     <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 text-xs text-slate-300 leading-relaxed">
                       <span className="text-[10px] font-semibold text-slate-500 block uppercase mb-0.5">
-                        Mensagem do Cliente:
+                        {t.admin.clientMessage}
                       </span>
                       {req.mensagem}
                     </div>
@@ -467,7 +467,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
                     {req.respostaAdmin && (
                       <div className="p-3 rounded-xl bg-indigo-950/30 border border-indigo-500/30 text-xs text-indigo-200 leading-relaxed space-y-1">
                         <div className="flex items-center justify-between text-[10px] text-cyan-300 font-semibold">
-                          <span>Sua Resposta Atual:</span>
+                          <span>{t.admin.yourCurrentResponse}</span>
                           {req.dataResposta && <span>{req.dataResposta}</span>}
                         </div>
                         <p>{req.respostaAdmin}</p>
@@ -499,15 +499,15 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
 
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div>
-                <h3 className="text-sm font-bold text-white">Gerenciar Projeto</h3>
+                <h3 className="text-sm font-bold text-white">{t.admin.editProjectTitle}</h3>
                 <p className="text-[11px] text-slate-400">{editingProject.nomeProjeto}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setEditingProject(null)}
                 className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors -mr-1 active:scale-95"
-                aria-label="Fechar"
-                title="Fechar"
+                aria-label={t.portfolio.close}
+                title={t.portfolio.close}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -516,7 +516,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
             <form onSubmit={handleSaveProject} className="space-y-3.5">
               <div>
                 <label className="text-xs font-semibold text-slate-300 block mb-1">
-                  Etapa Atual do Projeto
+                  {t.admin.currentStage}
                 </label>
                 <input
                   type="text"
@@ -529,7 +529,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
 
               <div>
                 <div className="flex items-center justify-between text-xs font-semibold text-slate-300 mb-1">
-                  <span>Progresso Geral:</span>
+                  <span>{t.admin.progress}:</span>
                   <span className="font-mono text-cyan-400">{editProgress}%</span>
                 </div>
                 <input
@@ -544,7 +544,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
 
               <div>
                 <label className="text-xs font-semibold text-slate-300 block mb-1">
-                  Mensagem para o Cliente (Portal)
+                  {t.admin.statusMessage}
                 </label>
                 <textarea
                   rows={3}
@@ -557,7 +557,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div>
                   <label className="text-[11px] font-semibold text-slate-300 block mb-1">
-                    URL de Teste / Staging
+                    {t.admin.stagingUrl}
                   </label>
                   <input
                     type="url"
@@ -569,7 +569,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
                 </div>
                 <div>
                   <label className="text-[11px] font-semibold text-slate-300 block mb-1">
-                    URL Oficial Publicada
+                    {t.admin.prodUrl}
                   </label>
                   <input
                     type="url"
@@ -587,14 +587,14 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
                   onClick={() => setEditingProject(null)}
                   className="min-h-[44px] flex-1 py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 text-xs font-semibold"
                 >
-                  Cancelar
+                  {t.admin.cancelBtn}
                 </button>
                 <button
                   type="submit"
                   className="min-h-[44px] flex-1 py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-amber-950"
                 >
                   <Save className="w-3.5 h-3.5" />
-                  <span>Salvar Alterações</span>
+                  <span>{t.admin.saveBtn}</span>
                 </button>
               </div>
             </form>
@@ -620,15 +620,15 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
 
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div>
-                <h3 className="text-sm font-bold text-white">Responder Solicitação</h3>
+                <h3 className="text-sm font-bold text-white">{t.admin.replyRequest}</h3>
                 <p className="text-[11px] text-slate-400">{replyingRequest.request.assunto}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setReplyingRequest(null)}
                 className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors -mr-1 active:scale-95"
-                aria-label="Fechar"
-                title="Fechar"
+                aria-label={t.portfolio.close}
+                title={t.portfolio.close}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -636,7 +636,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
 
             <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 text-xs text-slate-300">
               <span className="text-[10px] text-slate-500 uppercase block font-semibold mb-0.5">
-                Mensagem enviada pelo cliente:
+                {t.admin.clientMessage}
               </span>
               <p className="italic">"{replyingRequest.request.mensagem}"</p>
             </div>
@@ -644,14 +644,14 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
             <form onSubmit={handleSendReply} className="space-y-3.5">
               <div>
                 <label className="text-xs font-semibold text-slate-300 block mb-1">
-                  Resposta da NexaWeb (visível no Portal do Cliente)
+                  {t.admin.replyTitle}
                 </label>
                 <textarea
                   rows={4}
                   required
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
-                  placeholder="Escreva a resposta e informe o status do ajuste ao cliente..."
+                  placeholder={t.admin.replyPlaceholder}
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-amber-500 resize-none"
                 />
               </div>
@@ -662,14 +662,14 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({ onBack }) => {
                   onClick={() => setReplyingRequest(null)}
                   className="min-h-[44px] flex-1 py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 text-xs font-semibold"
                 >
-                  Cancelar
+                  {t.admin.cancelBtn}
                 </button>
                 <button
                   type="submit"
                   className="min-h-[44px] flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-amber-950"
                 >
                   <Send className="w-3.5 h-3.5 text-slate-950" />
-                  <span>Enviar ao Cliente</span>
+                  <span>{t.admin.sendReplyBtn}</span>
                 </button>
               </div>
             </form>

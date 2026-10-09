@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from '../contexts/LanguageContext';
 import {
   OnboardingAnswers,
@@ -143,61 +143,61 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
   };
 
   // Opções da Etapa 1
-  const interestOptions: { id: InterestOption; title: string; subtitle: string; icon: React.ReactNode }[] = [
+  const interestOptions = useMemo(() => [
     {
-      id: 'new_site',
-      title: 'Criar um site novo',
-      subtitle: 'Lançar um site exclusivo para o meu negócio',
+      id: 'new_site' as InterestOption,
+      title: t.onboarding.interestNewSite,
+      subtitle: t.onboarding.interestNewSiteDesc,
       icon: <Rocket className="w-4 h-4 text-cyan-400" />,
     },
     {
-      id: 'renew_site',
-      title: 'Modernizar site existente',
-      subtitle: 'Melhorar layout, velocidade e presença online',
+      id: 'renew_site' as InterestOption,
+      title: t.onboarding.interestRenewSite,
+      subtitle: t.onboarding.interestRenewSiteDesc,
       icon: <RefreshCw className="w-4 h-4 text-indigo-400" />,
     },
     {
-      id: 'landing_page',
-      title: 'Página rápida ou catálogo',
-      subtitle: 'Foco direto em conversão ou apresentação de serviços',
+      id: 'landing_page' as InterestOption,
+      title: t.onboarding.interestLandingPage,
+      subtitle: t.onboarding.interestLandingPageDesc,
       icon: <Layout className="w-4 h-4 text-emerald-400" />,
     },
-  ];
+  ], [t]);
 
   // Opções da Etapa 2
-  const segmentOptions: { id: string; label: string; icon: string }[] = [
-    { id: 'barber', label: 'Barbearia & Salão', icon: '💈' },
-    { id: 'beauty', label: 'Estética & Beleza', icon: '💅' },
-    { id: 'clinic', label: 'Saúde & Clínica', icon: '🩺' },
-    { id: 'food', label: 'Gastronomia', icon: '🍽️' },
-    { id: 'realEstate', label: 'Imobiliária', icon: '🏢' },
-    { id: 'fitness', label: 'Academia & Fitness', icon: '🏋️' },
-    { id: 'services', label: 'Serviços & Consultoria', icon: '💼' },
-    { id: 'retail', label: 'Comércio & Loja', icon: '🛍️' },
-    { id: 'other', label: 'Outro Segmento', icon: '🌐' },
-  ];
+  const segmentOptions = useMemo(() => [
+    { id: 'barber', label: t.segments.barber, icon: '💈' },
+    { id: 'beauty', label: t.segments.beauty, icon: '💅' },
+    { id: 'clinic', label: t.segments.clinic, icon: '🩺' },
+    { id: 'food', label: t.segments.food, icon: '🍽️' },
+    { id: 'realEstate', label: t.segments.realEstate, icon: '🏢' },
+    { id: 'fitness', label: t.segments.fitness, icon: '🏋️' },
+    { id: 'services', label: t.segments.services, icon: '💼' },
+    { id: 'retail', label: t.segments.retail, icon: '🛍️' },
+    { id: 'other', label: t.segments.other, icon: '🌐' },
+  ], [t]);
 
   // Opções da Etapa 3
-  const objectiveOptions: { id: ObjectiveOption; title: string; subtitle: string; icon: React.ReactNode }[] = [
+  const objectiveOptions = useMemo(() => [
     {
-      id: 'contacts',
-      title: 'Atrair clientes & Contatos',
-      subtitle: 'Receber contatos diretos, ligações e agendamentos',
+      id: 'contacts' as ObjectiveOption,
+      title: t.onboarding.objContacts,
+      subtitle: t.onboarding.objContactsDesc,
       icon: <MessageSquare className="w-4 h-4 text-cyan-400" />,
     },
     {
-      id: 'company',
-      title: 'Apresentação & Credibilidade',
-      subtitle: 'Transmitir autoridade, catálogo de serviços e história',
+      id: 'company' as ObjectiveOption,
+      title: t.onboarding.objCompany,
+      subtitle: t.onboarding.objCompanyDesc,
       icon: <ShieldCheck className="w-4 h-4 text-indigo-400" />,
     },
     {
-      id: 'sell',
-      title: 'Catálogo ou venda online',
-      subtitle: 'Vitrine digital com produtos, fotos, valores e pedidos',
+      id: 'sell' as ObjectiveOption,
+      title: t.onboarding.objSell,
+      subtitle: t.onboarding.objSellDesc,
       icon: <ShoppingBag className="w-4 h-4 text-amber-400" />,
     },
-  ];
+  ], [t]);
 
   return (
     <div
@@ -258,9 +258,9 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
             type="button"
             onClick={handleSkip}
             className="min-h-[44px] min-w-[56px] px-2.5 py-2 text-xs font-medium text-slate-400 hover:text-white rounded-xl hover:bg-slate-800/70 active:scale-95 transition-all flex items-center justify-center shrink-0"
-            aria-label="Pular introdução e entrar no aplicativo"
+            aria-label={t.onboarding.btnSkip || 'Pular'}
           >
-            Pular
+            {t.onboarding.btnSkip || 'Pular'}
           </button>
         </div>
 
@@ -288,13 +288,13 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
             >
               <div className="space-y-1">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-400">
-                  Primeiro Acesso
+                  {t.onboarding.firstAccessBadge}
                 </span>
                 <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight">
-                  O que você busca criar hoje?
+                  {t.onboarding.step1Title}
                 </h2>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  Selecione seu ponto de partida para direcionarmos o melhor formato:
+                  {t.onboarding.step1Subtitle}
                 </p>
               </div>
 
@@ -361,13 +361,13 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
             >
               <div className="space-y-1">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-400">
-                  Ramo de Atuação
+                  {t.recommendation?.segmentLabel || 'Ramo de Atuação'}
                 </span>
                 <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight">
-                  Qual é o seu segmento?
+                  {t.onboarding.step2Title}
                 </h2>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  Adaptamos layouts, recursos e demonstrações ao seu nicho:
+                  {t.onboarding.step2Subtitle}
                 </p>
               </div>
 
@@ -435,13 +435,13 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
             >
               <div className="space-y-1">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-400">
-                  Objetivo Estratégico
+                  {t.recommendation?.objectiveLabel || 'Objetivo Estratégico'}
                 </span>
                 <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight">
-                  Qual o foco principal do site?
+                  {t.onboarding.step3Title}
                 </h2>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  Isso define as funcionalidades essenciais e o formato da página:
+                  {t.onboarding.step3Subtitle}
                 </p>
               </div>
 
@@ -501,7 +501,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
           {step > 1 ? (
             <BackButton
               onClick={handleBack}
-              label="Voltar"
+              label={t.onboarding.btnBack || 'Voltar'}
             />
           ) : (
             <div className="w-11 h-11 shrink-0" aria-hidden="true" />
@@ -515,7 +515,11 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
               step === 1 ? 'w-full' : 'flex-1 max-w-xs ml-auto'
             }`}
           >
-            <span>{step === 3 ? 'Começar a usar' : 'Próximo'}</span>
+            <span>
+              {step === 3
+                ? t.recommendation?.startProjectBtn || 'Começar a usar'
+                : t.onboarding?.btnContinue || 'Próximo'}
+            </span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

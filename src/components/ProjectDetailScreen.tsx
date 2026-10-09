@@ -83,7 +83,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
           return 'nexaweb.app';
         }
       })()
-    : 'Em desenvolvimento';
+    : t.projectDetail?.inDevelopment || 'Em desenvolvimento';
 
   // Navegação manual de imagem (sem setas na UI)
   const handlePrevImage = useCallback(() => {
@@ -182,7 +182,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
       {/* 1. Barra de Acesso e Badge do Plano */}
       <div className="flex items-center justify-end gap-2 pb-1 border-b border-slate-800/60">
         <span className="text-[9.5px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
-          Plano {planName}
+          {t.briefing?.planPrefix || 'Plano'} {planName}
         </span>
       </div>
 
@@ -341,7 +341,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
       {hasValidUrl && (
         <div className="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 space-y-1.5 shadow-sm">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-            Link real do projeto
+            {t.projectDetail.realProjectLink}
           </span>
           <div>
             <a
@@ -362,7 +362,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
         <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-1.5">
           <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
             <Tag className="w-3.5 h-3.5" />
-            Segmento Alvo
+            {t.projectDetail.targetSegment}
           </span>
           <p className="text-xs text-slate-300 leading-relaxed">
             {project.segmentoAlvo}
@@ -375,10 +375,10 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
         <div className="flex items-center justify-between">
           <label className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-            Abordagem para seu Site
+            {t.projectDetail.approachTitle}
           </label>
           <span className="text-[10px] text-slate-400 font-medium">
-            Selecione uma opção
+            {t.projectDetail.selectOption}
           </span>
         </div>
 
@@ -404,10 +404,10 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
             </div>
             <div className="flex-1 min-w-0">
               <span className="text-xs font-bold block text-white">
-                Quero exatamente este formato
+                {t.projectDetail.exactApproachTitle}
               </span>
               <span className="text-[11px] text-slate-400 block mt-0.5 leading-snug">
-                Mesma estrutura visual, adaptada com seus textos, logotipo, fotos e contatos.
+                {t.projectDetail.exactApproachDesc}
               </span>
             </div>
           </button>
@@ -433,10 +433,10 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
             </div>
             <div className="flex-1 min-w-0">
               <span className="text-xs font-bold block text-white">
-                Usar como inspiração para personalizar
+                {t.projectDetail.inspirationApproachTitle}
               </span>
               <span className="text-[11px] text-slate-400 block mt-0.5 leading-snug">
-                Referência estética com liberdade para definir seções, cores e módulos específicos.
+                {t.projectDetail.inspirationApproachDesc}
               </span>
             </div>
           </button>
@@ -448,7 +448,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
         <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
             <Layers className="w-3.5 h-3.5 text-indigo-400" />
-            O que este modelo apresenta
+            {t.projectDetail.featuresShowcaseTitle}
           </span>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -470,7 +470,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
         <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2.5">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            Diferenciais & Tecnologia
+            {t.projectDetail.techDifferentialsTitle}
           </span>
           <div className="flex flex-wrap gap-1.5">
             {project.tags.map((tag, idx) => (
@@ -494,7 +494,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
             className="w-full min-h-[48px] flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-sm shadow-lg shadow-indigo-950/50 transition-all active:scale-[0.985]"
           >
             <Send className="w-4 h-4" />
-            <span>Iniciar Briefing</span>
+            <span>{t.projectDetail.startBriefingBtn}</span>
           </button>
         </div>
       </div>

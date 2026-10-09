@@ -1,12 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, X, Image as ImageIcon, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, AlertCircle } from 'lucide-react';
 import { UPLOAD_RULES } from '../data/commercialRules';
+import { useTranslation } from '../contexts/LanguageContext';
 
 interface FilePreviewItemProps {
   file: File;
   index: number;
   onRemove: (index: number) => void;
   formatFileSize: (bytes: number) => string;
+  removeLabel?: string;
 }
 
 // Subcomponente de preview com ciclo de vida seguro de Object URL (0 memory leaks)
@@ -15,6 +17,7 @@ const FilePreviewItem: React.FC<FilePreviewItemProps> = React.memo(({
   index,
   onRemove,
   formatFileSize,
+  removeLabel = 'Remover imagem',
 }) => {
   const [previewUrl, setPreviewUrl] = useState<string>('');
 
@@ -44,8 +47,8 @@ const FilePreviewItem: React.FC<FilePreviewItemProps> = React.memo(({
           type="button"
           onClick={() => onRemove(index)}
           className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/70 hover:bg-rose-600 text-white flex items-center justify-center transition-all active:scale-90 shadow-md"
-          title="Remover imagem"
-          aria-label={`Remover imagem ${file.name}`}
+          title={removeLabel}
+          aria-label={`${removeLabel}: ${file.name}`}
         >
           <X className="w-3.5 h-3.5" />
         </button>
@@ -85,6 +88,7 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
   helperText,
   formatsHint,
 }) => {
+  const { t } = useTranslation();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -97,18 +101,26 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
 
     // 1. Limite de quantidade
     if (combined.length > maxFiles) {
-      setErrorMessage(`Limite máximo de ${maxFiles} imagens atingido. Remova algumas para adicionar novas.`);
+      setErrorMessage(
+        t.imageUpload.maxImagesReached.replace('{max}', String(maxFiles))
+      );
       return;
     }
 
     // 2. Validação individual de tamanho e formato
     for (const file of newFiles) {
       if (file.size > UPLOAD_RULES.maxSizeBytes) {
-        setErrorMessage(`O arquivo "${file.name}" excede o limite oficial de ${UPLOAD_RULES.maxSizeMB} MB.`);
+        setErrorMessage(
+          t.imageUpload.fileExceedsSize
+            .replace('{name}', file.name)
+            .replace('{maxMB}', String(UPLOAD_RULES.maxSizeMB))
+        );
         return;
       }
       if (!file.type.startsWith('image/')) {
-        setErrorMessage(`O arquivo "${file.name}" não é uma imagem válida.`);
+        setErrorMessage(
+          t.imageUpload.invalidImageType.replace('{name}', file.name)
+        );
         return;
       }
     }
@@ -133,21 +145,26 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
+  const resolvedCounter = showShortCounter
+    ? `${files.length}/${maxFiles}`
+    : t.imageUpload.counter
+        .replace('{count}', String(files.length))
+        .replace('{max}', String(maxFiles));
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <label className="text-xs font-semibold text-slate-300 block">
-          {label || 'Imagens e Referências Visuais'}
+          {label || t.imageUpload.label}
         </label>
         <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
-          {showShortCounter ? `${files.length}/${maxFiles}` : `${files.length} / ${maxFiles} imagens`}
+          {resolvedCounter}
         </span>
       </div>
 
       {/* Regra comercial informada com clareza ao usuário */}
       <p className="text-[11px] text-slate-400 leading-relaxed">
-        {helperText ||
-          `Envie logotipos, fotos de produtos, espaço ou referências visuais que deseja ver no site. Limite oficial: até 6 imagens de no máximo 10 MB cada.`}
+        {helperText || t.imageUpload.helperText}
       </p>
 
       {/* Botão de Seleção / Drop Area */}
@@ -163,10 +180,10 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
           </div>
           <div className="text-left">
             <span className="block leading-tight font-bold text-white group-hover:text-cyan-300">
-              Toque para selecionar imagens
+              {t.imageUpload.tapToSelect}
             </span>
             <span className="text-[10px] text-slate-500 block">
-              {formatsHint || 'JPG, PNG, WebP ou GIF (máx. 10 MB cada)'}
+              {formatsHint || t.imageUpload.formatsHint}
             </span>
           </div>
         </button>
@@ -201,6 +218,7 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
               index={idx}
               onRemove={handleRemoveFile}
               formatFileSize={formatFileSize}
+              removeLabel={t.imageUpload.removeImage}
             />
           ))}
         </div>

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { FileText } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useTranslation } from '../contexts/LanguageContext';
 
 interface BriefingDraftModalProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ export const BriefingDraftModal: React.FC<BriefingDraftModalProps> = ({
   onDiscard,
 }) => {
   const { resolvedTheme } = useTheme();
+  const { t } = useTranslation();
 
   // Bloqueio de scroll do body enquanto o modal estiver aberto
   useEffect(() => {
@@ -64,14 +66,14 @@ export const BriefingDraftModal: React.FC<BriefingDraftModalProps> = ({
                 isLight ? 'text-slate-900' : 'text-white'
               }`}
             >
-              Você tem um briefing em andamento
+              {t.draftModal.title}
             </h2>
             <p
               className={`text-xs leading-relaxed ${
                 isLight ? 'text-slate-600' : 'text-slate-300'
               }`}
             >
-              Encontramos um briefing que você começou anteriormente. Deseja continuar de onde parou?
+              {t.draftModal.desc}
             </p>
           </div>
         </div>
@@ -90,7 +92,7 @@ export const BriefingDraftModal: React.FC<BriefingDraftModalProps> = ({
                 : 'bg-slate-800 hover:bg-slate-750 border-slate-700 text-slate-300 hover:text-white'
             }`}
           >
-            Fechar
+            {t.draftModal.close}
           </button>
 
           {/* Botão Continuar (Restaura o briefing salvo e prossegue) */}
@@ -99,7 +101,7 @@ export const BriefingDraftModal: React.FC<BriefingDraftModalProps> = ({
             onClick={onContinue}
             className="min-h-[44px] py-2.5 px-3.5 rounded-xl text-xs font-bold bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white shadow-md active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center text-center"
           >
-            Continuar
+            {t.draftModal.continue}
           </button>
         </div>
       </div>

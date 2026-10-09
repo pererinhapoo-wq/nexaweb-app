@@ -66,8 +66,8 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
               </div>
             </div>
             <div>
-              <h2 className="text-xs sm:text-sm font-bold text-white">Falar com a NexaWeb</h2>
-              <p className="text-[10.5px] text-slate-400">Canais oficiais de atendimento</p>
+              <h2 className="text-xs sm:text-sm font-bold text-white">{t.contactModal.title}</h2>
+              <p className="text-[10.5px] text-slate-400">{t.contactModal.subtitle}</p>
             </div>
           </div>
 
@@ -75,8 +75,8 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
             type="button"
             onClick={onClose}
             className="w-8 h-8 min-h-[32px] min-w-[32px] flex items-center justify-center p-1 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors -mr-0.5 active:scale-95"
-            aria-label="Fechar"
-            title="Fechar"
+            aria-label={t.draftModal.close}
+            title={t.draftModal.close}
           >
             <X className="w-4 h-4" />
           </button>
@@ -86,10 +86,10 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
         <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 text-xs text-slate-300 leading-relaxed space-y-1.5">
           <div className="flex items-center gap-1.5 font-semibold text-white">
             <ShieldCheck className="w-4 h-4 text-cyan-400" />
-            <span>Atendimento Profissional</span>
+            <span>{t.contactModal.professionalService}</span>
           </div>
           <p className="text-[11px] text-slate-400">
-            Nossa equipe está à disposição para tirar dúvidas, alinhar propostas e dar suporte ao seu projeto.
+            {t.contactModal.serviceDesc}
           </p>
         </div>
 
@@ -110,7 +110,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
               </div>
               <div>
                 <span className="text-xs font-bold text-white group-hover:text-pink-300 transition-colors block">
-                  Instagram Oficial
+                  {t.contactModal.instagram}
                 </span>
                 <span className="text-[11px] text-slate-400 font-mono">@nexaw1</span>
               </div>
@@ -129,7 +129,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
               </div>
               <div>
                 <span className="text-xs font-bold text-white group-hover:text-cyan-300 transition-colors block">
-                  E-mail Oficial
+                  {t.contactModal.email}
                 </span>
                 <span className="text-[11px] text-slate-400 font-mono">nexaweeb@gmail.com</span>
               </div>
@@ -150,7 +150,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
               </div>
               <div>
                 <span className="text-xs font-bold text-white group-hover:text-indigo-300 transition-colors block">
-                  Conhecer o Site Oficial
+                  {t.contactModal.website}
                 </span>
                 <span className="text-[11px] text-slate-400 font-mono">nexaweeb.vercel.app</span>
               </div>
@@ -166,7 +166,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
             onClick={onClose}
             className="min-h-[44px] w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 text-xs font-semibold transition-colors"
           >
-            Fechar
+            {t.draftModal.close}
           </button>
         </div>
       </div>

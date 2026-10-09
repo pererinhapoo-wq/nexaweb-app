@@ -103,8 +103,8 @@ export const RecommendationModal: React.FC<RecommendationModalProps> = ({
             type="button"
             onClick={onClose}
             className="w-8 h-8 min-h-[32px] min-w-[32px] flex items-center justify-center rounded-lg bg-slate-800/80 hover:bg-slate-750 text-slate-400 hover:text-white transition-colors -mr-0.5 active:scale-95"
-            aria-label="Fechar"
-            title="Fechar"
+            aria-label={t.draftModal.close}
+            title={t.draftModal.close}
           >
             <X className="w-4 h-4" />
           </button>
@@ -217,7 +217,7 @@ export const RecommendationModal: React.FC<RecommendationModalProps> = ({
                   onClick={() => onExplorePlan(recommendation.alternativePlan!.id)}
                   className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-750 text-cyan-300 text-[11px] font-semibold flex items-center gap-1 shrink-0 transition-colors"
                 >
-                  <span>Ver</span>
+                  <span>{t.portfolio.viewDetails || 'Ver'}</span>
                   <ChevronRight className="w-3 h-3" />
                 </button>
               </div>
@@ -249,7 +249,7 @@ export const RecommendationModal: React.FC<RecommendationModalProps> = ({
                   <div className={`p-3 bg-gradient-to-r ${project.corDestaque} text-white flex items-center justify-between`}>
                     <div className="min-w-0 pr-2">
                       <span className="text-[9px] uppercase font-bold tracking-wider opacity-85 block">
-                        Demonstração
+                        {t.portfolio.demoCardBadge || 'Demonstração'}
                       </span>
                       <h4 className="text-sm font-bold truncate mt-0.5">
                         {project.titulo}

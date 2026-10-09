@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChevronLeft } from 'lucide-react';
+import { useTranslation } from '../contexts/LanguageContext';
 
 interface BackButtonProps {
   onClick: () => void;
@@ -18,16 +19,19 @@ interface BackButtonProps {
  */
 export const BackButton: React.FC<BackButtonProps> = React.memo(({
   onClick,
-  label = 'Voltar',
+  label,
   className = '',
 }) => {
+  const { t } = useTranslation();
+  const resolvedLabel = label || t?.header?.back || 'Voltar';
+
   return (
     <button
       type="button"
       onClick={onClick}
       className={`nexa-back-button inline-flex items-center justify-center w-11 h-11 min-w-[44px] min-h-[44px] transition-all duration-150 cursor-pointer shrink-0 border-0 bg-transparent shadow-none outline-none focus:outline-none active:scale-95 group ${className}`}
-      aria-label={label}
-      title={label}
+      aria-label={resolvedLabel}
+      title={resolvedLabel}
     >
       <ChevronLeft
         size={19}
@@ -39,4 +43,5 @@ export const BackButton: React.FC<BackButtonProps> = React.memo(({
 });
 
 BackButton.displayName = 'BackButton';
+
 

@@ -955,8 +955,18 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           ========================================================================= */}
       {activeSubView === 'instagram' && (
         <SubViewContainer
-          title="Instagram Oficial"
-          subtitle="Canal verificado de comunicação e portfólio da NexaWeb"
+          title={t.settings.instagram}
+          subtitle={
+            language === 'en'
+              ? 'Verified communication channel and NexaWeb portfolio'
+              : language === 'es'
+              ? 'Canal verificado de comunicación y portafolio de NexaWeb'
+              : language === 'fr'
+              ? 'Canal vérifié de communication et portfolio de NexaWeb'
+              : language === 'pt-PT'
+              ? 'Canal verificado de comunicação e portfólio da NexaWeb'
+              : 'Canal verificado de comunicação e portfólio da NexaWeb'
+          }
         >
           <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-slate-800/80 space-y-3.5 shadow-sm">
             <div className="flex items-center gap-3">
@@ -967,7 +977,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 <div className="flex items-center gap-1.5">
                   <h2 className="text-sm font-bold text-white">NexaWeb</h2>
                   <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
-                    Oficial
+                    {t.settings.activeBadge}
                   </span>
                 </div>
                 <p className="text-xs font-mono text-cyan-400 mt-0.5">@nexaw1</p>
@@ -975,7 +985,15 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed">
-              Acompanhe novidades, demonstrações em primeira mão de novos layouts, dicas práticas de posicionamento digital e bastidores da criação de sites profissionais.
+              {language === 'en'
+                ? 'Follow news, first-hand demos of new layouts, practical digital positioning tips, and behind the scenes of professional website creation.'
+                : language === 'es'
+                ? 'Siga novedades, demostraciones de nuevos diseños, consejos prácticos de posicionamiento digital y el detrás de escena de la creación de sitios profesionales.'
+                : language === 'fr'
+                ? 'Suivez les actualités, les démos de nouvelles maquettes, des conseils de positionnement digital et les coulisses de la création de sites web professionnels.'
+                : language === 'pt-PT'
+                ? 'Acompanhe novidades, demonstrações em primeira mão de novos layouts, dicas práticas de posicionamento digital e bastidores da criação de sites profissionais.'
+                : 'Acompanhe novidades, demonstrações em primeira mão de novos layouts, dicas práticas de posicionamento digital e bastidores da criação de sites profissionais.'}
             </p>
 
             <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800/80 flex items-center justify-between text-xs font-mono text-slate-300">
@@ -983,10 +1001,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               <button
                 type="button"
                 onClick={() =>
-                  handleCopy('https://www.instagram.com/nexaw1/', 'insta-link', 'Link do Instagram')
+                  handleCopy('https://www.instagram.com/nexaw1/', 'insta-link', language === 'en' ? 'Instagram link' : language === 'es' ? 'Enlace de Instagram' : language === 'fr' ? 'Lien Instagram' : 'Link do Instagram')
                 }
                 className="p-1 text-slate-400 hover:text-cyan-400 cursor-pointer ml-2"
-                title="Copiar link"
+                title={language === 'en' ? 'Copy link' : language === 'es' ? 'Copiar enlace' : language === 'fr' ? 'Copier le lien' : 'Copiar link'}
               >
                 <Copy className="w-3.5 h-3.5" />
               </button>
@@ -1000,17 +1018,27 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 className="flex-1 min-h-[44px] flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-gradient-to-r from-purple-600 via-rose-600 to-amber-500 hover:opacity-95 text-white font-bold text-xs shadow-md transition-all active:scale-[0.985]"
               >
                 <ExternalLink className="w-4 h-4" />
-                <span>Abrir perfil no Instagram</span>
+                <span>
+                  {language === 'en'
+                    ? 'Open Instagram profile'
+                    : language === 'es'
+                    ? 'Abrir perfil en Instagram'
+                    : language === 'fr'
+                    ? 'Ouvrir le profil Instagram'
+                    : 'Abrir perfil no Instagram'}
+                </span>
               </a>
               <button
                 type="button"
                 onClick={() =>
-                  handleCopy('https://www.instagram.com/nexaw1/', 'insta-link', 'Link do Instagram')
+                  handleCopy('https://www.instagram.com/nexaw1/', 'insta-link', language === 'en' ? 'Instagram link' : language === 'es' ? 'Enlace de Instagram' : language === 'fr' ? 'Lien Instagram' : 'Link do Instagram')
                 }
                 className="min-h-[44px] px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-white font-semibold text-xs border border-slate-700 transition-all cursor-pointer active:scale-[0.985] flex items-center justify-center gap-1.5"
               >
                 <Copy className="w-3.5 h-3.5" />
-                <span>Copiar link</span>
+                <span>
+                  {language === 'en' ? 'Copy link' : language === 'es' ? 'Copiar enlace' : language === 'fr' ? 'Copier le lien' : 'Copiar link'}
+                </span>
               </button>
             </div>
           </div>
@@ -1022,8 +1050,16 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           ========================================================================= */}
       {activeSubView === 'email' && (
         <SubViewContainer
-          title="E-mail de Contato"
-          subtitle="Canal oficial para propostas, envio de materiais e suporte"
+          title={t.settings.email}
+          subtitle={
+            language === 'en'
+              ? 'Official channel for proposals, materials and support'
+              : language === 'es'
+              ? 'Canal oficial para propuestas, materiales y soporte'
+              : language === 'fr'
+              ? 'Canal officiel pour propositions, supports et assistance'
+              : 'Canal oficial para propostas, envio de materiais e suporte'
+          }
         >
           <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-slate-800/80 space-y-3.5 shadow-sm">
             <div className="flex items-center gap-3">
@@ -1032,9 +1068,19 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <h2 className="text-sm font-bold text-white">Equipe NexaWeb</h2>
+                  <h2 className="text-sm font-bold text-white">
+                    {language === 'en'
+                      ? 'NexaWeb Team'
+                      : language === 'es'
+                      ? 'Equipo NexaWeb'
+                      : language === 'fr'
+                      ? 'Équipe NexaWeb'
+                      : language === 'pt-PT'
+                      ? 'Equipa NexaWeb'
+                      : 'Equipe NexaWeb'}
+                  </h2>
                   <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
-                    Verificado
+                    {language === 'en' ? 'Verified' : language === 'es' ? 'Verificado' : language === 'fr' ? 'Vérifié' : 'Verificado'}
                   </span>
                 </div>
                 <p className="text-xs font-mono text-cyan-400 mt-0.5">nexaweeb@gmail.com</p>
@@ -1042,7 +1088,15 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed">
-              Utilize nosso endereço oficial para esclarecer dúvidas sobre propostas, enviar fotos, logotipos e textos para o seu site ou solicitar assistência técnica.
+              {language === 'en'
+                ? 'Use our official address to clarify questions about proposals, send photos, logos and copy for your website, or request technical support.'
+                : language === 'es'
+                ? 'Utilice nuestra dirección oficial para resolver dudas sobre propuestas, enviar fotos, logotipos y textos para su sitio o solicitar soporte técnico.'
+                : language === 'fr'
+                ? 'Utilisez notre adresse officielle pour poser vos questions sur les propositions, envoyer photos, logos et textes pour votre site ou demander une assistance technique.'
+                : language === 'pt-PT'
+                ? 'Utilize o nosso endereço oficial para esclarecer dúvidas sobre propostas, enviar fotos, logótipos e textos para o seu site ou solicitar assistência técnica.'
+                : 'Utilize nosso endereço oficial para esclarecer dúvidas sobre propostas, enviar fotos, logotipos e textos para o seu site ou solicitar assistência técnica.'}
             </p>
 
             <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800/80 flex items-center justify-between text-xs font-mono text-slate-300">
@@ -1053,14 +1107,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   handleCopy('nexaweeb@gmail.com', 'email-addr', 'E-mail')
                 }
                 className="p-1 text-slate-400 hover:text-cyan-400 cursor-pointer ml-2"
-                title="Copiar e-mail"
+                title={language === 'en' ? 'Copy email' : language === 'es' ? 'Copiar correo' : language === 'fr' ? 'Copier l’email' : 'Copiar e-mail'}
               >
                 <Copy className="w-3.5 h-3.5" />
               </button>
             </div>
 
             <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 text-[11px] text-slate-400">
-              <p>⏱️ <strong>Prazo médio de retorno:</strong> Até 1 dia útil em horário comercial.</p>
+              <p>⏱️ <strong>{language === 'en' ? 'Average response time:' : language === 'es' ? 'Plazo medio de respuesta:' : language === 'fr' ? 'Délai moyen de réponse :' : language === 'pt-PT' ? 'Prazo médio de resposta:' : 'Prazo médio de retorno:'}</strong> {language === 'en' ? 'Up to 1 business day during business hours.' : language === 'es' ? 'Hasta 1 día hábil en horario comercial.' : language === 'fr' ? 'Jusqu’à 1 jour ouvré pendant les heures de bureau.' : language === 'pt-PT' ? 'Até 1 dia útil em horário de expediente.' : 'Até 1 dia útil em horário comercial.'}</p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-2 pt-1">
@@ -1069,7 +1123,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 className="flex-1 min-h-[44px] flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs shadow-md transition-all active:scale-[0.985]"
               >
                 <Mail className="w-4 h-4" />
-                <span>Iniciar e-mail agora</span>
+                <span>{t.settings.sendEmail}</span>
               </a>
               <button
                 type="button"
@@ -1079,7 +1133,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 className="min-h-[44px] px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-white font-semibold text-xs border border-slate-700 transition-all cursor-pointer active:scale-[0.985] flex items-center justify-center gap-1.5"
               >
                 <Copy className="w-3.5 h-3.5" />
-                <span>Copiar e-mail</span>
+                <span>{language === 'en' ? 'Copy email' : language === 'es' ? 'Copiar correo' : language === 'fr' ? 'Copier l’email' : 'Copiar e-mail'}</span>
               </button>
             </div>
           </div>
@@ -1091,8 +1145,16 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           ========================================================================= */}
       {activeSubView === 'privacy' && (
         <SubViewContainer
-          title="Privacidade"
-          subtitle="Compromisso com a segurança e privacidade das suas informações"
+          title={t.settings.privacy}
+          subtitle={
+            language === 'en'
+              ? 'Commitment to the security and privacy of your information'
+              : language === 'es'
+              ? 'Compromiso con la seguridad y privacidad de su información'
+              : language === 'fr'
+              ? 'Engagement envers la sécurité et la confidentialité de vos informations'
+              : 'Compromisso com a segurança e privacidade das suas informações'
+          }
         >
           <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-slate-800/80 space-y-3.5 text-xs text-slate-300 leading-relaxed">
             <div className="flex items-center gap-3 pb-3 border-b border-slate-800/80">
@@ -1101,45 +1163,113 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               </div>
               <div>
                 <h2 className="text-xs sm:text-sm font-bold text-white">
-                  Política de Privacidade & Dados
+                  {language === 'en'
+                    ? 'Privacy & Data Policy'
+                    : language === 'es'
+                    ? 'Política de Privacidad & Datos'
+                    : language === 'fr'
+                    ? 'Politique de Confidentialité & Données'
+                    : 'Política de Privacidade & Dados'}
                 </h2>
-                <p className="text-[10.5px] text-slate-400">Diretrizes da NexaWeb</p>
+                <p className="text-[10.5px] text-slate-400">
+                  {language === 'en'
+                    ? 'NexaWeb Guidelines'
+                    : language === 'es'
+                    ? 'Directrices de NexaWeb'
+                    : language === 'fr'
+                    ? 'Lignes directrices NexaWeb'
+                    : 'Diretrizes da NexaWeb'}
+                </p>
               </div>
             </div>
 
             <div className="p-3 rounded-xl bg-indigo-950/30 border border-indigo-500/30 text-indigo-200 text-xs leading-relaxed space-y-1">
-              <p className="font-semibold text-white">Status da Política Formal:</p>
+              <p className="font-semibold text-white">
+                {language === 'en'
+                  ? 'Formal Policy Status:'
+                  : language === 'es'
+                  ? 'Estado de la Política Formal:'
+                  : language === 'fr'
+                  ? 'Statut de la Politique Formelle :'
+                  : 'Status da Política Formal:'}
+              </p>
               <p className="text-[11.5px] text-slate-300">
-                O documento formal completo da Política de Privacidade está em processo de estruturação jurídica para publicação oficial no site <strong>nexaweeb.vercel.app</strong>.
+                {language === 'en'
+                  ? 'The full formal Privacy Policy document is undergoing legal structuring for official publication on the website nexaweeb.vercel.app.'
+                  : language === 'es'
+                  ? 'El documento formal completo de la Política de Privacidad está en proceso de estructuración jurídica para su publicación oficial en el sitio nexaweeb.vercel.app.'
+                  : language === 'fr'
+                  ? 'Le document formel complet de la Politique de Confidentialité est en cours de structuration juridique pour publication officielle sur le site nexaweeb.vercel.app.'
+                  : 'O documento formal completo da Política de Privacidade está em processo de estruturação jurídica para publicação oficial no site nexaweeb.vercel.app.'}
               </p>
             </div>
 
             <div className="space-y-2">
-              <h3 className="text-xs font-bold text-white">Compromissos vigentes da NexaWeb:</h3>
+              <h3 className="text-xs font-bold text-white">
+                {language === 'en'
+                  ? 'Current NexaWeb commitments:'
+                  : language === 'es'
+                  ? 'Compromisos vigentes de NexaWeb:'
+                  : language === 'fr'
+                  ? 'Engagements en vigueur de NexaWeb :'
+                  : 'Compromissos vigentes da NexaWeb:'}
+              </h3>
               <ul className="space-y-1.5 text-slate-300">
                 <li className="flex items-start gap-2">
                   <Check className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
                   <span>
-                    <strong>Finalidade comercial exclusiva:</strong> As informações fornecidas no briefing (nome, telefone, empresa, preferências) são utilizadas apenas para alinhamento de propostas e atendimento ao seu projeto.
+                    {language === 'en' ? (
+                      <><strong>Exclusive commercial purpose:</strong> Information provided in the briefing (name, phone, company, preferences) is only used for proposal alignment and project delivery.</>
+                    ) : language === 'es' ? (
+                      <><strong>Finalidad comercial exclusiva:</strong> Las informaciones provistas en el briefing (nombre, teléfono, empresa, preferencias) solo se utilizan para alinear propuestas y atender su proyecto.</>
+                    ) : language === 'fr' ? (
+                      <><strong>Finalité commerciale exclusive :</strong> Les informations fournies dans le briefing (nom, téléphone, entreprise, préférences) sont uniquement utilisées pour l’alignement des devis et la réalisation de votre projet.</>
+                    ) : (
+                      <><strong>Finalidade comercial exclusiva:</strong> As informações fornecidas no briefing (nome, telefone, empresa, preferências) são utilizadas apenas para alinhamento de propostas e atendimento ao seu projeto.</>
+                    )}
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
                   <span>
-                    <strong>Não compartilhamento:</strong> Não vendemos, não alugamos e não compartilhamos seus dados com terceiros ou anunciantes.
+                    {language === 'en' ? (
+                      <><strong>No data sharing:</strong> We do not sell, rent, or share your data with third parties or advertisers.</>
+                    ) : language === 'es' ? (
+                      <><strong>No compartición:</strong> No vendemos, no alquilamos ni compartimos sus datos con terceros ni anunciantes.</>
+                    ) : language === 'fr' ? (
+                      <><strong>Aucun partage :</strong> Nous ne vendons, ne louons et ne partageons pas vos données avec des tiers ou des annonceurs.</>
+                    ) : (
+                      <><strong>Não compartilhamento:</strong> Não vendemos, não alugamos e não compartilhamos seus dados com terceiros ou anunciantes.</>
+                    )}
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
                   <span>
-                    <strong>Armazenamento seguro do rascunho:</strong> O rascunho do formulário de briefing fica armazenado unicamente no armazenamento local do seu próprio aparelho, não sendo transmitido sem sua ação de envio.
+                    {language === 'en' ? (
+                      <><strong>Secure draft storage:</strong> The briefing draft is stored exclusively on your device’s local storage and is never transmitted without your submission action.</>
+                    ) : language === 'es' ? (
+                      <><strong>Almacenamiento seguro del borrador:</strong> El borrador del briefing se almacena únicamente en el almacenamiento local de su propio dispositivo y no se transmite sin su acción de envío.</>
+                    ) : language === 'fr' ? (
+                      <><strong>Stockage sécurisé du brouillon :</strong> Le brouillon du briefing est stocké uniquement dans la mémoire locale de votre appareil et n’est jamais transmis sans votre action d’envoi.</>
+                    ) : (
+                      <><strong>Armazenamento seguro do rascunho:</strong> O rascunho do formulário de briefing fica armazenado unicamente no armazenamento local do seu próprio aparelho, não sendo transmitido sem sua ação de envio.</>
+                    )}
                   </span>
                 </li>
               </ul>
             </div>
 
             <div className="pt-2 border-t border-slate-800/80 text-[11px] text-slate-400">
-              Para esclarecer qualquer dúvida sobre privacidade e tratamento de dados, escreva para <strong>nexaweeb@gmail.com</strong>.
+              {language === 'en' ? (
+                <>To clarify any questions regarding privacy and data handling, write to <strong>nexaweeb@gmail.com</strong>.</>
+              ) : language === 'es' ? (
+                <>Para aclarar cualquier duda sobre privacidad y tratamiento de datos, escriba a <strong>nexaweeb@gmail.com</strong>.</>
+              ) : language === 'fr' ? (
+                <>Pour toute question sur la confidentialité et le traitement des données, écrivez à <strong>nexaweeb@gmail.com</strong>.</>
+              ) : (
+                <>Para esclarecer qualquer dúvida sobre privacidade e tratamento de dados, escreva para <strong>nexaweeb@gmail.com</strong>.</>
+              )}
             </div>
           </div>
         </SubViewContainer>
@@ -1150,8 +1280,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           ========================================================================= */}
       {activeSubView === 'terms' && (
         <SubViewContainer
-          title="Termos de Uso"
-          subtitle="Condições gerais de serviço e contratação de projetos"
+          title={t.settings.terms}
+          subtitle={t.settings.termsDesc}
         >
           <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-slate-800/80 space-y-3.5 text-xs text-slate-300 leading-relaxed">
             <div className="flex items-center gap-3 pb-3 border-b border-slate-800/80">
@@ -1160,45 +1290,113 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               </div>
               <div>
                 <h2 className="text-xs sm:text-sm font-bold text-white">
-                  Termos & Condições de Serviço
+                  {language === 'en'
+                    ? 'Terms & Conditions of Service'
+                    : language === 'es'
+                    ? 'Términos & Condiciones de Servicio'
+                    : language === 'fr'
+                    ? 'Conditions Générales de Service'
+                    : 'Termos & Condições de Serviço'}
                 </h2>
-                <p className="text-[10.5px] text-slate-400">Contratação de sites profissionais</p>
+                <p className="text-[10.5px] text-slate-400">
+                  {language === 'en'
+                    ? 'Hiring professional websites'
+                    : language === 'es'
+                    ? 'Contratación de sitios profesionales'
+                    : language === 'fr'
+                    ? 'Création de sites web professionnels'
+                    : 'Contratação de sites profissionais'}
+                </p>
               </div>
             </div>
 
             <div className="p-3 rounded-xl bg-amber-950/30 border border-amber-500/30 text-amber-200 text-xs leading-relaxed space-y-1">
-              <p className="font-semibold text-white">Status dos Termos Formais:</p>
+              <p className="font-semibold text-white">
+                {language === 'en'
+                  ? 'Formal Terms Status:'
+                  : language === 'es'
+                  ? 'Estado de los Términos Formales:'
+                  : language === 'fr'
+                  ? 'Statut des Conditions Formelles :'
+                  : 'Status dos Termos Formais:'}
+              </p>
               <p className="text-[11.5px] text-slate-300">
-                Os termos gerais formais de contratação estão em fase de consolidação contratual definitiva e podem ser consultados diretamente com nossos especialistas durante a validação da sua proposta.
+                {language === 'en'
+                  ? 'The general formal terms of service are in final contractual consolidation and can be reviewed directly with our specialists during your proposal validation.'
+                  : language === 'es'
+                  ? 'Los términos generales formales de contratación están en fase de consolidación contractual definitiva y pueden consultarse directamente con nuestros especialistas durante la validación de su propuesta.'
+                  : language === 'fr'
+                  ? 'Les conditions générales formelles de contrat sont en phase de consolidation définitive et peuvent être consultées directement auprès de nos spécialistes lors de la validation de votre devis.'
+                  : 'Os termos gerais formais de contratação estão em fase de consolidação contratual definitiva e podem ser consultados diretamente com nossos especialistas durante a validação da sua proposta.'}
               </p>
             </div>
 
             <div className="space-y-2">
-              <h3 className="text-xs font-bold text-white">Diretrizes gerais aplicáveis:</h3>
+              <h3 className="text-xs font-bold text-white">
+                {language === 'en'
+                  ? 'Applicable general guidelines:'
+                  : language === 'es'
+                  ? 'Directrices generales aplicables:'
+                  : language === 'fr'
+                  ? 'Directives générales applicables :'
+                  : 'Diretrizes gerais aplicáveis:'}
+              </h3>
               <ul className="space-y-1.5 text-slate-300">
                 <li className="flex items-start gap-2">
                   <Check className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
                   <span>
-                    <strong>Transparência comercial:</strong> Todos os planos (Essencial, Profissional e Personalizado), valores base e recursos adicionais são informados com clareza nas abas de Serviços e Briefing.
+                    {language === 'en' ? (
+                      <><strong>Commercial transparency:</strong> All plans (Essencial, Profissional and Personalizado), base prices (in R$), and additional features are clearly informed in the Services and Briefing tabs.</>
+                    ) : language === 'es' ? (
+                      <><strong>Transparencia comercial:</strong> Todos los planes (Essencial, Profissional y Personalizado), precios base (en R$) y recursos adicionales se informan con claridad en las pestañas de Servicios y Briefing.</>
+                    ) : language === 'fr' ? (
+                      <><strong>Transparence commerciale :</strong> Toutes les formules (Essencial, Profissional et Personalizado), tarifs de base (en R$) et fonctionnalités complémentaires sont clairement indiqués dans les onglets Services et Briefing.</>
+                    ) : (
+                      <><strong>Transparência comercial:</strong> Todos os planos (Essencial, Profissional e Personalizado), valores base e recursos adicionais são informados com clareza nas abas de Serviços e Briefing.</>
+                    )}
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
                   <span>
-                    <strong>Validação prévia:</strong> Todo projeto depende da aprovação mútua da proposta comercial e do cronograma antes de qualquer cobrança ou entrega definitiva.
+                    {language === 'en' ? (
+                      <><strong>Prior validation:</strong> Every project depends on mutual approval of the commercial proposal and schedule before any billing or final delivery.</>
+                    ) : language === 'es' ? (
+                      <><strong>Validación previa:</strong> Todo proyecto depende de la aprobación mutua de la propuesta comercial y del cronograma antes de cualquier cobro o entrega definitiva.</>
+                    ) : language === 'fr' ? (
+                      <><strong>Validation préalable :</strong> Chaque projet dépend de l’approbation mutuelle de la proposition commerciale et du calendrier avant toute facturation ou livraison finale.</>
+                    ) : (
+                      <><strong>Validação prévia:</strong> Todo projeto depende da aprovação mútua da proposta comercial e do cronograma antes de qualquer cobrança ou entrega definitiva.</>
+                    )}
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
                   <span>
-                    <strong>Demonstrações conceituais:</strong> Os projetos interativos exibidos no portfólio são modelos de demonstração para apresentar a qualidade e as capacidades técnicas da agência.
+                    {language === 'en' ? (
+                      <><strong>Conceptual demos:</strong> Interactive projects displayed in the portfolio are demonstration templates to present the quality and technical capabilities of the agency.</>
+                    ) : language === 'es' ? (
+                      <><strong>Demostraciones conceptuales:</strong> Los proyectos interactivos exhibidos en el portafolio son modelos de demostración para presentar la calidad y capacidades técnicas de la agencia.</>
+                    ) : language === 'fr' ? (
+                      <><strong>Démonstrations conceptuelles :</strong> Les projets interactifs affichés dans le portfolio sont des modèles de démonstration pour illustrer la qualité et le savoir-faire technique de l’agence.</>
+                    ) : (
+                      <><strong>Demonstrações conceituais:</strong> Os projetos interativos exibidos no portfólio são modelos de demonstração para apresentar a qualidade e as capacidades técnicas da agência.</>
+                    )}
                   </span>
                 </li>
               </ul>
             </div>
 
             <div className="pt-2 border-t border-slate-800/80 text-[11px] text-slate-400">
-              Dúvidas comerciais ou solicitações de contrato formal podem ser enviadas para <strong>nexaweeb@gmail.com</strong>.
+              {language === 'en' ? (
+                <>Commercial inquiries or formal contract requests can be sent to <strong>nexaweeb@gmail.com</strong>.</>
+              ) : language === 'es' ? (
+                <>Dudas comerciales o solicitudes de contrato formal pueden enviarse a <strong>nexaweeb@gmail.com</strong>.</>
+              ) : language === 'fr' ? (
+                <>Les questions commerciales ou demandes de contrat formel peuvent être envoyées à <strong>nexaweeb@gmail.com</strong>.</>
+              ) : (
+                <>Dúvidas comerciais ou solicitações de contrato formal podem ser enviadas para <strong>nexaweeb@gmail.com</strong>.</>
+              )}
             </div>
           </div>
         </SubViewContainer>
@@ -1209,8 +1407,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           ========================================================================= */}
       {activeSubView === 'about' && (
         <SubViewContainer
-          title="Sobre o Aplicativo"
-          subtitle="Informações sobre a aplicação e a agência NexaWeb"
+          title={t.settings.aboutNexaWeb}
+          subtitle={t.settings.aboutModalSubtitle}
         >
           {/* Card de Identidade da Aplicação */}
           <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-slate-800/80 space-y-3 shadow-sm text-center">
@@ -1233,54 +1431,54 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed max-w-md mx-auto">
-              Aplicativo oficial da NexaWeb. Conheça nossos planos, serviços, portfólio de demonstrações e inicie o projeto do seu site profissional com máxima agilidade e alto padrão.
+              {t.settings.aboutWhoWeAreText}
             </p>
           </div>
 
           {/* Pilares de Qualidade */}
           <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800/80 space-y-2.5 mt-2.5">
             <h3 className="text-xs font-bold text-white uppercase tracking-wider text-cyan-400">
-              Pilares de Qualidade NexaWeb
+              {t.settings.aboutPillarsTitle}
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div className="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800/80 space-y-1">
                 <div className="flex items-center gap-1.5 text-cyan-300 text-xs font-semibold">
                   <Gauge className="w-3.5 h-3.5 shrink-0" />
-                  <span>Performance Extrema</span>
+                  <span>{t.settings.pillarSpeedTitle}</span>
                 </div>
                 <p className="text-[10.5px] text-slate-400 leading-normal">
-                  Carregamento ultra-rápido otimizado para mobile para não perder nenhum cliente em potencial.
+                  {t.settings.pillarSpeedDesc}
                 </p>
               </div>
 
               <div className="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800/80 space-y-1">
                 <div className="flex items-center gap-1.5 text-indigo-300 text-xs font-semibold">
                   <Palette className="w-3.5 h-3.5 shrink-0" />
-                  <span>Design Sob Medida</span>
+                  <span>{t.settings.pillarDesignTitle}</span>
                 </div>
                 <p className="text-[10.5px] text-slate-400 leading-normal">
-                  Identidade visual moderna e elegante para transmitir máxima autoridade no seu nicho.
+                  {t.settings.pillarDesignDesc}
                 </p>
               </div>
 
               <div className="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800/80 space-y-1">
                 <div className="flex items-center gap-1.5 text-emerald-300 text-xs font-semibold">
                   <Smartphone className="w-3.5 h-3.5 shrink-0" />
-                  <span>Mobile First</span>
+                  <span>{t.settings.pillarMobileTitle}</span>
                 </div>
                 <p className="text-[10.5px] text-slate-400 leading-normal">
-                  Experiência fluida e impecável em smartphones, tablets e computadores.
+                  {t.settings.pillarMobileDesc}
                 </p>
               </div>
 
               <div className="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800/80 space-y-1">
                 <div className="flex items-center gap-1.5 text-amber-300 text-xs font-semibold">
                   <Target className="w-3.5 h-3.5 shrink-0" />
-                  <span>Foco em Conversão</span>
+                  <span>{t.settings.pillarConversionTitle}</span>
                 </div>
                 <p className="text-[10.5px] text-slate-400 leading-normal">
-                  Gatilhos estratégicos pensados para transformar visitantes em contatos e novos clientes.
+                  {t.settings.pillarConversionDesc}
                 </p>
               </div>
             </div>
@@ -1289,7 +1487,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           {/* Links e Rodapé */}
           <div className="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800/80 space-y-2 text-xs text-slate-300 mt-2.5">
             <div className="flex items-center justify-between pb-1.5 border-b border-slate-800/70">
-              <span className="text-slate-400">Site Oficial:</span>
+              <span className="text-slate-400">{t.settings.website}:</span>
               <a
                 href="https://nexaweeb.vercel.app/"
                 target="_blank"
@@ -1302,7 +1500,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             </div>
 
             <div className="flex items-center justify-between pb-1.5 border-b border-slate-800/70">
-              <span className="text-slate-400">Instagram:</span>
+              <span className="text-slate-400">{t.settings.instagram}:</span>
               <a
                 href="https://www.instagram.com/nexaw1/"
                 target="_blank"
@@ -1315,7 +1513,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">E-mail:</span>
+              <span className="text-slate-400">{t.settings.email}:</span>
               <span className="font-mono text-slate-200">nexaweeb@gmail.com</span>
             </div>
           </div>
@@ -1336,7 +1534,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           <div className="space-y-2">
             <div className="flex items-center gap-2 px-1">
               <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-400">
-                Preferências
+                {t.settings.preferencesSection}
               </span>
               <div className="flex-1 h-px bg-slate-800/80" />
             </div>
@@ -1354,7 +1552,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs sm:text-[13px] font-semibold text-white group-hover:text-cyan-200 transition-colors">
-                      Idioma
+                      {t.settings.appLanguage}
                     </p>
                     <p className="text-[11px] text-slate-400 truncate mt-0.5">
                       {currentLanguageLabel}
@@ -1381,7 +1579,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs sm:text-[13px] font-semibold text-white group-hover:text-cyan-200 transition-colors">
-                      Tema
+                      {t.settings.theme}
                     </p>
                     <p className="text-[11px] text-slate-400 truncate mt-0.5">
                       {currentThemeLabel}
@@ -1408,7 +1606,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs sm:text-[13px] font-semibold text-white group-hover:text-cyan-200 transition-colors">
-                      Animações
+                      {t.settings.animations}
                     </p>
                     <p className="text-[11px] text-slate-400 truncate mt-0.5">
                       {currentAnimationLabel}
@@ -1429,7 +1627,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           <div className="space-y-2 pt-1">
             <div className="flex items-center gap-2 px-1">
               <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-400">
-                Ajuda e participação
+                {t.settings.helpSection}
               </span>
               <div className="flex-1 h-px bg-slate-800/80" />
             </div>
@@ -1447,10 +1645,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs sm:text-[13px] font-semibold text-white group-hover:text-cyan-200 transition-colors">
-                      Feedback
+                      {t.settings.feedbackTitle}
                     </p>
                     <p className="text-[11px] text-slate-400 truncate mt-0.5">
-                      Envie sugestões, relate problemas ou elogios
+                      {t.settings.feedbackDesc}
                     </p>
                   </div>
                 </div>
@@ -1469,10 +1667,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs sm:text-[13px] font-semibold text-white group-hover:text-cyan-200 transition-colors">
-                      Ajuda
+                      {t.settings.helpTitle}
                     </p>
                     <p className="text-[11px] text-slate-400 truncate mt-0.5">
-                      Orientações sobre planos, projetos e briefing
+                      {t.settings.helpDesc}
                     </p>
                   </div>
                 </div>
@@ -1485,7 +1683,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           <div className="space-y-2 pt-1">
             <div className="flex items-center gap-2 px-1">
               <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-400">
-                NexaWeb oficial
+                {t.settings.nexawebSection}
               </span>
               <div className="flex-1 h-px bg-slate-800/80" />
             </div>
@@ -1503,7 +1701,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs sm:text-[13px] font-semibold text-white group-hover:text-cyan-200 transition-colors">
-                      Instagram oficial
+                      {t.settings.instagram}
                     </p>
                     <p className="text-[11px] font-mono text-slate-400 truncate mt-0.5">
                       @nexaw1
@@ -1525,7 +1723,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs sm:text-[13px] font-semibold text-white group-hover:text-cyan-200 transition-colors">
-                      E-mail de contato
+                      {t.settings.email}
                     </p>
                     <p className="text-[11px] font-mono text-slate-400 truncate mt-0.5">
                       nexaweeb@gmail.com
@@ -1541,7 +1739,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           <div className="space-y-2 pt-1">
             <div className="flex items-center gap-2 px-1">
               <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-400">
-                Informações
+                {t.settings.infoSection}
               </span>
               <div className="flex-1 h-px bg-slate-800/80" />
             </div>
@@ -1559,10 +1757,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs sm:text-[13px] font-semibold text-white group-hover:text-cyan-200 transition-colors">
-                      Privacidade
+                      {t.settings.privacy}
                     </p>
                     <p className="text-[11px] text-slate-400 truncate mt-0.5">
-                      Política de privacidade e proteção de dados
+                      {t.settings.privacyDesc}
                     </p>
                   </div>
                 </div>
@@ -1581,10 +1779,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs sm:text-[13px] font-semibold text-white group-hover:text-cyan-200 transition-colors">
-                      Termos de Uso
+                      {t.settings.terms}
                     </p>
                     <p className="text-[11px] text-slate-400 truncate mt-0.5">
-                      Condições gerais de serviço e contratação
+                      {t.settings.termsDesc}
                     </p>
                   </div>
                 </div>
@@ -1603,7 +1801,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs sm:text-[13px] font-semibold text-white group-hover:text-cyan-200 transition-colors">
-                      Sobre o aplicativo
+                      {t.settings.aboutNexaWeb}
                     </p>
                     <p className="text-[11px] text-slate-400 truncate mt-0.5">
                       NexaWeb App • v1.0
