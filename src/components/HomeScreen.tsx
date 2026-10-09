@@ -103,7 +103,7 @@ const getBannerSlides = (_lang?: string): BannerSlide[] => {
   ];
 };
 
-// Componente do Banner Principal com transição suave, swipe horizontal e troca automática lenta
+// Componente do Banner Principal com transição suave, swipe horizontal e troca automática
 const MainHeroBanner = React.memo<{
   allProjects: PortfolioProject[];
   onSelectProject: (project: PortfolioProject) => void;
@@ -124,8 +124,34 @@ const MainHeroBanner = React.memo<{
   const mouseStartX = useRef<number>(0);
   const mouseDeltaX = useRef<number>(0);
 
+  const isInteracting = useRef<boolean>(false);
+  const [isPaused, setIsPaused] = useState<boolean>(false);
+
+  // Troca automática de banners com intervalo seguro, pausa ao interagir e respeito a reduced motion
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+      if (mediaQuery.matches) return;
+      if (document.documentElement.classList.contains('reduced-motion')) return;
+    }
+
+    if (isPaused) return;
+
+    const timer = setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
+      if (isInteracting.current || isSwiping.current || isMouseDown.current) return;
+
+      setCurrentIndex((prev) => (prev + 1) % slides.length);
+    }, 5000);
+
+    return () => {
+      clearInterval(timer);
+    };
+  }, [slides.length, isPaused]);
+
   // Handlers para gestos de toque no celular diferenciando intenção horizontal de vertical
   const handleTouchStart = (e: React.TouchEvent) => {
+    isInteracting.current = true;
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
     touchDeltaX.current = 0;
@@ -153,6 +179,7 @@ const MainHeroBanner = React.memo<{
   };
 
   const handleTouchEnd = () => {
+    isInteracting.current = false;
     if (isHorizontalIntent.current === true && isSwiping.current) {
       if (touchDeltaX.current < -35) {
         // Deslizar para a esquerda -> próximo
@@ -170,6 +197,7 @@ const MainHeroBanner = React.memo<{
 
   // Handlers para mouse (desktop preview)
   const handleMouseDown = (e: React.MouseEvent) => {
+    isInteracting.current = true;
     isMouseDown.current = true;
     mouseStartX.current = e.clientX;
     mouseDeltaX.current = 0;
@@ -184,6 +212,7 @@ const MainHeroBanner = React.memo<{
   };
 
   const handleMouseUp = () => {
+    isInteracting.current = false;
     if (!isMouseDown.current) return;
     isMouseDown.current = false;
     if (Math.abs(mouseDeltaX.current) > 35) {
@@ -219,7 +248,12 @@ const MainHeroBanner = React.memo<{
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => {
+          setIsPaused(false);
+          isMouseDown.current = false;
+          isInteracting.current = false;
+        }}
       >
         <div
           className="flex w-full h-full transition-transform duration-700 ease-out will-change-transform"
@@ -421,12 +455,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             <span className="inline-block select-none text-xs">👋</span>
           </h1>
           <p className="text-[11.5px] text-slate-400 mt-0.5">
-            'O que você quer fazer hoje?'
+            O que você quer fazer hoje?
           </p>
         </div>
       </section>
 
-      {/* 2. BANNER PRINCIPAL COM IMAGENS REAIS DOS SEGMENTOS E SWIPE */}
+      {/* 2. BANNER PRINCIPAL COM IMAGENS REAIS DOS SEGMENTOS, SWIPE E TROCA AUTOMÁTICA */}
       <MainHeroBanner
         allProjects={allProjects}
         onSelectProject={onSelectProject}
@@ -439,7 +473,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         <button
           type="button"
           onClick={() => onNavigate('project')}
-          className="w-full text-left p-3 sm:p-3.5 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-cyan-500 text-white shadow-md shadow-indigo-950/40 border border-indigo-400/25 transition-all duration-150 active:scale-[0.985] group flex items-center justify-between gap-3"
+          className="w-full text-left p-3 sm:p-3.5 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-cyan-500 text-white shadow-md shadow-indigo-950/40 border border-indigo-400/25 transition-all duration-150 active:scale-[0.985] group flex items-center justify-between gap-3 cursor-pointer"
         >
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-8 h-8 rounded-lg bg-white/15 border border-white/20 flex items-center justify-center shrink-0">
@@ -447,10 +481,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             </div>
             <div className="min-w-0">
               <span className="text-xs sm:text-sm font-extrabold text-white block leading-snug">
-                'CRIAR MEU SITE'
+                CRIAR MEU SITE
               </span>
               <span className="text-[10.5px] text-indigo-100/90 block truncate mt-0.5">
-                'Inicie o briefing oficial em poucos passos'
+                Inicie o briefing oficial em poucos passos
               </span>
             </div>
           </div>
@@ -465,7 +499,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       <section className="space-y-1.5">
         <div className="px-0.5">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-            'Segmentos Populares'
+            Segmentos Populares
           </span>
         </div>
 
@@ -485,7 +519,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     onNavigate('portfolio');
                   }
                 }}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 active:scale-95 text-slate-300 hover:text-white text-[11px] font-semibold shrink-0 transition-all"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 active:scale-95 text-slate-300 hover:text-white text-[11px] font-semibold shrink-0 transition-all cursor-pointer"
               >
                 <Icon className="w-3.5 h-3.5 text-cyan-400" />
                 <span>{cat.label}</span>
@@ -495,98 +529,84 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         </div>
       </section>
 
-      {/* 5. ATALHOS COMPACTOS (Serviços, Meus leads, Portfólio) */}
-      <section className="grid grid-cols-3 gap-2">
-        {/* Atalho 1: Serviços */}
-        <button
-          type="button"
-          onClick={() => onNavigate('services')}
-          className="min-h-[48px] p-2 sm:p-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-left flex flex-col justify-between transition-all active:scale-[0.97] cursor-pointer"
-        >
-          <div className="w-6.5 h-6.5 rounded-lg bg-cyan-500/15 text-cyan-400 flex items-center justify-center mb-1">
-            <Layers className="w-3.5 h-3.5" />
-          </div>
-          <div>
-            <span className="text-[10.5px] font-bold text-white block leading-tight truncate">
-              {t.nav.services}
-            </span>
-            <span className="text-[9px] text-slate-500 block truncate">
-              'Planos & soluções'
-            </span>
-          </div>
-        </button>
-
-        {/* Atalho 2: Meus leads */}
-        <button
-          type="button"
-          onClick={() => onNavigate('admin')}
-          className="min-h-[48px] p-2 sm:p-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-left flex flex-col justify-between transition-all active:scale-[0.97]"
-        >
-          <div className="w-6.5 h-6.5 rounded-lg bg-amber-500/15 text-amber-400 flex items-center justify-center mb-1">
-            <Users className="w-3.5 h-3.5" />
-          </div>
-          <div>
-            <span className="text-[10.5px] font-bold text-white block leading-tight truncate">
-              'Meus leads'
-            </span>
-            <span className="text-[9px] text-slate-500 block truncate">
-              'Painel da equipe'
-            </span>
-          </div>
-        </button>
-
-        {/* Atalho 3: Portfólio */}
-        <button
-          type="button"
-          onClick={() => onNavigate('portfolio')}
-          className="min-h-[48px] p-2 sm:p-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-left flex flex-col justify-between transition-all active:scale-[0.97]"
-        >
-          <div className="w-6.5 h-6.5 rounded-lg bg-indigo-500/15 text-indigo-400 flex items-center justify-center mb-1">
-            <FolderKanban className="w-3.5 h-3.5" />
-          </div>
-          <div>
-            <span className="text-[10.5px] font-bold text-white block leading-tight truncate">
-              {t.nav.portfolio}
-            </span>
-            <span className="text-[9px] text-slate-500 block truncate">
-              'Demonstrações'
-            </span>
-          </div>
-        </button>
-      </section>
-
-      {/* 6. "ME AJUDA A ESCOLHER UM PLANO" (ÁREA SECUNDÁRIA) */}
+      {/* 5. ENTRADA OFICIAL: NOSSOS SERVIÇOS */}
       <section>
         <button
           type="button"
-          onClick={() => (onStartQuiz ? onStartQuiz() : onOpenRecommendation())}
-          className="w-full text-left p-3 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 transition-all active:scale-[0.985] flex items-center justify-between gap-2.5"
+          onClick={() => onNavigate('our-services')}
+          className="w-full text-left p-3 sm:p-3.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all active:scale-[0.985] flex items-center justify-between gap-2.5 group cursor-pointer shadow-sm"
         >
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center shrink-0 text-cyan-400">
-              <HelpCircle className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-lg bg-cyan-500/15 border border-cyan-500/25 flex items-center justify-center shrink-0 text-cyan-400">
+              <Layers className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <span className="text-xs font-bold text-white block truncate">
-                {t.services.questionsTitle || 'Não sabe qual plano escolher?'}
-              </span>
-              <span className="text-[10.5px] text-slate-400 block truncate">
-                'Responda 2 perguntas e descubra o plano ideal.'
+              <div className="flex items-center gap-2">
+                <span className="text-xs sm:text-sm font-bold text-white block truncate">
+                  Nossos serviços
+                </span>
+                <span className="text-[9.5px] px-1.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 font-semibold border border-cyan-500/30">
+                  10 soluções
+                </span>
+              </div>
+              <span className="text-[10.5px] text-slate-400 block truncate mt-0.5">
+                Landing pages, catálogos, agendamentos, cardápios e mais
               </span>
             </div>
           </div>
 
-          <span className="text-[11px] font-semibold text-cyan-400 shrink-0 flex items-center gap-0.5">
-            'Descobrir' <ChevronRight className="w-3.5 h-3.5" />
+          <span className="text-[11px] font-semibold text-cyan-400 shrink-0 flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+            Ver todos <ChevronRight className="w-3.5 h-3.5" />
           </span>
         </button>
       </section>
 
-      {/* 7. PROJETOS EM DESTAQUE (COMPACTO, 6 PROJETOS) */}
+      {/* 6. ATALHOS RÁPIDOS COMPACTOS (Planos & Preços, Demonstrações) */}
+      <section className="grid grid-cols-2 gap-2">
+        {/* Atalho 1: Planos & Preços */}
+        <button
+          type="button"
+          onClick={() => onNavigate('services')}
+          className="min-h-[48px] p-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-left flex items-center gap-2.5 transition-all active:scale-[0.97] cursor-pointer"
+        >
+          <div className="w-7 h-7 rounded-lg bg-indigo-500/15 text-indigo-400 flex items-center justify-center shrink-0">
+            <Sparkles className="w-3.5 h-3.5" />
+          </div>
+          <div className="min-w-0">
+            <span className="text-[11px] font-bold text-white block leading-tight truncate">
+              Planos & Preços
+            </span>
+            <span className="text-[9.5px] text-slate-500 block truncate">
+              Essencial a Premium
+            </span>
+          </div>
+        </button>
+
+        {/* Atalho 2: Demonstrações */}
+        <button
+          type="button"
+          onClick={() => onNavigate('portfolio')}
+          className="min-h-[48px] p-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-left flex items-center gap-2.5 transition-all active:scale-[0.97] cursor-pointer"
+        >
+          <div className="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0">
+            <FolderKanban className="w-3.5 h-3.5" />
+          </div>
+          <div className="min-w-0">
+            <span className="text-[11px] font-bold text-white block leading-tight truncate">
+              Demonstrações
+            </span>
+            <span className="text-[9.5px] text-slate-500 block truncate">
+              Vitrine de projetos
+            </span>
+          </div>
+        </button>
+      </section>
+
+      {/* 7. PROJETOS EM DESTAQUE (COMPACTO, 6 PROJETOS SEM BANNER AUTOMÁTICO) */}
       <section className="space-y-2.5 pt-0.5">
         <div className="px-0.5">
           <h2 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-            'Projetos em destaque'
+            Projetos em destaque
           </h2>
         </div>
 

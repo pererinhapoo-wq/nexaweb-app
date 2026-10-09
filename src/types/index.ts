@@ -2,7 +2,7 @@ export type Language = 'pt-BR';
 
 export type WebsiteLanguage = 'pt-BR';
 
-export type ViewTab = 'home' | 'services' | 'portfolio' | 'project' | 'portal' | 'admin' | 'settings';
+export type ViewTab = 'home' | 'services' | 'portfolio' | 'project' | 'portal' | 'admin' | 'settings' | 'our-services';
 
 export type SettingsSubView =
   | 'theme'

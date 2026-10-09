@@ -17,6 +17,7 @@ import { ProjectDetailScreen } from './components/ProjectDetailScreen';
 import { SettingsScreen } from './components/SettingsScreen';
 import { PortalScreen } from './components/PortalScreen';
 import { AdminScreen } from './components/AdminScreen';
+import { OurServicesScreen } from './components/OurServicesScreen';
 import { AppDrawer } from './components/AppDrawer';
 import { ContactModal } from './components/ContactModal';
 import { OnboardingModal } from './components/OnboardingModal';
@@ -50,6 +51,7 @@ interface HistoryEntry {
   modelApproach?: 'exact' | 'inspiration';
   scrollY?: number;
   settingsSubView?: SettingsSubView;
+  selectedOurServiceId?: string | null;
 }
 
 function AppContent() {
@@ -95,11 +97,14 @@ function AppContent() {
   const selectedWebsiteLanguageForProject =
     currentEntry.selectedWebsiteLanguage || savedWebsiteLanguage;
   const currentSettingsSubView = currentEntry.settingsSubView;
+  const selectedOurServiceId = currentEntry.selectedOurServiceId || null;
 
   const activeScreenId = selectedProjectDetail
     ? `detail-${selectedProjectDetail.id}`
     : currentTab === 'settings' && currentSettingsSubView
     ? `settings-${currentSettingsSubView}`
+    : currentTab === 'our-services' && selectedOurServiceId
+    ? `our-service-${selectedOurServiceId}`
     : currentTab;
 
   // Reset global e determinístico de rolagem ao navegar para uma NOVA TELA
@@ -295,6 +300,7 @@ function AppContent() {
         modelApproach?: 'exact' | 'inspiration';
         resetToRoot?: boolean;
         settingsSubView?: SettingsSubView;
+        selectedOurServiceId?: string | null;
       }
     ) => {
       // Se saindo do criador de projetos, reseta refs de wizard
@@ -325,7 +331,7 @@ function AppContent() {
         // Ao navegar para a home sem detalhe ou resetando raiz (ex.: toque no BottomNav Início):
         if (
           tab === 'home' &&
-          (options?.resetToRoot || (!options?.projectDetail && !options?.selectedPlan && !options?.selectedModel && !options?.settingsSubView))
+          (options?.resetToRoot || (!options?.projectDetail && !options?.selectedPlan && !options?.selectedModel && !options?.settingsSubView && !options?.selectedOurServiceId))
         ) {
           return [{ tab: 'home', projectDetail: null }];
         }
@@ -350,6 +356,7 @@ function AppContent() {
               ? options.selectedWebsiteLanguage
               : current?.selectedWebsiteLanguage,
           settingsSubView: options?.settingsSubView,
+          selectedOurServiceId: options?.selectedOurServiceId !== undefined ? options.selectedOurServiceId : undefined,
         };
 
         // Não empilha duplicata se o destino for estritamente idêntico ao topo atual
@@ -360,7 +367,8 @@ function AppContent() {
           current.selectedPlan === nextEntry.selectedPlan &&
           current.selectedModel === nextEntry.selectedModel &&
           current.modelApproach === nextEntry.modelApproach &&
-          current.settingsSubView === nextEntry.settingsSubView
+          current.settingsSubView === nextEntry.settingsSubView &&
+          current.selectedOurServiceId === nextEntry.selectedOurServiceId
         ) {
           return prev;
         }
@@ -375,7 +383,8 @@ function AppContent() {
             prevEntry.selectedPlan === nextEntry.selectedPlan &&
             prevEntry.selectedModel === nextEntry.selectedModel &&
             prevEntry.modelApproach === nextEntry.modelApproach &&
-            prevEntry.settingsSubView === nextEntry.settingsSubView
+            prevEntry.settingsSubView === nextEntry.settingsSubView &&
+            prevEntry.selectedOurServiceId === nextEntry.selectedOurServiceId
           ) {
             return prev.slice(0, prev.length - 1);
           }
@@ -383,8 +392,8 @@ function AppContent() {
 
         // Se for troca direta de aba de menu principal (sem contexto/plano/modelo específico)
         // e a aba já existe na pilha, trunca até ela para evitar ciclos infinitos entre abas
-        if (!options?.projectDetail && !options?.selectedModel && !options?.selectedPlan && !options?.settingsSubView) {
-          const existingIndex = prev.findIndex((e) => e.tab === tab && !e.projectDetail && !e.settingsSubView);
+        if (!options?.projectDetail && !options?.selectedModel && !options?.selectedPlan && !options?.settingsSubView && !options?.selectedOurServiceId) {
+          const existingIndex = prev.findIndex((e) => e.tab === tab && !e.projectDetail && !e.settingsSubView && !e.selectedOurServiceId);
           if (existingIndex !== -1 && existingIndex > 0) {
             return [...prev.slice(0, existingIndex), nextEntry];
           }
@@ -395,7 +404,14 @@ function AppContent() {
 
       // Registra histórico no navegador para suporte ao botão voltar físico e gestual do Android
       try {
-        window.history.pushState({ appTab: tab, settingsSubView: options?.settingsSubView }, '');
+        window.history.pushState(
+          {
+            appTab: tab,
+            settingsSubView: options?.settingsSubView,
+            selectedOurServiceId: options?.selectedOurServiceId,
+          },
+          ''
+        );
       } catch {}
     },
     []
@@ -524,7 +540,8 @@ function AppContent() {
       if (
         e?.state?.appTab &&
         e.state.appTab === currentTab &&
-        e.state.settingsSubView === currentSettingsSubView
+        e.state.settingsSubView === currentSettingsSubView &&
+        e.state.selectedOurServiceId === selectedOurServiceId
       ) {
         return;
       }
@@ -545,6 +562,9 @@ function AppContent() {
     isOnboardingOpen,
     isRecommendationOpen,
     isMenuOpen,
+    currentTab,
+    currentSettingsSubView,
+    selectedOurServiceId,
   ]);
 
   // Handlers de Onboarding e Recomendação
@@ -698,12 +718,14 @@ function AppContent() {
             currentTab !== 'portfolio' &&
             currentTab !== 'portal' &&
             currentTab !== 'services' &&
+            currentTab !== 'our-services' &&
             !selectedProjectDetail
           }
           onBack={handleHeaderBack}
           showBackButton={Boolean(
             selectedProjectDetail ||
-            currentTab === 'admin'
+            currentTab === 'admin' ||
+            currentTab === 'our-services'
           )}
         />
       )}
@@ -721,7 +743,13 @@ function AppContent() {
         }`}
       >
         <div
-          key={selectedProjectDetail ? `detail-${selectedProjectDetail.id}` : currentTab}
+          key={
+            selectedProjectDetail
+              ? `detail-${selectedProjectDetail.id}`
+              : currentTab === 'our-services' && selectedOurServiceId
+              ? `our-service-${selectedOurServiceId}`
+              : currentTab
+          }
           className="animate-in fade-in slide-in-from-bottom-1 duration-150 ease-out will-change-transform"
         >
           {selectedProjectDetail ? (
@@ -745,6 +773,23 @@ function AppContent() {
                   onSelectPlan={handleSelectPlan}
                   onOpenContact={() => setIsContactOpen(true)}
                   onStartQuiz={() => setIsOnboardingOpen(true)}
+                />
+              )}
+
+              {currentTab === 'our-services' && (
+                <OurServicesScreen
+                  onBack={handleGoBack}
+                  onNavigate={navigateTo}
+                  onSelectProject={handleSelectProject}
+                  onOpenContact={() => setIsContactOpen(true)}
+                  selectedServiceId={selectedOurServiceId}
+                  onSelectService={(serviceId) => {
+                    if (serviceId) {
+                      navigateTo('our-services', { selectedOurServiceId: serviceId });
+                    } else {
+                      handleGoBack();
+                    }
+                  }}
                 />
               )}
 

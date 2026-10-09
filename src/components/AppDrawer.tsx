@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { ViewTab } from '../types';
 import {
   Home,
+  Layers,
   Sparkles,
   Users,
   UserCheck,
@@ -343,6 +344,13 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
       icon: Home,
       action: () => handleSelectTab('home'),
       isActive: currentTab === 'home',
+    },
+    {
+      id: 'our-services',
+      label: 'Nossos serviços',
+      icon: Layers,
+      action: () => handleSelectTab('our-services'),
+      isActive: currentTab === 'our-services',
     },
     {
       id: 'project',
