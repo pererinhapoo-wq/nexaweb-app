@@ -21,7 +21,6 @@ import { AppDrawer } from './components/AppDrawer';
 import { ContactModal } from './components/ContactModal';
 import { OnboardingModal } from './components/OnboardingModal';
 import { RecommendationModal } from './components/RecommendationModal';
-import { LanguageModal } from './components/LanguageModal';
 import { BriefingDraftModal } from './components/BriefingDraftModal';
 import { IntroSplash } from './components/IntroSplash';
 import { StatusBar, Style } from '@capacitor/status-bar';
@@ -170,7 +169,6 @@ function AppContent() {
   const [isContactOpen, setIsContactOpen] = useState<boolean>(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState<boolean>(false);
   const [isRecommendationOpen, setIsRecommendationOpen] = useState<boolean>(false);
-  const [isLanguageModalOpen, setIsLanguageModalOpen] = useState<boolean>(false);
   const [recommendation, setRecommendation] = useState<ProjectRecommendation | null>(null);
 
   // Modal de Rascunho de Briefing em Andamento (Continuar ou Fechar)
@@ -468,10 +466,6 @@ function AppContent() {
       setIsContactOpen(false);
       return;
     }
-    if (isLanguageModalOpen) {
-      setIsLanguageModalOpen(false);
-      return;
-    }
     if (isOnboardingOpen) {
       setIsOnboardingOpen(false);
       return;
@@ -492,7 +486,6 @@ function AppContent() {
   }, [
     isDraftModalOpen,
     isContactOpen,
-    isLanguageModalOpen,
     isOnboardingOpen,
     isRecommendationOpen,
     isMenuOpen,
@@ -517,10 +510,6 @@ function AppContent() {
       }
       if (isContactOpen) {
         setIsContactOpen(false);
-        return;
-      }
-      if (isLanguageModalOpen) {
-        setIsLanguageModalOpen(false);
         return;
       }
       if (isOnboardingOpen) {
@@ -553,7 +542,6 @@ function AppContent() {
     handleGoBack,
     isDraftModalOpen,
     isContactOpen,
-    isLanguageModalOpen,
     isOnboardingOpen,
     isRecommendationOpen,
     isMenuOpen,
@@ -869,12 +857,6 @@ function AppContent() {
         onExplorePlan={handleExplorePlanFromRecommendation}
         onNavigateToPortfolio={handleNavigateToPortfolio}
         onRedo={handleRedoOnboarding}
-      />
-
-      {/* Modal de Idioma compartilhado */}
-      <LanguageModal
-        isOpen={isLanguageModalOpen}
-        onClose={() => setIsLanguageModalOpen(false)}
       />
 
       {/* Modal de Confirmação de Rascunho de Briefing em Andamento */}

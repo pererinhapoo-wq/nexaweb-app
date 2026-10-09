@@ -34,283 +34,7 @@ interface BannerSlide {
 }
 
 // Banners oficiais dos segmentos da NexaWeb com fotografias profissionais reais de cada segmento
-const getBannerSlides = (lang: string): BannerSlide[] => {
-  if (lang === 'en') {
-    return [
-      {
-        id: 'banner-geral',
-        segmento: 'Professional Websites',
-        titulo: 'Your business deserves a professional website',
-        subtitulo: 'Modern, ultra-fast projects engineered for your brand.',
-        imagemUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-vertex-digital',
-      },
-      {
-        id: 'banner-academia',
-        segmento: 'Gym & Fitness',
-        titulo: 'More power for your fitness center',
-        subtitulo: 'Showcase memberships, classes and attract new members on mobile.',
-        imagemUrl: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-academia-premium',
-      },
-      {
-        id: 'banner-restaurante',
-        segmento: 'Restaurant & Gastronomy',
-        titulo: 'Your menu always in the spotlight',
-        subtitulo: 'Mouth-watering photography, specials and direct reservation channel.',
-        imagemUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-restaurante-premium',
-      },
-      {
-        id: 'banner-barbearia',
-        segmento: 'Barbershop & Grooming',
-        titulo: 'Elevate your barbershop brand',
-        subtitulo: 'Seamless haircut bookings and bold brand presence.',
-        imagemUrl: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-barbearia-kings',
-      },
-      {
-        id: 'banner-clinica',
-        segmento: 'Clinic & Healthcare',
-        titulo: 'Authority for your medical practice',
-        subtitulo: 'Compassionate design focused on specialties and trust.',
-        imagemUrl: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-clinica-saude',
-      },
-      {
-        id: 'banner-imobiliaria',
-        segmento: 'Real Estate & Properties',
-        titulo: 'Stunning visuals for luxury real estate',
-        subtitulo: 'Exclusive showcase for brokers and high-end properties.',
-        imagemUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-imobiliaria-premium',
-      },
-      {
-        id: 'banner-engenharia',
-        segmento: 'Engineering & Construction',
-        titulo: 'Solid foundations for your company',
-        subtitulo: 'Technical project presentation and established market authority.',
-        imagemUrl: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-engenharia-premium',
-      },
-      {
-        id: 'banner-loja',
-        segmento: 'Store & Retail',
-        titulo: 'Your store ready to drive sales',
-        subtitulo: 'Modern display for collections, brands and featured products.',
-        imagemUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-loja-premium',
-      },
-    ];
-  }
-
-  if (lang === 'es') {
-    return [
-      {
-        id: 'banner-geral',
-        segmento: 'Sitios Profesionales',
-        titulo: 'Su negocio merece un sitio profesional',
-        subtitulo: 'Proyectos modernos, rápidos y pensados para su marca.',
-        imagemUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-vertex-digital',
-      },
-      {
-        id: 'banner-academia',
-        segmento: 'Gimnasio & Fitness',
-        titulo: 'Más energía para su gimnasio',
-        subtitulo: 'Presente planes, modalidades y atraiga nuevos alumnos en el móvil.',
-        imagemUrl: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-academia-premium',
-      },
-      {
-        id: 'banner-restaurante',
-        segmento: 'Restaurante & Gastronomía',
-        titulo: 'Su menú siempre destacado',
-        subtitulo: 'Fotos atractivas, platos del día y canal directo de reservas.',
-        imagemUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-restaurante-premium',
-      },
-      {
-        id: 'banner-barbearia',
-        segmento: 'Barbería & Estética',
-        titulo: 'Destaque su barbería',
-        subtitulo: 'Citas rápidas de cortes e identidad de marca impactante.',
-        imagemUrl: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-barbearia-kings',
-      },
-      {
-        id: 'banner-clinica',
-        segmento: 'Clínica & Salud',
-        titulo: 'Credibilidad para su clínica',
-        subtitulo: 'Diseño humanizado enfocado en especialidades y confianza.',
-        imagemUrl: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-clinica-saude',
-      },
-      {
-        id: 'banner-imobiliaria',
-        segmento: 'Inmobiliaria & Propiedades',
-        titulo: 'Propiedades con presencia imponente',
-        subtitulo: 'Escaparate exclusivo para agentes e inmobiliarias de alto nivel.',
-        imagemUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-imobiliaria-premium',
-      },
-      {
-        id: 'banner-engenharia',
-        segmento: 'Ingeniería & Construcción',
-        titulo: 'Solidez para su constructora',
-        subtitulo: 'Presentación técnica de proyectos y autoridad en el mercado.',
-        imagemUrl: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-engenharia-premium',
-      },
-      {
-        id: 'banner-loja',
-        segmento: 'Tienda & Comercio',
-        titulo: 'Su tienda lista para vender',
-        subtitulo: 'Vitrina moderna para colecciones, marcas y productos exclusivos.',
-        imagemUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-loja-premium',
-      },
-    ];
-  }
-
-  if (lang === 'fr') {
-    return [
-      {
-        id: 'banner-geral',
-        segmento: 'Sites Professionnels',
-        titulo: 'Votre entreprise mérite un site professionnel',
-        subtitulo: 'Des projets modernes, rapides et pensés pour votre marque.',
-        imagemUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-vertex-digital',
-      },
-      {
-        id: 'banner-academia',
-        segmento: 'Fitness & Sport',
-        titulo: 'Plus d’énergie pour votre salle de sport',
-        subtitulo: 'Présentez vos formules, plannings et attirez de nouveaux adhérents.',
-        imagemUrl: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-academia-premium',
-      },
-      {
-        id: 'banner-restaurante',
-        segmento: 'Restaurant & Gastronomie',
-        titulo: 'Votre carte toujours mise en valeur',
-        subtitulo: 'Belles photos, plats du jour et canal direct pour réserver.',
-        imagemUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-restaurante-premium',
-      },
-      {
-        id: 'banner-barbearia',
-        segmento: 'Barbier & Soins',
-        titulo: 'Valorisez votre salon de barbier',
-        subtitulo: 'Prise de rendez-vous fluide et identité visuelle marquante.',
-        imagemUrl: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-barbearia-kings',
-      },
-      {
-        id: 'banner-clinica',
-        segmento: 'Santé & Médical',
-        titulo: 'Crédibilité pour votre cabinet',
-        subtitulo: 'Design rassurant centré sur vos spécialités et la confiance.',
-        imagemUrl: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-clinica-saude',
-      },
-      {
-        id: 'banner-imobiliaria',
-        segmento: 'Immobilier & Biens',
-        titulo: 'Des biens au rendu remarquable',
-        subtitulo: 'Vitrine haut de gamme pour agents et agences immobilières.',
-        imagemUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-imobiliaria-premium',
-      },
-      {
-        id: 'banner-engenharia',
-        segmento: 'Ingénierie & BTP',
-        titulo: 'De la solidité pour votre entreprise',
-        subtitulo: 'Présentation technique de projets et autorité sur votre marché.',
-        imagemUrl: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-engenharia-premium',
-      },
-      {
-        id: 'banner-loja',
-        segmento: 'Commerce & Boutique',
-        titulo: 'Votre boutique prête à vendre',
-        subtitulo: 'Vitrine élégante pour vos collections, marques et produits phares.',
-        imagemUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-loja-premium',
-      },
-    ];
-  }
-
-  if (lang === 'pt-PT') {
-    return [
-      {
-        id: 'banner-geral',
-        segmento: 'Sítios Profissionais',
-        titulo: 'O seu negócio merece um sítio profissional',
-        subtitulo: 'Projetos modernos, rápidos e pensados para a sua marca.',
-        imagemUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-vertex-digital',
-      },
-      {
-        id: 'banner-academia',
-        segmento: 'Ginásio & Fitness',
-        titulo: 'Mais energia para o seu ginásio',
-        subtitulo: 'Apresente planos, modalidades e atraia novos alunos no telemóvel.',
-        imagemUrl: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-academia-premium',
-      },
-      {
-        id: 'banner-restaurante',
-        segmento: 'Restaurante & Gastronomia',
-        titulo: 'O seu menu sempre em destaque',
-        subtitulo: 'Fotografias apetitosas, pratos do dia e canal direto para reservas.',
-        imagemUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-restaurante-premium',
-      },
-      {
-        id: 'banner-barbearia',
-        segmento: 'Barbearia & Estética',
-        titulo: 'Destaque a sua barbearia',
-        subtitulo: 'Marcações ágeis de cortes e identidade marcante.',
-        imagemUrl: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-barbearia-kings',
-      },
-      {
-        id: 'banner-clinica',
-        segmento: 'Clínica & Saúde',
-        titulo: 'Credibilidade para a sua clínica',
-        subtitulo: 'Design humanizado focado em especialidades e confiança.',
-        imagemUrl: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-clinica-saude',
-      },
-      {
-        id: 'banner-imobiliaria',
-        segmento: 'Imobiliário & Imóveis',
-        titulo: 'Imóveis com presença imponente',
-        subtitulo: 'Montra exclusiva para consultores e agências imobiliárias.',
-        imagemUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-imobiliaria-premium',
-      },
-      {
-        id: 'banner-engenharia',
-        segmento: 'Engenharia & Obras',
-        titulo: 'Solidez para a sua construtora',
-        subtitulo: 'Apresentação técnica de projetos e autoridade no mercado.',
-        imagemUrl: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-engenharia-premium',
-      },
-      {
-        id: 'banner-loja',
-        segmento: 'Loja & Comércio',
-        titulo: 'A sua loja pronta para vender',
-        subtitulo: 'Montra moderna para coleções, marcas e produtos exclusivos.',
-        imagemUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80',
-        projectId: 'demo-loja-premium',
-      },
-    ];
-  }
-
+const getBannerSlides = (_lang?: string): BannerSlide[] => {
   return [
     {
       id: 'banner-geral',
@@ -508,7 +232,7 @@ const MainHeroBanner = React.memo<{
                 key={slide.id}
                 className="w-full h-full flex-shrink-0 relative overflow-hidden"
                 onClick={() => handleSlideClick(slide)}
-                title={language === 'en' ? 'Tap to view details of this industry' : 'Toque para ver detalhes deste segmento'}
+                title="Toque para ver detalhes deste segmento"
               >
                 {/* Imagem do segmento com fallback automático */}
                 <img
@@ -555,7 +279,7 @@ const MainHeroBanner = React.memo<{
         {/* Indicadores discretos (bolinhas) no canto inferior direito com área de toque confortável */}
         <div
           role="tablist"
-          aria-label={language === 'en' ? 'Main hero banners navigation' : 'Navegação dos banners principais'}
+          aria-label="Navegação dos banners principais"
           className="absolute bottom-2 right-2 flex items-center z-20 pointer-events-auto"
         >
           {slides.map((_, idx) => (
@@ -564,7 +288,7 @@ const MainHeroBanner = React.memo<{
               type="button"
               role="tab"
               aria-selected={idx === currentIndex}
-              aria-label={language === 'en' ? `Go to banner ${idx + 1} of ${slides.length}` : `Ir para banner ${idx + 1} de ${slides.length}`}
+              aria-label={`Ir para banner ${idx + 1} de ${slides.length}`}
               onClick={(e) => {
                 e.stopPropagation();
                 e.preventDefault();
@@ -678,95 +402,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   }, [allProjects]);
 
   const popularChips = useMemo(() => [
-    {
-      label:
-        language === 'en'
-          ? 'Barbershop'
-          : language === 'es'
-          ? 'Barbería'
-          : language === 'fr'
-          ? 'Barbier'
-          : 'Barbearia',
-      icon: Scissors,
-      id: 'demo-barbearia-kings',
-    },
-    {
-      label:
-        language === 'en'
-          ? 'Gym & Fitness'
-          : language === 'es'
-          ? 'Gimnasio'
-          : language === 'fr'
-          ? 'Sport & Fitness'
-          : language === 'pt-PT'
-          ? 'Ginásio'
-          : 'Academia',
-      icon: Dumbbell,
-      id: 'demo-academia-premium',
-    },
-    {
-      label:
-        language === 'en'
-          ? 'Restaurant'
-          : language === 'es'
-          ? 'Restaurante'
-          : language === 'fr'
-          ? 'Restaurant'
-          : 'Restaurante',
-      icon: UtensilsCrossed,
-      id: 'demo-restaurante-premium',
-    },
-    {
-      label:
-        language === 'en'
-          ? 'Clinic'
-          : language === 'es'
-          ? 'Clínica'
-          : language === 'fr'
-          ? 'Clinique'
-          : 'Clínica',
-      icon: Stethoscope,
-      id: 'demo-clinica-saude',
-    },
-    {
-      label:
-        language === 'en'
-          ? 'Real Estate'
-          : language === 'es'
-          ? 'Inmobiliaria'
-          : language === 'fr'
-          ? 'Immobilier'
-          : language === 'pt-PT'
-          ? 'Imobiliário'
-          : 'Imóveis',
-      icon: Building2,
-      id: 'demo-imobiliaria-premium',
-    },
-    {
-      label:
-        language === 'en'
-          ? 'Engineering'
-          : language === 'es'
-          ? 'Ingeniería'
-          : language === 'fr'
-          ? 'Ingénierie'
-          : 'Engenharia',
-      icon: HardHat,
-      id: 'demo-engenharia-premium',
-    },
-    {
-      label:
-        language === 'en'
-          ? 'Store & Retail'
-          : language === 'es'
-          ? 'Tienda'
-          : language === 'fr'
-          ? 'Boutique'
-          : 'Loja',
-      icon: ShoppingBag,
-      id: 'demo-loja-premium',
-    },
-  ], [language]);
+    { label: 'Barbearia', icon: Scissors, id: 'demo-barbearia-kings' },
+    { label: 'Academia', icon: Dumbbell, id: 'demo-academia-premium' },
+    { label: 'Restaurante', icon: UtensilsCrossed, id: 'demo-restaurante-premium' },
+    { label: 'Clínica', icon: Stethoscope, id: 'demo-clinica-saude' },
+    { label: 'Imóveis', icon: Building2, id: 'demo-imobiliaria-premium' },
+    { label: 'Engenharia', icon: HardHat, id: 'demo-engenharia-premium' },
+    { label: 'Loja', icon: ShoppingBag, id: 'demo-loja-premium' },
+  ], []);
 
   return (
     <div className="space-y-4 pb-4 animate-in fade-in duration-150 overflow-x-hidden">
@@ -774,19 +417,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       <section className="pt-0 flex items-center justify-between">
         <div>
           <h1 className="text-sm sm:text-base font-bold text-white tracking-tight flex items-center gap-1.5">
-            <span>{language === 'en' ? 'Hello' : language === 'es' ? 'Hola' : language === 'fr' ? 'Bonjour' : 'Olá'}</span>
+            <span>Olá</span>
             <span className="inline-block select-none text-xs">👋</span>
           </h1>
           <p className="text-[11.5px] text-slate-400 mt-0.5">
-            {language === 'en'
-              ? 'What would you like to do today?'
-              : language === 'es'
-              ? '¿Qué desea hacer hoy?'
-              : language === 'fr'
-              ? "Que souhaitez-vous faire aujourd'hui ?"
-              : language === 'pt-PT'
-              ? 'O que gostaria de fazer hoje?'
-              : 'O que você quer fazer hoje?'}
+            'O que você quer fazer hoje?'
           </p>
         </div>
       </section>
@@ -812,24 +447,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             </div>
             <div className="min-w-0">
               <span className="text-xs sm:text-sm font-extrabold text-white block leading-snug">
-                {language === 'en'
-                  ? 'CREATE MY WEBSITE'
-                  : language === 'es'
-                  ? 'CREAR MI SITIO'
-                  : language === 'fr'
-                  ? 'CRÉER MON SITE'
-                  : language === 'pt-PT'
-                  ? 'CRIAR O MEU SÍTIO'
-                  : 'CRIAR MEU SITE'}
+                'CRIAR MEU SITE'
               </span>
               <span className="text-[10.5px] text-indigo-100/90 block truncate mt-0.5">
-                {language === 'en'
-                  ? 'Start the official briefing in a few steps'
-                  : language === 'es'
-                  ? 'Inicie el briefing oficial en pocos pasos'
-                  : language === 'fr'
-                  ? 'Démarrez le briefing officiel en quelques étapes'
-                  : 'Inicie o briefing oficial em poucos passos'}
+                'Inicie o briefing oficial em poucos passos'
               </span>
             </div>
           </div>
@@ -844,13 +465,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       <section className="space-y-1.5">
         <div className="px-0.5">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-            {language === 'en'
-              ? 'Popular Industries'
-              : language === 'es'
-              ? 'Sectores Populares'
-              : language === 'fr'
-              ? 'Secteurs Populaires'
-              : 'Segmentos Populares'}
+            'Segmentos Populares'
           </span>
         </div>
 
@@ -896,13 +511,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               {t.nav.services}
             </span>
             <span className="text-[9px] text-slate-500 block truncate">
-              {language === 'en'
-                ? 'Plans & solutions'
-                : language === 'es'
-                ? 'Planes & soluciones'
-                : language === 'fr'
-                ? 'Formules & solutions'
-                : 'Planos & soluções'}
+              'Planos & soluções'
             </span>
           </div>
         </button>
@@ -918,24 +527,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           </div>
           <div>
             <span className="text-[10.5px] font-bold text-white block leading-tight truncate">
-              {language === 'en'
-                ? 'My leads'
-                : language === 'es'
-                ? 'Mis leads'
-                : language === 'fr'
-                ? 'Mes pistes'
-                : language === 'pt-PT'
-                ? 'Os meus leads'
-                : 'Meus leads'}
+              'Meus leads'
             </span>
             <span className="text-[9px] text-slate-500 block truncate">
-              {language === 'en'
-                ? 'Team dashboard'
-                : language === 'es'
-                ? 'Panel del equipo'
-                : language === 'fr'
-                ? 'Tableau de bord'
-                : 'Painel da equipe'}
+              'Painel da equipe'
             </span>
           </div>
         </button>
@@ -954,13 +549,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               {t.nav.portfolio}
             </span>
             <span className="text-[9px] text-slate-500 block truncate">
-              {language === 'en'
-                ? 'Live Demos'
-                : language === 'es'
-                ? 'Demostraciones'
-                : language === 'fr'
-                ? 'Démos réelles'
-                : 'Demonstrações'}
+              'Demonstrações'
             </span>
           </div>
         </button>
@@ -979,35 +568,16 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             </div>
             <div className="min-w-0">
               <span className="text-xs font-bold text-white block truncate">
-                {t.services.questionsTitle ||
-                  (language === 'en'
-                    ? 'Need help choosing a plan?'
-                    : language === 'es'
-                    ? '¿Dudas sobre qué plan elegir?'
-                    : language === 'fr'
-                    ? 'Besoin d’aide pour choisir ?'
-                    : 'Não sabe qual plano escolher?')}
+                {t.services.questionsTitle || 'Não sabe qual plano escolher?'}
               </span>
               <span className="text-[10.5px] text-slate-400 block truncate">
-                {language === 'en'
-                  ? 'Answer 2 questions to find your ideal plan.'
-                  : language === 'es'
-                  ? 'Responda 2 preguntas para ver su plan ideal.'
-                  : language === 'fr'
-                  ? 'Répondez à 2 questions pour trouver votre formule.'
-                  : 'Responda 2 perguntas e descubra o plano ideal.'}
+                'Responda 2 perguntas e descubra o plano ideal.'
               </span>
             </div>
           </div>
 
           <span className="text-[11px] font-semibold text-cyan-400 shrink-0 flex items-center gap-0.5">
-            {language === 'en'
-              ? 'Discover'
-              : language === 'es'
-              ? 'Descubrir'
-              : language === 'fr'
-              ? 'Découvrir'
-              : 'Descobrir'} <ChevronRight className="w-3.5 h-3.5" />
+            'Descobrir' <ChevronRight className="w-3.5 h-3.5" />
           </span>
         </button>
       </section>
@@ -1016,13 +586,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       <section className="space-y-2.5 pt-0.5">
         <div className="px-0.5">
           <h2 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-            {language === 'en'
-              ? 'Featured projects'
-              : language === 'es'
-              ? 'Proyectos destacados'
-              : language === 'fr'
-              ? 'Projets en vedette'
-              : 'Projetos em destaque'}
+            'Projetos em destaque'
           </h2>
         </div>
 

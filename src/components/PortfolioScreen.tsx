@@ -165,7 +165,7 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
   // Filtros de Planos Principais: Todos, Essencial, Profissional, Premium
   const planTabs: { id: PlanFilter; label: string; count: number }[] = useMemo(() => {
     return [
-      { id: 'todas', label: t.portfolio.allCategories || (language === 'en' ? 'All' : 'Todos'), count: allProjects.length },
+      { id: 'todas', label: t.portfolio.allCategories || 'Todos', count: allProjects.length },
       {
         id: 'essencial',
         label: t.services.essentialBadge || 'Essencial',
@@ -182,7 +182,7 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
         count: allProjects.filter((p) => p.planoId === 'premium').length,
       },
     ];
-  }, [allProjects, language, t]);
+  }, [allProjects, t]);
 
   // Filtragem leve e instantânea enquanto digita
   const filteredProjects = useMemo(() => {

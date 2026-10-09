@@ -44,11 +44,11 @@ export const Step2MainInfo: React.FC<Step2MainInfoProps> = ({
   onClearError,
   highlightedFieldId,
 }) => {
-  const { t, language } = useTranslation();
-  const objectives = getSiteObjectives(language);
+  const { t } = useTranslation();
+  const objectives = getSiteObjectives();
 
-  const selectOneNotice = language === 'en' ? 'Select an option' : language === 'es' ? 'Seleccione una opción' : language === 'fr' ? 'Sélectionnez une option' : 'Selecione uma opção';
-  const objectivePrompt = language === 'en' ? 'What is the #1 priority of the website for your business?' : language === 'es' ? '¿Cuál es la prioridad número 1 del sitio para su negocio?' : language === 'fr' ? 'Quelle est la priorité absolue du site pour votre activité ?' : 'Qual é a prioridade número 1 do site para o seu negócio?';
+  const selectOneNotice = 'Selecione uma opção';
+  const objectivePrompt = 'Qual é a prioridade número 1 do site para o seu negócio?';
 
   return (
     <div className="space-y-4 animate-in fade-in duration-150">
@@ -157,15 +157,12 @@ export const Step2MainInfo: React.FC<Step2MainInfoProps> = ({
           <label className="text-[11px] font-bold text-white uppercase tracking-wider block mb-1">
             {t.briefing.step2.siteLanguageLabel}
           </label>
-          <select
-            value={siteLanguage === 'es' || siteLanguage === 'fr' || siteLanguage === 'pt-PT' ? 'pt-BR' : siteLanguage}
-            onChange={(e) => setSiteLanguage(e.target.value as WebsiteLanguage)}
-            className="w-full min-h-[46px] bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-500 scroll-mt-20 cursor-pointer"
-          >
-            <option value="pt-BR">{t.project.langPtBr}</option>
-            <option value="en">{t.project.langEn}</option>
-            <option value="pt-en">{t.project.langPtEn}</option>
-          </select>
+          <div className="w-full min-h-[46px] bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white flex items-center justify-between">
+            <span className="font-semibold text-slate-200">Português (Brasil)</span>
+            <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+              Padrão
+            </span>
+          </div>
           <p className="text-[10px] text-slate-400 mt-1">
             {t.briefing.step2.siteLanguageDesc}
           </p>

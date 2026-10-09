@@ -31,7 +31,7 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
   onNavigate,
   onOpenContact,
 }) => {
-  const { t, language } = useTranslation();
+  const { t } = useTranslation();
   const { animationMode } = useTheme();
   const isAnimEnabled = animationMode !== 'reduced';
 
@@ -346,16 +346,7 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
     },
     {
       id: 'project',
-      label:
-        language === 'en'
-          ? 'Create website'
-          : language === 'es'
-          ? 'Crear sitio'
-          : language === 'fr'
-          ? 'Créer un site'
-          : language === 'pt-PT'
-          ? 'Criar sítio web'
-          : 'Criar site',
+      label: 'Criar site',
       icon: Sparkles,
       action: () => handleSelectTab('project'),
       isActive: currentTab === 'project',
@@ -369,16 +360,7 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
     },
     {
       id: 'leads',
-      label:
-        language === 'en'
-          ? 'My leads'
-          : language === 'es'
-          ? 'Mis leads'
-          : language === 'fr'
-          ? 'Mes pistes'
-          : language === 'pt-PT'
-          ? 'Os meus leads'
-          : 'Meus leads',
+      label: 'Meus leads',
       icon: Users,
       action: () => handleSelectTab('admin'),
       isActive: currentTab === 'admin',
@@ -456,8 +438,8 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
               type="button"
               onClick={onClose}
               className="w-9 h-9 flex items-center justify-center rounded-lg bg-transparent hover:bg-white/5 text-slate-400 hover:text-white transition-colors cursor-pointer drawer-close-btn p-0"
-              aria-label={t.portfolio?.close || (language === 'en' ? 'Close menu' : 'Fechar menu')}
-              title={t.portfolio?.close || (language === 'en' ? 'Close menu' : 'Fechar menu')}
+              aria-label={t.portfolio?.close || 'Fechar menu'}
+              title={t.portfolio?.close || 'Fechar menu'}
             >
               <svg
                 width="16"

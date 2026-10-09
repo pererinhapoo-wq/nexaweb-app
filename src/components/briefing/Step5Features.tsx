@@ -25,17 +25,11 @@ export const Step5Features: React.FC<Step5FeaturesProps> = ({
   onNext,
   onPrev,
 }) => {
-  const { t, language } = useTranslation();
+  const { t } = useTranslation();
 
-  const optionsSuffix = language === 'en' ? 'options' : language === 'es' ? 'opciones' : language === 'fr' ? 'options' : 'opções';
-  const optionSuffix = language === 'en' ? 'option' : language === 'es' ? 'opción' : language === 'fr' ? 'option' : 'opção';
-  const availabilityNotice = language === 'en'
-    ? 'Availability subject to technical feasibility analysis of the project.'
-    : language === 'es'
-    ? 'Disponibilidad según análisis de viabilidad técnica del proyecto.'
-    : language === 'fr'
-    ? 'Disponibilité soumise à l’analyse de faisabilité technique du projet.'
-    : 'Disponibilidade conforme análise de viabilidade do projeto.';
+  const optionsSuffix = 'opções';
+  const optionSuffix = 'opção';
+  const availabilityNotice = 'Disponibilidade conforme análise de viabilidade do projeto.';
 
   const countText = t.briefing.step5.selectedCount
     .replace('{count}', String(selectedAdvancedFeatures.length))

@@ -141,13 +141,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
   // --- ETAPA 2: INFORMAÇÕES PRINCIPAIS & OBJETIVO ---
   const [businessName, setBusinessName] = useState('');
   const [siteObjective, setSiteObjective] = useState<string>('');
-  const [siteLanguage, setSiteLanguage] = useState<WebsiteLanguage>(
-    initialWebsiteLanguage && !['es', 'fr', 'pt-PT', 'pt-pt'].includes(initialWebsiteLanguage)
-      ? initialWebsiteLanguage
-      : language === 'en'
-      ? 'en'
-      : 'pt-BR'
-  );
+  const [siteLanguage, setSiteLanguage] = useState<WebsiteLanguage>('pt-BR');
   const [businessLocation, setBusinessLocation] = useState('');
   const [businessBranches, setBusinessBranches] = useState('');
   const [googleMapsLink, setGoogleMapsLink] = useState('');

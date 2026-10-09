@@ -32,13 +32,13 @@ export const Step1Origin: React.FC<Step1OriginProps> = ({
   highlightedFieldId,
   onClearError,
 }) => {
-  const { t, language } = useTranslation();
+  const { t } = useTranslation();
   const [showPlanGrid, setShowPlanGrid] = useState<boolean>(!hasInitialPlan);
 
-  const collapseLabel = language === 'en' ? 'Collapse' : language === 'es' ? 'Plegar' : language === 'fr' ? 'Réduire' : 'Recolher';
-  const changePlanQuestion = language === 'en' ? 'Want to change the chosen plan?' : language === 'es' ? '¿Desea cambiar el plan elegido?' : language === 'fr' ? 'Souhaitez-vous modifier la formule choisie ?' : 'Deseja mudar o plano escolhido?';
-  const customStepHeading = language === 'en' ? 'We will structure your exclusive website step by step.' : language === 'es' ? 'Estructuraremos su sitio exclusivo paso a paso.' : language === 'fr' ? 'Nous allons structurer votre site exclusif étape par étape.' : 'Vamos estruturar seu site exclusivo passo a passo.';
-  const customStepSub = language === 'en' ? 'In the next steps, you will define your business name, primary objective, industry, and all required features.' : language === 'es' ? 'En las siguientes etapas, definirá el nombre de su negocio, objetivo principal, sector y todas las funcionalidades necesarias.' : language === 'fr' ? 'Dans les prochaines étapes, vous définirez le nom de votre activité, l’objectif principal, le secteur et toutes les fonctionnalités requises.' : 'Nas próximas etapas, você definirá o nome do seu negócio, objetivo principal, segmento e todas as funcionalidades necessárias.';
+  const collapseLabel = 'Recolher';
+  const changePlanQuestion = 'Deseja mudar o plano escolhido?';
+  const customStepHeading = 'Vamos estruturar seu site exclusivo passo a passo.';
+  const customStepSub = 'Nas próximas etapas, você definirá o nome do seu negócio, objetivo principal, segmento e todas as funcionalidades necessárias.';
 
   return (
     <div className="space-y-4 animate-in fade-in duration-150">

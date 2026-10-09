@@ -37,16 +37,7 @@ export function calculateRecommendation(
 
   if (recommendedPlanId === 'profissional') {
     const alt = plans.find((p) => p.id === 'essencial') || plans[0];
-    const altReason =
-      lang === 'en'
-        ? 'Ideal if you prefer a leaner starting point with lightning-fast delivery.'
-        : lang === 'es'
-        ? 'Ideal si prefiere un punto de partida más ágil con entrega inmediata.'
-        : lang === 'fr'
-        ? 'Idéal si vous souhaitez démarrer avec une formule plus légère et ultra rapide.'
-        : lang === 'pt-PT'
-        ? 'Ideal se preferir um ponto de partida mais ágil com entrega rápida.'
-        : 'Ideal caso você prefira um ponto de partida mais enxuto e entrega ágil.';
+    const altReason = 'Ideal caso você prefira um ponto de partida mais enxuto e entrega ágil.';
 
     alternativePlan = {
       id: alt.id,
@@ -57,16 +48,7 @@ export function calculateRecommendation(
     };
   } else if (recommendedPlanId === 'essencial') {
     const alt = plans.find((p) => p.id === 'profissional') || plans[1];
-    const altReason =
-      lang === 'en'
-        ? 'Recommended if you want complete Google SEO optimization and multiple sections.'
-        : lang === 'es'
-        ? 'Recomendado si desea posicionamiento SEO en Google y múltiples secciones.'
-        : lang === 'fr'
-        ? 'Recommandé si vous souhaitez un référencement SEO complet et plusieurs sections.'
-        : lang === 'pt-PT'
-        ? 'Recomendado se pretender otimização completa de SEO no Google e múltiplas secções.'
-        : 'Recomendado se quiser otimização completa de SEO no Google e mais seções.';
+    const altReason = 'Recomendado se quiser otimização completa de SEO no Google e mais seções.';
 
     alternativePlan = {
       id: alt.id,
@@ -78,16 +60,7 @@ export function calculateRecommendation(
   } else {
     // personalizado
     const alt = plans.find((p) => p.id === 'profissional') || plans[1];
-    const altReason =
-      lang === 'en'
-        ? 'A high-impact turnkey solution ready for fast launch.'
-        : lang === 'es'
-        ? 'Una solución de alto impacto lista para un lanzamiento rápido.'
-        : lang === 'fr'
-        ? 'Une solution clé en main à fort impact prête pour un lancement rapide.'
-        : lang === 'pt-PT'
-        ? 'Uma solução de elevado impacto pronta para um lançamento rápido.'
-        : 'Uma solução pronta de alto impacto para lançamento rápido.';
+    const altReason = 'Uma solução pronta de alto impacto para lançamento rápido.';
 
     alternativePlan = {
       id: alt.id,
@@ -160,77 +133,18 @@ export function calculateRecommendation(
   // 4. Construção dos 3 motivos estratégicos "Por que recomendamos este plano?"
   const reasonsList: string[] = [];
 
-  if (lang === 'en') {
-    if (recommendedPlanId === 'essencial') {
-      reasonsList.push('Ultra-fast single-page structure engineered for high conversion.');
-      reasonsList.push('Optimized call-to-actions pointing directly to your business contact channels.');
-      reasonsList.push('Excellent cost-benefit ratio for immediate digital market presence.');
-    } else if (recommendedPlanId === 'personalizado') {
-      reasonsList.push('100% tailor-made architecture built around your unique workflow.');
-      reasonsList.push('Dedicated integration for booking, catalogs, and customer pipelines.');
-      reasonsList.push('Personal consultation and priority technical accompaniment from NexaWeb.');
-    } else {
-      reasonsList.push('Perfect balance of multi-section authority and Google SEO indexing.');
-      reasonsList.push('Interactive catalog and smart contact forms designed for your audience.');
-      reasonsList.push('The most chosen plan by established companies seeking customer growth.');
-    }
-  } else if (lang === 'es') {
-    if (recommendedPlanId === 'essencial') {
-      reasonsList.push('Estructura de página única ultra rápida enfocada en captar clientes.');
-      reasonsList.push('Llamadas a la acción directas hacia los canales de contacto de su empresa.');
-      reasonsList.push('Excelente relación calidad-precio para ganar presencia digital inmediata.');
-    } else if (recommendedPlanId === 'personalizado') {
-      reasonsList.push('Arquitectura 100% exclusiva ajustada a los procesos de su negocio.');
-      reasonsList.push('Módulos específicos para catálogos, reservas o gestión de contactos.');
-      reasonsList.push('Acompañamiento estratégico prioritario y directo con el equipo NexaWeb.');
-    } else {
-      reasonsList.push('Equilibrio ideal entre autoridad de marca y posicionamiento en Google.');
-      reasonsList.push('Catálogo interactivo y formularios inteligentes que generan confianza.');
-      reasonsList.push('El plan más elegido por empresas consolidadas que buscan crecimiento.');
-    }
-  } else if (lang === 'fr') {
-    if (recommendedPlanId === 'essencial') {
-      reasonsList.push('Structure d’une page ultra rapide conçue pour une conversion maximale.');
-      reasonsList.push('Appels à l’action stratégiques orientés directement vers vos canaux de contact.');
-      reasonsList.push('Meilleur rapport qualité-prix pour s’imposer immédiatement sur le web.');
-    } else if (recommendedPlanId === 'personalizado') {
-      reasonsList.push('Architecture 100% sur mesure conçue selon vos objectifs exclusifs.');
-      reasonsList.push('Intégration d’outils dédiés (prise de rdv, catalogues dynamiques, CRM).');
-      reasonsList.push('Accompagnement prioritaire et conseil stratégique direct avec NexaWeb.');
-    } else {
-      reasonsList.push('Équilibre parfait entre crédibilité de marque et visibilité naturelle sur Google.');
-      reasonsList.push('Catalogue interactif et formulaires qualifiés adaptés à votre secteur.');
-      reasonsList.push('La formule la plus plébiscitée par les entreprises pour accélérer leur croissance.');
-    }
-  } else if (lang === 'pt-PT') {
-    if (recommendedPlanId === 'essencial') {
-      reasonsList.push('Estrutura de página única ultra veloz focada em conversão ágil.');
-      reasonsList.push('Botões diretos para os canais de contacto da sua empresa.');
-      reasonsList.push('Excelente relação qualidade-preço para iniciar presença digital com autoridade.');
-    } else if (recommendedPlanId === 'personalizado') {
-      reasonsList.push('Arquitetura 100% exclusiva desenhada para os processos da sua empresa.');
-      reasonsList.push('Integração de sistemas próprios (marcações, catálogo e gestão de contactos).');
-      reasonsList.push('Acompanhamento estratégico prioritário e direto com a equipa NexaWeb.');
-    } else {
-      reasonsList.push('Equilíbrio ideal entre autoridade de marca e indexação completa no Google.');
-      reasonsList.push('Catálogo interativo e formulários inteligentes que transmitem confiança.');
-      reasonsList.push('O plano mais escolhido por empresas consolidadas que procuram crescer.');
-    }
+  if (recommendedPlanId === 'essencial') {
+    reasonsList.push('Estrutura de página única ultra rápida com foco em conversão imediata.');
+    reasonsList.push('Botões diretos para os canais de contato da sua empresa.');
+    reasonsList.push('Excelente custo-benefício para estabelecer presença profissional imediata.');
+  } else if (recommendedPlanId === 'personalizado') {
+    reasonsList.push('Arquitetura 100% exclusiva desenhada para as necessidades da sua empresa.');
+    reasonsList.push('Integração de sistemas específicos (agendamentos, catálogo dinâmico e CRM).');
+    reasonsList.push('Acompanhamento estratégico prioritário direto com os especialistas NexaWeb.');
   } else {
-    // pt-BR
-    if (recommendedPlanId === 'essencial') {
-      reasonsList.push('Estrutura de página única ultra rápida com foco em conversão imediata.');
-      reasonsList.push('Botões diretos para os canais de contato da sua empresa.');
-      reasonsList.push('Excelente custo-benefício para estabelecer presença profissional imediata.');
-    } else if (recommendedPlanId === 'personalizado') {
-      reasonsList.push('Arquitetura 100% exclusiva desenhada para as necessidades da sua empresa.');
-      reasonsList.push('Integração de sistemas específicos (agendamentos, catálogo dinâmico e CRM).');
-      reasonsList.push('Acompanhamento estratégico prioritário direto com os especialistas NexaWeb.');
-    } else {
-      reasonsList.push('Equilíbrio perfeito entre autoridade de marca e otimização completa no Google.');
-      reasonsList.push('Catálogo interativo e formulário inteligente de captação de clientes.');
-      reasonsList.push('O plano mais escolhido por negócios consolidados que buscam novos clientes.');
-    }
+    reasonsList.push('Equilíbrio perfeito entre autoridade de marca e otimização completa no Google.');
+    reasonsList.push('Catálogo interativo e formulário inteligente de captação de clientes.');
+    reasonsList.push('O plano mais escolhido por negócios consolidados que buscam novos clientes.');
   }
 
   // 5. Labels traduzidos

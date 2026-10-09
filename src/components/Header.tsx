@@ -15,28 +15,12 @@ export const Header: React.FC<HeaderProps> = React.memo(({
   onBack,
   showBackButton = false,
 }) => {
-  const { t, language } = useTranslation();
+  const { t } = useTranslation();
 
   if (!showMenu && !showBackButton) return null;
 
-  const backLabel =
-    t.header?.back ||
-    (language === 'en'
-      ? 'Back'
-      : language === 'es'
-      ? 'Volver'
-      : language === 'fr'
-      ? 'Retour'
-      : 'Voltar');
-
-  const menuLabel =
-    language === 'en'
-      ? 'Open Menu'
-      : language === 'es'
-      ? 'Abrir Menú'
-      : language === 'fr'
-      ? 'Ouvrir le Menu'
-      : 'Abrir Menu';
+  const backLabel = t.header?.back || 'Voltar';
+  const menuLabel = 'Abrir Menu';
 
   return (
     <header className="w-full bg-transparent border-0 shadow-none px-4 pt-3.5 sm:pt-4 pb-0 transition-colors">

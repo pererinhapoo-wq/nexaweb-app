@@ -42,23 +42,10 @@ export const Step7Content: React.FC<Step7ContentProps> = ({
   onClearError,
   highlightedFieldId,
 }) => {
-  const { t, language } = useTranslation();
+  const { t } = useTranslation();
 
-  const requiredNotice = language === 'en'
-    ? 'Fields with * are required'
-    : language === 'es'
-    ? 'Campos con * obligatorios'
-    : language === 'fr'
-    ? 'Champs avec * obligatoires'
-    : 'Campos com * obrigatórios';
-
-  const ideaInstruction = language === 'en'
-    ? 'In your own words, describe your vision for the website, key differentiators, or important details:'
-    : language === 'es'
-    ? 'Describa con sus propias palabras lo que imagina para el sitio, diferenciales o detalles importantes:'
-    : language === 'fr'
-    ? 'Décrivez avec vos propres mots ce que vous imaginez pour le site, vos atouts ou points d’attention :'
-    : 'Conte com suas palavras o que imagina para o site, diferenciais ou detalhes importantes:';
+  const requiredNotice = 'Campos com * obrigatórios';
+  const ideaInstruction = 'Conte com suas palavras o que imagina para o site, diferenciais ou detalhes importantes:';
 
   return (
     <div className="space-y-4 animate-in fade-in duration-150">

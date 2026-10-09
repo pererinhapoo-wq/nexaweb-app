@@ -34,7 +34,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
   onComplete,
   initialStep = 1,
 }) => {
-  const { language, t } = useTranslation();
+  const { t } = useTranslation();
 
   // Etapas: 1 = O que precisa | 2 = Segmento | 3 = Foco do site
   const [step, setStep] = useState<number>(initialStep || 1);
@@ -44,9 +44,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
   const [interest, setInterest] = useState<InterestOption>('new_site');
   const [segment, setSegment] = useState<string>('services');
   const [objective, setObjective] = useState<ObjectiveOption>('contacts');
-  const [websiteLanguage] = useState<WebsiteLanguage>(
-    language === 'pt-PT' ? 'pt-PT' : language === 'en' ? 'en' : language === 'es' ? 'es' : language === 'fr' ? 'fr' : 'pt-BR'
-  );
+  const [websiteLanguage] = useState<WebsiteLanguage>('pt-BR');
   const [customization] = useState<CustomizationOption>('complete');
 
   // Sincroniza step inicial quando reaberto

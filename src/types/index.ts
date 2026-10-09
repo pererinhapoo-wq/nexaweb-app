@@ -1,27 +1,10 @@
-export type Language =
-  | 'pt-BR'
-  | 'pt-PT'
-  | 'en'
-  | 'es'
-  | 'fr'
-  | 'de'
-  | 'it'
-  | 'ja'
-  | 'zh';
+export type Language = 'pt-BR';
 
-export type WebsiteLanguage =
-  | 'pt-BR'
-  | 'pt-PT'
-  | 'en'
-  | 'es'
-  | 'fr'
-  | 'pt-en'
-  | 'other';
+export type WebsiteLanguage = 'pt-BR';
 
 export type ViewTab = 'home' | 'services' | 'portfolio' | 'project' | 'portal' | 'admin' | 'settings';
 
 export type SettingsSubView =
-  | 'language'
   | 'theme'
   | 'animations'
   | 'feedback'
