@@ -299,7 +299,7 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
   };
 
   return (
-    <div className="space-y-5 pb-4 animate-in fade-in duration-200 overflow-x-hidden">
+    <div className="space-y-5 pt-2 sm:pt-2.5 pb-4 animate-in fade-in duration-200 overflow-x-hidden">
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
           1. FORMULÁRIO DE ACESSO / ESTADO SEM PROJETO
          ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}

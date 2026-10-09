@@ -234,7 +234,7 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
   return (
     <div className="space-y-3.5 pb-4 animate-in fade-in duration-150">
       {/* 1. Cabeçalho Compacto */}
-      <section className="pt-0 flex items-center gap-2.5">
+      <section className="pt-2 sm:pt-2.5 min-h-[40px] flex items-center gap-2.5">
         {onBack && (
           <BackButton
             onClick={onBack}

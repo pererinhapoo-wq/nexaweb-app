@@ -259,9 +259,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const currentAnimationLabel =
     animationMode === 'reduced' ? t.settings.animationsReduced : t.settings.animationsEnabled;
 
-  // Cabeçalho unificado sem menus duplicados
+  // Cabeçalho unificado compartilhado por todas as telas de Configurações
   const renderScreenHeader = (title: string, subtitle?: string) => (
-    <div className="flex items-center gap-2 pt-1 pb-1.5">
+    <div className="flex items-center gap-2 py-1">
       <BackButton
         onClick={onBack}
         label={
@@ -275,7 +275,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             : 'Voltar')
         }
       />
-      <div className="min-w-0">
+      <div className="flex flex-col justify-center min-w-0 flex-1">
         <h1 className="text-base sm:text-lg font-bold tracking-tight text-white truncate">
           {title}
         </h1>
@@ -288,8 +288,22 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     </div>
   );
 
+  // Contêiner compartilhado padronizado para as subtelas internas de Configurações
+  const SubViewContainer: React.FC<{
+    title: string;
+    subtitle?: string;
+    children: React.ReactNode;
+  }> = ({ title, subtitle, children }) => (
+    <div className="w-full space-y-2.5 animate-in fade-in slide-in-from-right-2 duration-150">
+      {renderScreenHeader(title, subtitle)}
+      <div className="w-full">
+        {children}
+      </div>
+    </div>
+  );
+
   return (
-    <div className="space-y-3 pb-1 transition-colors duration-200 overflow-x-hidden">
+    <div className="w-full space-y-2.5 pb-2 transition-colors duration-200 overflow-x-hidden">
       {/* Toast flutuante de confirmação */}
       {toastMessage && (
         <div
@@ -306,8 +320,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           1. SUBTELA: IDIOMA (Lista Completa de Idiomas Restaurada)
           ========================================================================= */}
       {activeSubView === 'language' && (
-        <div className="space-y-3 animate-in fade-in slide-in-from-right-2 duration-150">
-          {renderScreenHeader(
+        <SubViewContainer
+          title={
             language === 'en'
               ? 'App Language'
               : language === 'es'
@@ -316,7 +330,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               ? 'Langue de l’application'
               : language === 'pt-PT'
               ? 'Idioma da aplicação'
-              : 'Idioma do aplicativo',
+              : 'Idioma do aplicativo'
+          }
+          subtitle={
             language === 'en'
               ? 'Select the interface display language'
               : language === 'es'
@@ -326,8 +342,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               : language === 'pt-PT'
               ? 'Selecione o idioma de exibição da aplicação'
               : 'Selecione o idioma de exibição do aplicativo'
-          )}
-
+          }
+        >
           <div className="space-y-2" role="radiogroup" aria-label="Idioma do aplicativo">
             {languages.map((item) => {
               const isSelected = language === item.code;
@@ -338,13 +354,13 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   role="radio"
                   aria-checked={isSelected}
                   onClick={() => handleLanguageChange(item.code)}
-                  className={`w-full flex items-center justify-between p-3 sm:p-3.5 rounded-2xl border text-left transition-all duration-150 min-h-[52px] active:scale-[0.985] cursor-pointer ${
+                  className={`w-full flex items-center justify-between p-3 rounded-2xl border text-left transition-all duration-150 min-h-[48px] active:scale-[0.985] cursor-pointer ${
                     isSelected
                       ? 'bg-indigo-600/20 border-cyan-400 text-white shadow-sm ring-1 ring-cyan-400/40'
                       : 'bg-slate-900/90 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-850'
                   }`}
                 >
-                  <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="flex items-center gap-3 min-w-0">
                     <span className="text-2xl shrink-0 select-none" role="img" aria-label={item.name}>
                       {item.flag}
                     </span>
@@ -372,34 +388,32 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               );
             })}
           </div>
-        </div>
+        </SubViewContainer>
       )}
 
       {/* =========================================================================
           2. SUBTELA: TEMA
           ========================================================================= */}
       {activeSubView === 'theme' && (
-        <div className="space-y-3 animate-in fade-in slide-in-from-right-2 duration-150">
-          {renderScreenHeader(
-            t.settings?.theme || 'Tema',
-            t.settings?.themeDesc || 'Escolha a aparência visual do NexaWeb App'
-          )}
-
-          <div className="space-y-2.5" role="radiogroup" aria-label="Tema da interface">
+        <SubViewContainer
+          title={t.settings?.theme || 'Tema'}
+          subtitle={t.settings?.themeDesc || 'Escolha a aparência visual do NexaWeb App'}
+        >
+          <div className="space-y-2" role="radiogroup" aria-label="Tema da interface">
             {/* Opção 1: Original (Padrão) */}
             <button
               type="button"
               role="radio"
               aria-checked={themeMode === 'original'}
               onClick={() => handleThemeChange('original')}
-              className={`w-full flex items-center justify-between p-3.5 rounded-2xl border text-left transition-all duration-150 min-h-[58px] active:scale-[0.985] cursor-pointer ${
+              className={`w-full flex items-center justify-between p-3 rounded-2xl border text-left transition-all duration-150 min-h-[48px] active:scale-[0.985] cursor-pointer ${
                 themeMode === 'original'
                   ? 'bg-indigo-600/20 border-cyan-400 text-white shadow-sm ring-1 ring-cyan-400/40'
                   : 'bg-slate-900/90 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-850'
               }`}
             >
-              <div className="flex items-center gap-3.5 min-w-0">
-                <div className="w-9 h-9 rounded-xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
                   <Sparkles className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
@@ -440,14 +454,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               role="radio"
               aria-checked={themeMode === 'light'}
               onClick={() => handleThemeChange('light')}
-              className={`w-full flex items-center justify-between p-3.5 rounded-2xl border text-left transition-all duration-150 min-h-[58px] active:scale-[0.985] cursor-pointer ${
+              className={`w-full flex items-center justify-between p-3 rounded-2xl border text-left transition-all duration-150 min-h-[48px] active:scale-[0.985] cursor-pointer ${
                 themeMode === 'light'
                   ? 'bg-indigo-600/20 border-cyan-400 text-white shadow-sm ring-1 ring-cyan-400/40'
                   : 'bg-slate-900/90 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-850'
               }`}
             >
-              <div className="flex items-center gap-3.5 min-w-0">
-                <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
                   <Sun className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
@@ -488,14 +502,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               role="radio"
               aria-checked={themeMode === 'dark'}
               onClick={() => handleThemeChange('dark')}
-              className={`w-full flex items-center justify-between p-3.5 rounded-2xl border text-left transition-all duration-150 min-h-[58px] active:scale-[0.985] cursor-pointer ${
+              className={`w-full flex items-center justify-between p-3 rounded-2xl border text-left transition-all duration-150 min-h-[48px] active:scale-[0.985] cursor-pointer ${
                 themeMode === 'dark'
                   ? 'bg-indigo-600/20 border-cyan-400 text-white shadow-sm ring-1 ring-cyan-400/40'
                   : 'bg-slate-900/90 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-850'
               }`}
             >
-              <div className="flex items-center gap-3.5 min-w-0">
-                <div className="w-9 h-9 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0">
                   <Moon className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
@@ -532,34 +546,32 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               </div>
             </button>
           </div>
-        </div>
+        </SubViewContainer>
       )}
 
       {/* =========================================================================
           3. SUBTELA: ANIMAÇÕES
           ========================================================================= */}
       {activeSubView === 'animations' && (
-        <div className="space-y-3 animate-in fade-in slide-in-from-right-2 duration-150">
-          {renderScreenHeader(
-            t.settings?.animations || 'Animações',
-            t.settings?.animationsDesc || 'Controle os efeitos visuais e transições de tela'
-          )}
-
-          <div className="space-y-2.5" role="radiogroup" aria-label={t.settings?.animations || 'Modo de animações'}>
+        <SubViewContainer
+          title={t.settings?.animations || 'Animações'}
+          subtitle={t.settings?.animationsDesc || 'Controle os efeitos visuais e transições de tela'}
+        >
+          <div className="space-y-2" role="radiogroup" aria-label={t.settings?.animations || 'Modo de animações'}>
             {/* Opção 1: Ativadas */}
             <button
               type="button"
               role="radio"
               aria-checked={animationMode === 'enabled'}
               onClick={() => handleAnimationChange('enabled')}
-              className={`w-full flex items-center justify-between p-3.5 rounded-2xl border text-left transition-all duration-150 min-h-[58px] active:scale-[0.985] cursor-pointer ${
+              className={`w-full flex items-center justify-between p-3 rounded-2xl border text-left transition-all duration-150 min-h-[48px] active:scale-[0.985] cursor-pointer ${
                 animationMode === 'enabled'
                   ? 'bg-indigo-600/20 border-cyan-400 text-white shadow-sm ring-1 ring-cyan-400/40'
                   : 'bg-slate-900/90 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-850'
               }`}
             >
-              <div className="flex items-center gap-3.5 min-w-0">
-                <div className="w-9 h-9 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0">
                   <Zap className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
@@ -600,14 +612,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               role="radio"
               aria-checked={animationMode === 'reduced'}
               onClick={() => handleAnimationChange('reduced')}
-              className={`w-full flex items-center justify-between p-3.5 rounded-2xl border text-left transition-all duration-150 min-h-[58px] active:scale-[0.985] cursor-pointer ${
+              className={`w-full flex items-center justify-between p-3 rounded-2xl border text-left transition-all duration-150 min-h-[48px] active:scale-[0.985] cursor-pointer ${
                 animationMode === 'reduced'
                   ? 'bg-indigo-600/20 border-cyan-400 text-white shadow-sm ring-1 ring-cyan-400/40'
                   : 'bg-slate-900/90 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-850'
               }`}
             >
-              <div className="flex items-center gap-3.5 min-w-0">
-                <div className="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 shrink-0">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 shrink-0">
                   <ZapOff className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
@@ -636,16 +648,16 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               </div>
             </button>
           </div>
-        </div>
+        </SubViewContainer>
       )}
 
       {/* =========================================================================
           4. SUBTELA: FEEDBACK
           ========================================================================= */}
       {activeSubView === 'feedback' && (
-        <div className="space-y-3 animate-in fade-in slide-in-from-right-2 duration-150">
-          {renderScreenHeader(
-            language === 'en' ? 'Feedback' : language === 'es' ? 'Comentarios' : language === 'fr' ? 'Commentaires' : 'Feedback',
+        <SubViewContainer
+          title={language === 'en' ? 'Feedback' : language === 'es' ? 'Comentarios' : language === 'fr' ? 'Commentaires' : 'Feedback'}
+          subtitle={
             language === 'en'
               ? 'Send suggestions, report issues or share compliments'
               : language === 'es'
@@ -655,12 +667,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               : language === 'pt-PT'
               ? 'Envie sugestões, reporte problemas ou partilhe elogios'
               : 'Envie sugestões, relate problemas ou compartilhe seu elogio'
-          )}
-
+          }
+        >
           {isFeedbackSent ? (
-            <div className="p-5 rounded-2xl bg-slate-900/90 border border-emerald-500/30 text-center space-y-3.5 animate-in zoom-in-95 duration-200">
-              <div className="w-12 h-12 rounded-full bg-emerald-500/15 border border-emerald-500/30 mx-auto flex items-center justify-center text-emerald-400 shadow-md">
-                <CheckCircle2 className="w-6 h-6" />
+            <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-emerald-500/30 text-center space-y-3 animate-in zoom-in-95 duration-200">
+              <div className="w-11 h-11 rounded-full bg-emerald-500/15 border border-emerald-500/30 mx-auto flex items-center justify-center text-emerald-400 shadow-md">
+                <CheckCircle2 className="w-5 h-5" />
               </div>
               <div>
                 <h2 className="text-sm font-bold text-white">
@@ -688,7 +700,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 <p className="text-[11px] text-slate-400 line-clamp-2">{feedbackDescription}</p>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-2 pt-2">
+              <div className="flex flex-col sm:flex-row gap-2 pt-1">
                 <button
                   type="button"
                   onClick={() =>
@@ -717,9 +729,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               </div>
             </div>
           ) : (
-            <form onSubmit={handleSubmitFeedback} className="space-y-3">
+            <form onSubmit={handleSubmitFeedback} className="space-y-2.5">
               {/* Tipo de feedback */}
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-300 block">
                   {language === 'en' ? 'Feedback Type' : language === 'es' ? 'Tipo de Comentario' : language === 'fr' ? 'Type de Retour' : 'Tipo de Feedback'}
                 </label>
@@ -859,16 +871,16 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               </button>
             </form>
           )}
-        </div>
+        </SubViewContainer>
       )}
 
       {/* =========================================================================
           5. SUBTELA: AJUDA
           ========================================================================= */}
       {activeSubView === 'help' && (
-        <div className="space-y-3 animate-in fade-in slide-in-from-right-2 duration-150">
-          {renderScreenHeader(
-            language === 'en' ? 'Help & Guidance' : language === 'es' ? 'Ayuda & Guías' : language === 'fr' ? 'Aide & Guides' : 'Ajuda & Orientações',
+        <SubViewContainer
+          title={language === 'en' ? 'Help & Guidance' : language === 'es' ? 'Ayuda & Guías' : language === 'fr' ? 'Aide & Guides' : 'Ajuda & Orientações'}
+          subtitle={
             language === 'en'
               ? 'Practical guides on plans, demos and briefing'
               : language === 'es'
@@ -878,9 +890,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               : language === 'pt-PT'
               ? 'Guias práticos sobre planos, demonstrações e briefing'
               : 'Guias práticos sobre planos, demonstrações e briefing'
-          )}
-
-          <div className="space-y-2.5">
+          }
+        >
+          <div className="space-y-2">
             {helpFaq.map((item, idx) => {
               const isExpanded = expandedHelpIndex === idx;
               return (
@@ -891,7 +903,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   <button
                     type="button"
                     onClick={() => setExpandedHelpIndex(isExpanded ? null : idx)}
-                    className="w-full flex items-center justify-between p-3.5 text-left hover:bg-slate-850/60 transition-colors cursor-pointer min-h-[50px]"
+                    className="w-full flex items-center justify-between p-3 text-left hover:bg-slate-850/60 transition-colors cursor-pointer min-h-[46px]"
                     aria-expanded={isExpanded}
                   >
                     <span className="text-xs font-bold text-white pr-2">
@@ -904,7 +916,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                     />
                   </button>
                   {isExpanded && (
-                    <div className="px-3.5 pb-4 pt-1 border-t border-slate-800/70 text-xs text-slate-300 leading-relaxed whitespace-pre-line animate-in fade-in duration-150">
+                    <div className="px-3.5 pb-3.5 pt-1 border-t border-slate-800/70 text-xs text-slate-300 leading-relaxed whitespace-pre-line animate-in fade-in duration-150">
                       {item.content}
                     </div>
                   )}
@@ -914,7 +926,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           </div>
 
           {onOpenContact && (
-            <div className="pt-1">
+            <div className="pt-2">
               <button
                 type="button"
                 onClick={onOpenContact}
@@ -935,23 +947,21 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               </button>
             </div>
           )}
-        </div>
+        </SubViewContainer>
       )}
 
       {/* =========================================================================
           6. SUBTELA: INSTAGRAM OFICIAL
           ========================================================================= */}
       {activeSubView === 'instagram' && (
-        <div className="space-y-3 animate-in fade-in slide-in-from-right-2 duration-150">
-          {renderScreenHeader(
-            'Instagram Oficial',
-            'Canal verificado de comunicação e portfólio da NexaWeb'
-          )}
-
-          <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800/80 space-y-4 shadow-sm">
-            <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500/20 via-rose-500/20 to-purple-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0 shadow-md">
-                <InstagramIcon className="w-6 h-6 text-rose-400" />
+        <SubViewContainer
+          title="Instagram Oficial"
+          subtitle="Canal verificado de comunicação e portfólio da NexaWeb"
+        >
+          <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-slate-800/80 space-y-3.5 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-500/20 via-rose-500/20 to-purple-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0 shadow-md">
+                <InstagramIcon className="w-5 h-5 text-rose-400" />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
@@ -982,12 +992,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               </button>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
+            <div className="flex flex-col sm:flex-row gap-2 pt-1">
               <a
                 href="https://www.instagram.com/nexaw1/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 min-h-[46px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-purple-600 via-rose-600 to-amber-500 hover:opacity-95 text-white font-bold text-xs shadow-md transition-all active:scale-[0.985]"
+                className="flex-1 min-h-[44px] flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-gradient-to-r from-purple-600 via-rose-600 to-amber-500 hover:opacity-95 text-white font-bold text-xs shadow-md transition-all active:scale-[0.985]"
               >
                 <ExternalLink className="w-4 h-4" />
                 <span>Abrir perfil no Instagram</span>
@@ -997,30 +1007,28 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 onClick={() =>
                   handleCopy('https://www.instagram.com/nexaw1/', 'insta-link', 'Link do Instagram')
                 }
-                className="min-h-[46px] px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-white font-semibold text-xs border border-slate-700 transition-all cursor-pointer active:scale-[0.985] flex items-center justify-center gap-1.5"
+                className="min-h-[44px] px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-white font-semibold text-xs border border-slate-700 transition-all cursor-pointer active:scale-[0.985] flex items-center justify-center gap-1.5"
               >
                 <Copy className="w-3.5 h-3.5" />
                 <span>Copiar link</span>
               </button>
             </div>
           </div>
-        </div>
+        </SubViewContainer>
       )}
 
       {/* =========================================================================
           7. SUBTELA: E-MAIL OFICIAL
           ========================================================================= */}
       {activeSubView === 'email' && (
-        <div className="space-y-3 animate-in fade-in slide-in-from-right-2 duration-150">
-          {renderScreenHeader(
-            'E-mail de Contato',
-            'Canal oficial para propostas, envio de materiais e suporte'
-          )}
-
-          <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800/80 space-y-4 shadow-sm">
-            <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0 shadow-md">
-                <Mail className="w-6 h-6" />
+        <SubViewContainer
+          title="E-mail de Contato"
+          subtitle="Canal oficial para propostas, envio de materiais e suporte"
+        >
+          <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-slate-800/80 space-y-3.5 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0 shadow-md">
+                <Mail className="w-5 h-5" />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
@@ -1051,14 +1059,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               </button>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800/80 text-[11px] text-slate-400">
+            <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 text-[11px] text-slate-400">
               <p>⏱️ <strong>Prazo médio de retorno:</strong> Até 1 dia útil em horário comercial.</p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
+            <div className="flex flex-col sm:flex-row gap-2 pt-1">
               <a
                 href="mailto:nexaweeb@gmail.com"
-                className="flex-1 min-h-[46px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs shadow-md transition-all active:scale-[0.985]"
+                className="flex-1 min-h-[44px] flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs shadow-md transition-all active:scale-[0.985]"
               >
                 <Mail className="w-4 h-4" />
                 <span>Iniciar e-mail agora</span>
@@ -1068,27 +1076,25 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 onClick={() =>
                   handleCopy('nexaweeb@gmail.com', 'email-addr', 'E-mail')
                 }
-                className="min-h-[46px] px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-white font-semibold text-xs border border-slate-700 transition-all cursor-pointer active:scale-[0.985] flex items-center justify-center gap-1.5"
+                className="min-h-[44px] px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-white font-semibold text-xs border border-slate-700 transition-all cursor-pointer active:scale-[0.985] flex items-center justify-center gap-1.5"
               >
                 <Copy className="w-3.5 h-3.5" />
                 <span>Copiar e-mail</span>
               </button>
             </div>
           </div>
-        </div>
+        </SubViewContainer>
       )}
 
       {/* =========================================================================
           8. SUBTELA: PRIVACIDADE
           ========================================================================= */}
       {activeSubView === 'privacy' && (
-        <div className="space-y-3 animate-in fade-in slide-in-from-right-2 duration-150">
-          {renderScreenHeader(
-            'Privacidade',
-            'Compromisso com a segurança e privacidade das suas informações'
-          )}
-
-          <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-slate-800/80 space-y-4 text-xs text-slate-300 leading-relaxed">
+        <SubViewContainer
+          title="Privacidade"
+          subtitle="Compromisso com a segurança e privacidade das suas informações"
+        >
+          <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-slate-800/80 space-y-3.5 text-xs text-slate-300 leading-relaxed">
             <div className="flex items-center gap-3 pb-3 border-b border-slate-800/80">
               <div className="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
                 <ShieldCheck className="w-5 h-5" />
@@ -1101,16 +1107,16 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               </div>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-indigo-950/30 border border-indigo-500/30 text-indigo-200 text-xs leading-relaxed space-y-1">
+            <div className="p-3 rounded-xl bg-indigo-950/30 border border-indigo-500/30 text-indigo-200 text-xs leading-relaxed space-y-1">
               <p className="font-semibold text-white">Status da Política Formal:</p>
               <p className="text-[11.5px] text-slate-300">
                 O documento formal completo da Política de Privacidade está em processo de estruturação jurídica para publicação oficial no site <strong>nexaweeb.vercel.app</strong>.
               </p>
             </div>
 
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               <h3 className="text-xs font-bold text-white">Compromissos vigentes da NexaWeb:</h3>
-              <ul className="space-y-2 text-slate-300">
+              <ul className="space-y-1.5 text-slate-300">
                 <li className="flex items-start gap-2">
                   <Check className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
                   <span>
@@ -1136,20 +1142,18 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               Para esclarecer qualquer dúvida sobre privacidade e tratamento de dados, escreva para <strong>nexaweeb@gmail.com</strong>.
             </div>
           </div>
-        </div>
+        </SubViewContainer>
       )}
 
       {/* =========================================================================
           9. SUBTELA: TERMOS DE USO
           ========================================================================= */}
       {activeSubView === 'terms' && (
-        <div className="space-y-3 animate-in fade-in slide-in-from-right-2 duration-150">
-          {renderScreenHeader(
-            'Termos de Uso',
-            'Condições gerais de serviço e contratação de projetos'
-          )}
-
-          <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-slate-800/80 space-y-4 text-xs text-slate-300 leading-relaxed">
+        <SubViewContainer
+          title="Termos de Uso"
+          subtitle="Condições gerais de serviço e contratação de projetos"
+        >
+          <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-slate-800/80 space-y-3.5 text-xs text-slate-300 leading-relaxed">
             <div className="flex items-center gap-3 pb-3 border-b border-slate-800/80">
               <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
                 <FileText className="w-5 h-5" />
@@ -1162,16 +1166,16 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               </div>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-amber-950/30 border border-amber-500/30 text-amber-200 text-xs leading-relaxed space-y-1">
+            <div className="p-3 rounded-xl bg-amber-950/30 border border-amber-500/30 text-amber-200 text-xs leading-relaxed space-y-1">
               <p className="font-semibold text-white">Status dos Termos Formais:</p>
               <p className="text-[11.5px] text-slate-300">
                 Os termos gerais formais de contratação estão em fase de consolidação contratual definitiva e podem ser consultados diretamente com nossos especialistas durante a validação da sua proposta.
               </p>
             </div>
 
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               <h3 className="text-xs font-bold text-white">Diretrizes gerais aplicáveis:</h3>
-              <ul className="space-y-2 text-slate-300">
+              <ul className="space-y-1.5 text-slate-300">
                 <li className="flex items-start gap-2">
                   <Check className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
                   <span>
@@ -1197,22 +1201,20 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               Dúvidas comerciais ou solicitações de contrato formal podem ser enviadas para <strong>nexaweeb@gmail.com</strong>.
             </div>
           </div>
-        </div>
+        </SubViewContainer>
       )}
 
       {/* =========================================================================
           10. SUBTELA: SOBRE O APLICATIVO
           ========================================================================= */}
       {activeSubView === 'about' && (
-        <div className="space-y-3 animate-in fade-in slide-in-from-right-2 duration-150">
-          {renderScreenHeader(
-            'Sobre o Aplicativo',
-            'Informações sobre a aplicação e a agência NexaWeb'
-          )}
-
+        <SubViewContainer
+          title="Sobre o Aplicativo"
+          subtitle="Informações sobre a aplicação e a agência NexaWeb"
+        >
           {/* Card de Identidade da Aplicação */}
-          <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800/80 space-y-4 shadow-sm text-center">
-            <div className="w-16 h-16 mx-auto rounded-2xl bg-slate-950 border border-indigo-500/30 p-2.5 flex items-center justify-center shadow-lg shadow-indigo-950/40">
+          <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-slate-800/80 space-y-3 shadow-sm text-center">
+            <div className="w-14 h-14 mx-auto rounded-2xl bg-slate-950 border border-indigo-500/30 p-2 flex items-center justify-center shadow-lg shadow-indigo-950/40">
               <img
                 src={appIcon}
                 alt="Logotipo NexaWeb App"
@@ -1236,13 +1238,13 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           </div>
 
           {/* Pilares de Qualidade */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-slate-800/80 space-y-3">
+          <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800/80 space-y-2.5 mt-2.5">
             <h3 className="text-xs font-bold text-white uppercase tracking-wider text-cyan-400">
               Pilares de Qualidade NexaWeb
             </h3>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800/80 space-y-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800/80 space-y-1">
                 <div className="flex items-center gap-1.5 text-cyan-300 text-xs font-semibold">
                   <Gauge className="w-3.5 h-3.5 shrink-0" />
                   <span>Performance Extrema</span>
@@ -1252,7 +1254,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 </p>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800/80 space-y-1">
+              <div className="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800/80 space-y-1">
                 <div className="flex items-center gap-1.5 text-indigo-300 text-xs font-semibold">
                   <Palette className="w-3.5 h-3.5 shrink-0" />
                   <span>Design Sob Medida</span>
@@ -1262,7 +1264,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 </p>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800/80 space-y-1">
+              <div className="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800/80 space-y-1">
                 <div className="flex items-center gap-1.5 text-emerald-300 text-xs font-semibold">
                   <Smartphone className="w-3.5 h-3.5 shrink-0" />
                   <span>Mobile First</span>
@@ -1272,7 +1274,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 </p>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800/80 space-y-1">
+              <div className="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800/80 space-y-1">
                 <div className="flex items-center gap-1.5 text-amber-300 text-xs font-semibold">
                   <Target className="w-3.5 h-3.5 shrink-0" />
                   <span>Foco em Conversão</span>
@@ -1285,8 +1287,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           </div>
 
           {/* Links e Rodapé */}
-          <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800/80 space-y-2.5 text-xs text-slate-300">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800/70">
+          <div className="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800/80 space-y-2 text-xs text-slate-300 mt-2.5">
+            <div className="flex items-center justify-between pb-1.5 border-b border-slate-800/70">
               <span className="text-slate-400">Site Oficial:</span>
               <a
                 href="https://nexaweeb.vercel.app/"
@@ -1299,7 +1301,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               </a>
             </div>
 
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800/70">
+            <div className="flex items-center justify-between pb-1.5 border-b border-slate-800/70">
               <span className="text-slate-400">Instagram:</span>
               <a
                 href="https://www.instagram.com/nexaw1/"
@@ -1317,7 +1319,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               <span className="font-mono text-slate-200">nexaweeb@gmail.com</span>
             </div>
           </div>
-        </div>
+        </SubViewContainer>
       )}
 
       {/* =========================================================================

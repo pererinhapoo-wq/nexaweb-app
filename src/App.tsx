@@ -681,8 +681,9 @@ function AppContent() {
     !isKeyboardOpen &&
     isMainTab;
 
-  // Exceção de flex-1 estritamente restrita à tela final de aprovação do Briefing
+  // Exceção de flex-1 estritamente restrita à tela final de aprovação do Briefing e Configurações
   const isApprovalScreenActive = currentTab === 'project' && isBriefingApproved;
+  const isSettingsActive = currentTab === 'settings';
 
   return (
     <div
@@ -706,12 +707,13 @@ function AppContent() {
           showMenu={
             currentTab !== 'project' &&
             currentTab !== 'admin' &&
+            currentTab !== 'portfolio' &&
+            currentTab !== 'portal' &&
             !selectedProjectDetail
           }
           onBack={handleHeaderBack}
           showBackButton={Boolean(
             selectedProjectDetail ||
-            currentTab === 'services' ||
             currentTab === 'admin'
           )}
         />
@@ -720,9 +722,13 @@ function AppContent() {
       {/* Área de conteúdo principal com transição suave entre telas */}
       <main
         className={`${
-          isApprovalScreenActive ? 'flex-none' : 'flex-1'
+          isApprovalScreenActive || isSettingsActive ? 'flex-none' : 'flex-1'
         } max-w-3xl w-full mx-auto px-4 pt-1 sm:pt-2 ${
-          isBottomNavVisible ? 'pb-16 sm:pb-16' : 'pb-3 sm:pb-4'
+          isSettingsActive
+            ? 'pb-6 safe-area-pb'
+            : isBottomNavVisible
+            ? 'pb-16 sm:pb-16'
+            : 'pb-3 sm:pb-4'
         }`}
       >
         <div

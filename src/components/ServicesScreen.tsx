@@ -17,9 +17,11 @@ import {
   ChevronDown,
   AlertCircle,
   Layers,
+  X,
+  Play,
 } from 'lucide-react';
-import { BackButton } from './BackButton';
 import { useTranslation } from '../contexts/LanguageContext';
+import { BackButton } from './BackButton';
 
 interface ServicesScreenProps {
   onSelectPlan?: (planId: string) => void;
@@ -45,6 +47,9 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
 
   // Plano ativo selecionado localmente (inicia null para que nenhum plano comece marcado automaticamente)
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(selectedPlan || null);
+
+  // Etapa de confirmação/resumo do plano antes de ir para o briefing
+  const [confirmingPlanId, setConfirmingPlanId] = useState<string | null>(null);
 
   useEffect(() => {
     setSelectedPlanId(selectedPlan || null);

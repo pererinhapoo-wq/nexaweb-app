@@ -5,8 +5,6 @@ import {
   Sparkles,
   Users,
   UserCheck,
-  MessageSquare,
-  HelpCircle,
   Settings,
   ChevronRight,
 } from 'lucide-react';
@@ -384,33 +382,6 @@ export const AppDrawer: React.FC<AppDrawerProps> = ({
       icon: Users,
       action: () => handleSelectTab('admin'),
       isActive: currentTab === 'admin',
-    },
-    {
-      id: 'feedback',
-      label: 'Feedback',
-      icon: MessageSquare,
-      action: () => {
-        onClose();
-        onOpenContact();
-      },
-      isActive: false,
-    },
-    {
-      id: 'help',
-      label:
-        language === 'en'
-          ? 'Help'
-          : language === 'es'
-          ? 'Ayuda'
-          : language === 'fr'
-          ? 'Aide'
-          : 'Ajuda',
-      icon: HelpCircle,
-      action: () => {
-        onClose();
-        onOpenContact();
-      },
-      isActive: false,
     },
     {
       id: 'settings',
