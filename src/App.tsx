@@ -84,6 +84,7 @@ function AppContent() {
   const [portfolioSegmentFilter, setPortfolioSegmentFilter] = useState<string>('todos');
   const [portfolioSearchQuery, setPortfolioSearchQuery] = useState('');
   const portfolioScrollPosRef = useRef(0);
+  const ourServicesScrollPosRef = useRef(0);
 
   // Derivação estrita do estado da tela ativa a partir do topo do histórico
   const currentEntry = history[history.length - 1] || { tab: 'home', projectDetail: null };
@@ -110,10 +111,13 @@ function AppContent() {
   // Reset global e determinístico de rolagem ao navegar para uma NOVA TELA
   // Garante que qualquer nova tela sempre inicie no topo após o React renderizar o DOM
   useEffect(() => {
-    // Exceção estrita de restauração do Portfólio:
-    // Ao fechar ProjectDetailScreen com posição salva na vitrine (portfolioScrollPosRef > 0),
+    // Exceção estrita de restauração do Portfólio e Nossos Serviços:
+    // Ao fechar detalhes com posição salva na vitrine/lista,
     // não reseta para o topo para permitir a restauração exata da posição da lista
     if (!selectedProjectDetail && portfolioScrollPosRef.current > 0) {
+      return;
+    }
+    if (currentTab === 'our-services' && !selectedOurServiceId && ourServicesScrollPosRef.current > 0) {
       return;
     }
 
@@ -150,7 +154,7 @@ function AppContent() {
     });
 
     return () => cancelAnimationFrame(rafId);
-  }, [activeScreenId, selectedProjectDetail]);
+  }, [activeScreenId, selectedProjectDetail, currentTab, selectedOurServiceId]);
 
   // Restaura posição da lista ao fechar detalhes (sem conflito com smooth scroll)
   useEffect(() => {
@@ -163,6 +167,18 @@ function AppContent() {
       return () => clearTimeout(timer);
     }
   }, [selectedProjectDetail]);
+
+  // Restaura posição da lista de Nossos Serviços ao fechar detalhes de um serviço
+  useEffect(() => {
+    if (currentTab === 'our-services' && !selectedOurServiceId && ourServicesScrollPosRef.current > 0) {
+      const savedPos = ourServicesScrollPosRef.current;
+      ourServicesScrollPosRef.current = 0;
+      const timer = setTimeout(() => {
+        window.scrollTo({ top: savedPos, behavior: 'instant' as ScrollBehavior });
+      }, 20);
+      return () => clearTimeout(timer);
+    }
+  }, [currentTab, selectedOurServiceId]);
 
   // Refs para coordenação com etapas internas do wizard de briefing (ProjectScreen)
   const projectStepRef = useRef<number>(1);
@@ -433,6 +449,10 @@ function AppContent() {
         targetScrollY = prev[prev.length - 2]?.scrollY;
         return prev.slice(0, prev.length - 1);
       }
+      // Se estiver em detalhes de serviço em entrada única, retorna para a lista de serviços:
+      if (prev.length === 1 && prev[0].tab === 'our-services' && prev[0].selectedOurServiceId) {
+        return [{ tab: 'our-services', projectDetail: null, selectedOurServiceId: undefined }];
+      }
       // Se só houver 1 tela e não for home, vai para a home
       if (prev.length === 1 && prev[0].tab !== 'home') {
         return [{ tab: 'home', projectDetail: null }];
@@ -462,14 +482,34 @@ function AppContent() {
 
   // Ação específica do botão superior do cabeçalho:
   // No Briefing (currentTab === 'project'): desempilha para a tela de origem
+  // Em Nossos Serviços com serviço aberto: retorna para a lista de serviços
   // Nas demais telas: executa o desempilhamento padrão (handleGoBack)
   const handleHeaderBack = useCallback(() => {
     if (currentTab === 'project') {
       handleExitProject();
       return;
     }
+    if (currentTab === 'our-services' && selectedOurServiceId) {
+      setHistory((prev) => {
+        if (
+          prev.length > 1 &&
+          prev[prev.length - 2]?.tab === 'our-services' &&
+          !prev[prev.length - 2]?.selectedOurServiceId
+        ) {
+          return prev.slice(0, prev.length - 1);
+        }
+        const withoutService = prev.filter(
+          (e) => !(e.tab === 'our-services' && e.selectedOurServiceId)
+        );
+        return [
+          ...withoutService,
+          { tab: 'our-services', projectDetail: null, selectedOurServiceId: undefined },
+        ];
+      });
+      return;
+    }
     handleGoBack();
-  }, [currentTab, handleExitProject, handleGoBack]);
+  }, [currentTab, handleExitProject, handleGoBack, selectedOurServiceId]);
 
   // Suporte aprimorado e intuitivo ao botão físico/gestual de voltar do Android
   const handleAndroidBack = useCallback(() => {
@@ -724,8 +764,7 @@ function AppContent() {
           onBack={handleHeaderBack}
           showBackButton={Boolean(
             selectedProjectDetail ||
-            currentTab === 'admin' ||
-            currentTab === 'our-services'
+            currentTab === 'admin'
           )}
         />
       )}
@@ -785,6 +824,7 @@ function AppContent() {
                   selectedServiceId={selectedOurServiceId}
                   onSelectService={(serviceId) => {
                     if (serviceId) {
+                      ourServicesScrollPosRef.current = window.scrollY;
                       navigateTo('our-services', { selectedOurServiceId: serviceId });
                     } else {
                       handleGoBack();

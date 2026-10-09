@@ -292,8 +292,8 @@ export const ProjectCardImage: React.FC<ProjectCardImageProps> = React.memo(({
         </div>
       )}
 
-      {/* 4. Indicadores discretos e funcionais (bolinhas) se houver múltiplas fotos - SEM SETAS */}
-      {images.length > 1 && !hasFatalError && (
+      {/* 4. Indicadores discretos e funcionais (bolinhas) se houver múltiplas fotos e swipe estiver ativo */}
+      {enableSwipe && images.length > 1 && !hasFatalError && (
         <div
           role="tablist"
           aria-label={`Galeria de imagens de ${project.titulo}`}

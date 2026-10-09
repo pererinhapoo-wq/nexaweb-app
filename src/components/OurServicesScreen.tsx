@@ -132,14 +132,14 @@ export const OurServicesScreen: React.FC<OurServicesScreenProps> = ({
       : null;
 
     return (
-      <div className="space-y-4 pb-6 animate-in fade-in duration-150">
-        {/* Barra superior de voltar para a lista de serviços */}
-        <div className="flex items-center justify-between pt-1">
+      <div className="space-y-3.5 pb-6 animate-in fade-in duration-150">
+        {/* Barra superior com botão Voltar sozinho na linha superior alinhado à esquerda */}
+        <div className="flex items-center pt-1.5 sm:pt-2">
           <BackButton
             onClick={() => handleSelectService(null)}
             label="Voltar para serviços"
+            className="!justify-start -ml-1.5"
           />
-          {renderStatusBadge(activeService.status, activeService.statusLabel)}
         </div>
 
         {/* Cabeçalho do Serviço */}
@@ -148,10 +148,13 @@ export const OurServicesScreen: React.FC<OurServicesScreenProps> = ({
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500/20 to-cyan-500/20 border border-cyan-500/30 text-cyan-400 flex items-center justify-center shrink-0 shadow-sm">
               <IconComponent className="w-6 h-6" />
             </div>
-            <div className="min-w-0">
-              <h1 className="text-base sm:text-lg font-bold text-white tracking-tight">
-                {activeService.titulo}
-              </h1>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <h1 className="text-base sm:text-lg font-bold text-white tracking-tight">
+                  {activeService.titulo}
+                </h1>
+                {renderStatusBadge(activeService.status, activeService.statusLabel)}
+              </div>
               <p className="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">
                 {activeService.descricao}
               </p>
@@ -252,9 +255,15 @@ export const OurServicesScreen: React.FC<OurServicesScreenProps> = ({
   return (
     <div className="space-y-4 pb-6 animate-in fade-in duration-150">
       {/* 1. TOPO COM BOTÃO VOLTAR E TÍTULO */}
-      <div className="space-y-1 pt-1">
-        <BackButton onClick={onBack} label="Voltar ao início" />
-        <div className="pt-1">
+      <div className="space-y-1 pt-1.5 sm:pt-2">
+        <div className="flex items-center">
+          <BackButton
+            onClick={onBack}
+            label="Voltar ao início"
+            className="!justify-start -ml-1.5"
+          />
+        </div>
+        <div>
           <h1 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
             <span>Nossos serviços</span>
             <span className="text-xs px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">

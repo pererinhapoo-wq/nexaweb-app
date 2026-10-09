@@ -347,7 +347,7 @@ const MainHeroBanner = React.memo<{
 
 MainHeroBanner.displayName = 'MainHeroBanner';
 
-// Card de destaque memorizado
+// Card de destaque memorizado com imagem real e oficial do projeto
 const FeaturedProjectCard = React.memo<{
   project: PortfolioProject;
   categoryLabel?: string;
@@ -359,23 +359,36 @@ const FeaturedProjectCard = React.memo<{
   return (
     <div
       onClick={() => onSelectProject(project)}
-      className="bg-slate-900 border border-slate-800/80 rounded-xl overflow-hidden shadow-sm hover:border-slate-700 transition-all duration-150 flex flex-col justify-between cursor-pointer active:scale-[0.985] group"
+      className="bg-slate-900 border border-slate-800/80 rounded-xl overflow-hidden shadow-sm hover:border-slate-700 transition-all duration-150 flex flex-col justify-between cursor-pointer active:scale-[0.985] group press-card"
     >
       <div>
+        {/* Imagem Real do Segmento na tela inicial (sem troca automática/swipe de fotos) */}
         <ProjectCardImage
           project={project}
-          aspectRatio="compact"
+          aspectRatio="card"
           badge={planBadge}
+          enableSwipe={false}
           priority={priority}
         />
 
-        <div className="p-2 sm:p-2.5 space-y-0.5">
-          <span className="text-[9.5px] font-semibold text-cyan-400 block truncate">
-            {categoryLabel || project.categoria}
-          </span>
-          <h3 className="text-xs font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-1">
+        {/* Informações Visuais do Projeto: Identificação do plano, Nome principal único e Descrição */}
+        <div className="p-2.5 sm:p-3 space-y-1">
+          <div className="flex items-center justify-between gap-1 text-[9.5px]">
+            <span className="font-bold text-cyan-400 uppercase tracking-wider truncate">
+              {planBadge}
+            </span>
+            <span className="text-[9px] text-slate-400 font-medium truncate">
+              {categoryLabel || project.categoria}
+            </span>
+          </div>
+
+          <h3 className="text-xs sm:text-[13px] font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-1">
             {project.titulo}
           </h3>
+
+          <p className="text-[10.5px] text-slate-400 line-clamp-2 leading-relaxed">
+            {project.descricaoCurta}
+          </p>
         </div>
       </div>
     </div>
@@ -460,7 +473,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         </div>
       </section>
 
-      {/* 2. BANNER PRINCIPAL COM IMAGENS REAIS DOS SEGMENTOS, SWIPE E TROCA AUTOMÁTICA */}
+      {/* 2. BANNER ROTATIVO PRINCIPAL / DESTAQUE COM IMAGENS REAIS DOS SEGMENTOS */}
       <MainHeroBanner
         allProjects={allProjects}
         onSelectProject={onSelectProject}
@@ -468,7 +481,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         language={language}
       />
 
-      {/* 3. AÇÃO PRINCIPAL / CTA COMPACTO: "CRIAR MEU SITE" */}
+      {/* 3. AÇÃO PRINCIPAL / CTA COMPACTO: "CRIAR MEU SITE" LOGO ABAIXO DO BANNER */}
       <section>
         <button
           type="button"
