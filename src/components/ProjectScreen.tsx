@@ -142,16 +142,11 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
   const [businessName, setBusinessName] = useState('');
   const [siteObjective, setSiteObjective] = useState<string>('');
   const [siteLanguage, setSiteLanguage] = useState<WebsiteLanguage>(
-    initialWebsiteLanguage ||
-      (language === 'pt-PT'
-        ? 'pt-PT'
-        : language === 'en'
-        ? 'en'
-        : language === 'es'
-        ? 'es'
-        : language === 'fr'
-        ? 'fr'
-        : 'pt-BR')
+    initialWebsiteLanguage && !['es', 'fr', 'pt-PT', 'pt-pt'].includes(initialWebsiteLanguage)
+      ? initialWebsiteLanguage
+      : language === 'en'
+      ? 'en'
+      : 'pt-BR'
   );
   const [businessLocation, setBusinessLocation] = useState('');
   const [businessBranches, setBusinessBranches] = useState('');
@@ -469,7 +464,10 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
       setModelApproach(draft.modelApproach);
     }
     if (draft.siteLanguage) {
-      setSiteLanguage(draft.siteLanguage);
+      const restoredLang = draft.siteLanguage;
+      setSiteLanguage(
+        ['es', 'fr', 'pt-PT', 'pt-pt'].includes(restoredLang) ? 'pt-BR' : restoredLang
+      );
     }
     if (draft.businessName) setBusinessName(draft.businessName);
     if (draft.siteObjective) setSiteObjective(draft.siteObjective);

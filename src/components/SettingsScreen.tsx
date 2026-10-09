@@ -324,23 +324,11 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           title={
             language === 'en'
               ? 'App Language'
-              : language === 'es'
-              ? 'Idioma de la aplicación'
-              : language === 'fr'
-              ? 'Langue de l’application'
-              : language === 'pt-PT'
-              ? 'Idioma da aplicação'
               : 'Idioma do aplicativo'
           }
           subtitle={
             language === 'en'
               ? 'Select the interface display language'
-              : language === 'es'
-              ? 'Seleccione el idioma de visualización de la app'
-              : language === 'fr'
-              ? 'Sélectionnez la langue d’affichage de l’application'
-              : language === 'pt-PT'
-              ? 'Selecione o idioma de exibição da aplicação'
               : 'Selecione o idioma de exibição do aplicativo'
           }
         >
@@ -378,7 +366,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                     {isSelected ? (
                       <span className="px-2.5 py-0.5 rounded-full bg-cyan-400/20 text-cyan-300 border border-cyan-400/40 text-[10px] font-bold flex items-center gap-1 shadow-sm">
                         <Check className="w-3 h-3 stroke-[3]" />
-                        {t.languageModal?.active || (language === 'en' ? 'Active' : language === 'es' ? 'Activo' : language === 'fr' ? 'Actif' : 'Ativo')}
+                        {t.languageModal?.active || (language === 'en' ? 'Active' : 'Ativo')}
                       </span>
                     ) : (
                       <div className="w-4 h-4 rounded-full border border-slate-700" aria-hidden="true" />

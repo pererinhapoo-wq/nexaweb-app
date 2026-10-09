@@ -158,15 +158,12 @@ export const Step2MainInfo: React.FC<Step2MainInfoProps> = ({
             {t.briefing.step2.siteLanguageLabel}
           </label>
           <select
-            value={siteLanguage}
+            value={siteLanguage === 'es' || siteLanguage === 'fr' || siteLanguage === 'pt-PT' ? 'pt-BR' : siteLanguage}
             onChange={(e) => setSiteLanguage(e.target.value as WebsiteLanguage)}
             className="w-full min-h-[46px] bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-500 scroll-mt-20 cursor-pointer"
           >
             <option value="pt-BR">{t.project.langPtBr}</option>
-            <option value="pt-PT">{t.project.langPtPt}</option>
             <option value="en">{t.project.langEn}</option>
-            <option value="es">{t.project.langEs}</option>
-            <option value="fr">{t.project.langFr}</option>
             <option value="pt-en">{t.project.langPtEn}</option>
           </select>
           <p className="text-[10px] text-slate-400 mt-1">

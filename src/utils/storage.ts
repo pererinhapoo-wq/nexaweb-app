@@ -301,6 +301,10 @@ export async function saveOnboardingAnswers(answers: OnboardingAnswers): Promise
 
 export async function getSavedWebsiteLanguage(): Promise<WebsiteLanguage | null> {
   const val = await getStorageItem(KEYS.WEBSITE_LANGUAGE);
+  if (!val) return null;
+  if (['es', 'fr', 'pt-PT', 'pt-pt'].includes(val)) {
+    return 'pt-BR';
+  }
   return (val as WebsiteLanguage) || null;
 }
 

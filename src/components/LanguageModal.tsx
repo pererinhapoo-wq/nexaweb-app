@@ -97,17 +97,10 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen, onClose })
     const q = normalize(searchQuery.trim());
     if (!q) return languages;
 
-    // Mapeamento extra de termos comuns PT / EN
+    // Mapeamento de termos comuns PT / EN
     const aliasMap: Record<string, string[]> = {
       'pt-br': ['brasil', 'brazil', 'portugues', 'portuguese', 'br'],
-      'pt-pt': ['portugal', 'portugues', 'portuguese', 'europa', 'pt'],
       en: ['ingles', 'english', 'usa', 'estados unidos', 'american', 'eua', 'us'],
-      es: ['espanhol', 'spanish', 'castellano', 'espanol', 'es', 'spain'],
-      fr: ['frances', 'french', 'francais', 'franca', 'fr', 'france'],
-      de: ['alemao', 'german', 'deutsch', 'alemanha', 'de'],
-      it: ['italiano', 'italian', 'italia', 'it'],
-      ja: ['japones', 'japanese', 'nihongo', 'japao', 'jp'],
-      zh: ['chines', 'chinese', 'mandarim', 'china', 'cn'],
     };
 
     return languages.filter((item) => {
@@ -196,7 +189,7 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen, onClose })
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Pesquisar idioma / Search language..."
+              placeholder={language === 'en' ? 'Search language (Portuguese, English)...' : 'Pesquisar idioma (Português, Inglês)...'}
               className="w-full min-h-[42px] bg-slate-950/80 border border-slate-800 rounded-xl pl-9 pr-9 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/40 transition-colors font-sans"
               autoComplete="off"
               autoCorrect="off"
@@ -277,17 +270,21 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen, onClose })
             <div className="py-6 px-4 text-center space-y-2">
               <Search className="w-5 h-5 text-slate-500 mx-auto" />
               <p className="text-xs font-semibold text-slate-300">
-                Nenhum idioma encontrado para &ldquo;{searchQuery}&rdquo;
+                {language === 'en'
+                  ? `No language found for "${searchQuery}"`
+                  : `Nenhum idioma encontrado para "${searchQuery}"`}
               </p>
               <p className="text-[11px] text-slate-400">
-                Tente buscar pelo nome em português, inglês ou código (ex: BR, EN, ES, FR).
+                {language === 'en'
+                  ? 'Try searching by Portuguese, English or code (BR, EN).'
+                  : 'Tente buscar por Português, Inglês ou código (BR, EN).'}
               </p>
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
                 className="mt-1 min-h-[44px] inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-750 text-cyan-300 text-xs font-medium transition-colors active:scale-95"
               >
-                Limpar pesquisa
+                {language === 'en' ? 'Clear search' : 'Limpar pesquisa'}
               </button>
             </div>
           )}

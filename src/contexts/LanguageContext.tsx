@@ -19,9 +19,6 @@ export interface LanguageOption {
 export const SUPPORTED_LANGUAGES: LanguageOption[] = [
   { code: 'pt-BR', name: 'Português (Brasil)', nativeName: 'Português (Brasil)', flag: '🇧🇷', short: 'BR', available: true },
   { code: 'en', name: 'English', nativeName: 'English (US)', flag: '🇺🇸', short: 'EN', available: true },
-  { code: 'es', name: 'Español', nativeName: 'Español', flag: '🇪🇸', short: 'ES', available: true },
-  { code: 'fr', name: 'Français', nativeName: 'Français', flag: '🇫🇷', short: 'FR', available: true },
-  { code: 'pt-PT', name: 'Português (Portugal)', nativeName: 'Português (Portugal)', flag: '🇵🇹', short: 'PT', available: true },
 ];
 
 interface LanguageContextType {
@@ -47,14 +44,10 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 function normalizeLoadedLanguage(val: string | null | undefined): Language {
   if (!val) return 'pt-BR';
   const clean = val.trim().toLowerCase();
-  if (clean === 'pt' || clean === 'pt-br' || clean === 'pt_br') return 'pt-BR';
-  if (clean === 'pt-pt' || clean === 'pt_pt') return 'pt-PT';
-  if (clean === 'en' || clean === 'en-us' || clean === 'en_us' || clean.startsWith('en')) return 'en';
-  if (clean === 'es' || clean === 'es-es' || clean === 'es_es' || clean.startsWith('es')) return 'es';
-  if (clean === 'fr' || clean === 'fr-fr' || clean === 'fr_fr' || clean.startsWith('fr')) return 'fr';
-  if (['pt-BR', 'pt-PT', 'en', 'es', 'fr'].includes(val)) {
-    return val as Language;
+  if (clean === 'en' || clean === 'en-us' || clean === 'en_us' || clean.startsWith('en')) {
+    return 'en';
   }
+  // Migra com segurança espanhol, francês, português europeu e qualquer outro idioma salvo para pt-BR
   return 'pt-BR';
 }
 
@@ -65,7 +58,12 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
       try {
         const localVal = localStorage.getItem(STORAGE_KEY);
         if (localVal) {
-          return normalizeLoadedLanguage(localVal);
+          const resolved = normalizeLoadedLanguage(localVal);
+          // Migração segura se o valor salvo era es, fr, pt-PT, etc.
+          if (localVal !== resolved) {
+            localStorage.setItem(STORAGE_KEY, resolved);
+          }
+          return resolved;
         }
       } catch {}
     }
@@ -82,6 +80,13 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
           setLanguageState(resolved);
           if (typeof document !== 'undefined') {
             document.documentElement.lang = resolved;
+          }
+          // Migração segura no Preferences caso estivesse em es, fr, pt-PT, etc.
+          if (value !== resolved) {
+            await Preferences.set({ key: STORAGE_KEY, value: resolved });
+            try {
+              localStorage.setItem(STORAGE_KEY, resolved);
+            } catch {}
           }
         }
       } catch {}
