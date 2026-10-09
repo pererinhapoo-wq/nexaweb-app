@@ -15,6 +15,7 @@ import {
   Clock,
   ExternalLink,
   ChevronDown,
+  ChevronLeft,
   AlertCircle,
   Layers,
   X,
@@ -158,6 +159,59 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
     }
   };
 
+  // Explicação clara de escopo e funcionalidades avançadas em linguagem simples
+  const getScopeExplanation = (planId: string) => {
+    if (language === 'en') {
+      switch (planId) {
+        case 'essencial':
+          return {
+            scopeDesc: 'Fixed scope with essential structure (0 advanced features). Includes business presentation, core pages, WhatsApp, social links, cloud hosting, and basic SEO.',
+            featuresDesc: 'Advanced features are extra interactive modules. This plan focuses on launching quickly and professionally with standard essential components.',
+          };
+        case 'personalizado':
+          return {
+            scopeDesc: 'Tailor-made scope starting from R$ 2.800 with delivery timeline according to approved scope. Includes bespoke visual identity and architecture.',
+            featuresDesc: 'Allows choosing up to 3 advanced features during customization to match your specific business requirements.',
+          };
+        case 'profissional':
+          return {
+            scopeDesc: 'Expanded scope focused on authority and conversion. Includes rich sections, Core Web Vitals optimization, and complete presentation.',
+            featuresDesc: 'Allows selecting up to 5 advanced features during customization (e.g. customized forms, dynamic showcases, lead capture).',
+          };
+        case 'premium':
+        default:
+          return {
+            scopeDesc: 'Complete VIP solution starting from R$ 4.500 with delivery according to scope. Includes art direction, high-impact branding, and priority support.',
+            featuresDesc: 'Allows selecting up to 8 advanced features for a comprehensive, high-end digital experience.',
+          };
+      }
+    }
+
+    switch (planId) {
+      case 'essencial':
+        return {
+          scopeDesc: 'Escopo fechado com estrutura essencial (0 funcionalidades avançadas). Já inclui apresentação do negócio, páginas essenciais, WhatsApp, redes sociais, hospedagem segura e SEO básico.',
+          featuresDesc: 'Funcionalidades avançadas são módulos extras e ferramentas interativas. Este plano é focado em começar de forma rápida e profissional com a estrutura essencial.',
+        };
+      case 'personalizado':
+        return {
+          scopeDesc: 'Projeto sob medida com valor a partir de R$ 2.800 e prazo conforme escopo. Inclui identidade visual autoral e arquitetura pensada para o seu modelo de negócio.',
+          featuresDesc: 'Permite selecionar até 3 funcionalidades avançadas na personalização para atender exatamente ao que sua marca precisa.',
+        };
+      case 'profissional':
+        return {
+          scopeDesc: 'Escopo amplo para crescimento e maior autoridade. Inclui seções estratégicas de alta conversão, performance Core Web Vitals e apresentação completa.',
+          featuresDesc: 'Permite escolher até 5 funcionalidades avançadas na personalização (como formulários específicos, destaques interativos ou captação de clientes).',
+        };
+      case 'premium':
+      default:
+        return {
+          scopeDesc: 'Solução VIP e experiência avançada com valor a partir de R$ 4.500 e acompanhamento dedicado. Inclui direção de arte exclusiva e padrão visual refinado.',
+          featuresDesc: 'Permite escolher até 8 funcionalidades avançadas na personalização para uma experiência digital imersiva e completa.',
+        };
+    }
+  };
+
   // Identidade de cores elegante e discreta (Regra 1)
   const getThemeStyles = (planId: string, isSelected: boolean) => {
     switch (planId) {
@@ -212,27 +266,207 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
   // Ação de seleção do plano: atualiza o estado visual sem navegar automaticamente (Regra 4)
   const handleSelect = (planId: string) => {
     setSelectedPlanId(planId);
-  };
-
-  // Ação explícita para iniciar o Briefing com o plano escolhido
-  const handleContinue = () => {
-    if (!selectedPlanId) return;
-    if (onContinueToBriefing) {
-      onContinueToBriefing(selectedPlanId);
-    } else {
-      onNavigate('project');
+    if (onSelectPlan) {
+      onSelectPlan(planId);
     }
   };
+
+  // Ação ao tocar no botão "Iniciar" do plano: seleciona e abre a etapa de resumo/confirmação
+  const handleStartPlan = (planId: string) => {
+    setSelectedPlanId(planId);
+    if (onSelectPlan) {
+      onSelectPlan(planId);
+    }
+    setConfirmingPlanId(planId);
+  };
+
+  // Ação explícita para avançar para a confirmação com o plano escolhido
+  const handleContinue = () => {
+    if (!selectedPlanId) return;
+    setConfirmingPlanId(selectedPlanId);
+  };
+
+  const confirmingPlanObj = confirmingPlanId
+    ? plans.find((p) => p.id === confirmingPlanId) || null
+    : null;
 
   const activePlanObj = selectedPlanId
     ? plans.find((p) => p.id === selectedPlanId) || null
     : null;
   const activePlanTheme = selectedPlanId ? getThemeStyles(selectedPlanId, true) : null;
 
+  // Renderização da Etapa de Confirmação / Resumo do Plano Escolhido
+  if (confirmingPlanObj) {
+    const confirmingTheme = getThemeStyles(confirmingPlanObj.id, true);
+    const confirmingPositioning = getPlanPositioning(confirmingPlanObj.id);
+    const scopeExplanation = getScopeExplanation(confirmingPlanObj.id);
+
+    return (
+      <div className="space-y-4 pb-4 animate-in fade-in duration-150 overflow-x-hidden">
+        {/* Topo com botão voltar */}
+        <section className="pt-2 sm:pt-2.5 flex items-center gap-2">
+          <BackButton
+            onClick={() => setConfirmingPlanId(null)}
+            label={language === 'en' ? 'Back to plans' : 'Voltar aos planos'}
+          />
+          <div className="min-w-0">
+            <h1 className="text-sm sm:text-base font-bold text-white tracking-tight truncate">
+              {language === 'en' ? 'Plan Summary' : 'Resumo do Plano'}
+            </h1>
+            <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed truncate">
+              {language === 'en'
+                ? 'Review plan details before starting the briefing'
+                : 'Revise os detalhes do plano antes de iniciar a personalização'}
+            </p>
+          </div>
+        </section>
+
+        {/* Indicador discreto de etapas do fluxo: 1. Entender o plano -> 2. Personalizar o site -> 3. Revisar o briefing */}
+        <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400 bg-slate-950/70 border border-slate-800/80 px-3 py-2 rounded-xl">
+          <span className="text-cyan-400 font-bold flex items-center gap-1.5">
+            <span className="w-4 h-4 rounded-full bg-cyan-500/20 text-cyan-300 text-[10px] flex items-center justify-center font-bold">1</span>
+            {language === 'en' ? '1. Understand the plan' : '1. Entender o plano'}
+          </span>
+          <span className="text-slate-600">→</span>
+          <span className="text-slate-400 flex items-center gap-1.5">
+            <span className="w-4 h-4 rounded-full bg-slate-800 text-slate-400 text-[10px] flex items-center justify-center">2</span>
+            {language === 'en' ? '2. Customize the site' : '2. Personalizar o site'}
+          </span>
+          <span className="text-slate-600">→</span>
+          <span className="text-slate-400 flex items-center gap-1.5">
+            <span className="w-4 h-4 rounded-full bg-slate-800 text-slate-400 text-[10px] flex items-center justify-center">3</span>
+            {language === 'en' ? '3. Review briefing' : '3. Revisar o briefing'}
+          </span>
+        </div>
+
+        {/* Card do Resumo do Plano Selecionado */}
+        <div
+          className={`relative rounded-2xl border ${confirmingTheme.cardBorder} p-4 sm:p-5 transition-all shadow-md overflow-hidden bg-slate-900 space-y-4`}
+        >
+          {/* Topo do Plano: Nome e Badge */}
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-2 min-w-0">
+              <h2 className="text-base sm:text-lg font-extrabold text-white tracking-tight">
+                {confirmingPlanObj.nome}
+              </h2>
+              <span
+                className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border shrink-0 ${confirmingTheme.badgeBg}`}
+              >
+                {confirmingPositioning.role}
+              </span>
+            </div>
+          </div>
+
+          {/* Preço e Prazo Estimado */}
+          <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 py-2.5 px-3.5 rounded-xl bg-slate-950/70 border border-slate-800/80">
+            <div>
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block mb-0.5">
+                {language === 'en' ? 'Price' : 'Preço'}
+              </span>
+              <span className={`text-lg sm:text-xl font-black font-mono ${confirmingTheme.priceColor}`}>
+                {confirmingPlanObj.preco}
+              </span>
+            </div>
+            {confirmingPlanObj.prazo && (
+              <div className="sm:text-right">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block mb-0.5">
+                  {language === 'en' ? 'Estimated timeline' : 'Prazo estimado'}
+                </span>
+                <span className="text-xs sm:text-sm text-slate-300 font-mono flex items-center sm:justify-end gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                  <span>{confirmingPlanObj.prazo}</span>
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Descrição e Posicionamento */}
+          <p className="text-xs sm:text-sm text-slate-300 leading-snug">
+            {confirmingPlanObj.descricao}
+          </p>
+
+          {/* Explicação de Escopo e Recursos Avançados em linguagem simples */}
+          <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-2 text-xs">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 block mb-0.5">
+                {language === 'en' ? 'About the scope of this plan:' : 'O que inclui o escopo deste plano:'}
+              </span>
+              <p className="text-slate-300 leading-relaxed text-[11.5px]">
+                {scopeExplanation.scopeDesc}
+              </p>
+            </div>
+            <div className="pt-2 border-t border-slate-800/60">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 block mb-0.5">
+                {language === 'en' ? 'Advanced interactive features:' : 'Recursos e funcionalidades avançadas:'}
+              </span>
+              <p className="text-slate-300 leading-relaxed text-[11.5px]">
+                {scopeExplanation.featuresDesc}
+              </p>
+            </div>
+          </div>
+
+          {/* Limite Oficial de Recursos Avançados */}
+          <div className="py-2 px-3 rounded-xl bg-slate-950/50 border border-slate-800/60 flex items-center justify-between text-xs">
+            <span className="text-slate-400 font-medium">
+              {language === 'en' ? 'Advanced features limit:' : 'Limite de recursos avançados:'}
+            </span>
+            <span className="font-semibold text-slate-200">
+              {confirmingPositioning.limitLabel}
+            </span>
+          </div>
+
+          {/* Principais Itens Incluídos */}
+          <div className="pt-2 border-t border-slate-800/80 space-y-2">
+            <span className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 block">
+              {language === 'en' ? 'Main included features:' : 'Principais itens incluídos:'}
+            </span>
+            <div className="space-y-1.5">
+              {confirmingPlanObj.recursos.map((rec, i) => (
+                <div key={i} className="flex items-start gap-2 text-xs sm:text-[12.5px] text-slate-300">
+                  <div className="w-4 h-4 rounded-full bg-slate-800 flex items-center justify-center shrink-0 mt-0.5">
+                    <Check className={`w-2.5 h-2.5 ${confirmingTheme.iconColor}`} />
+                  </div>
+                  <span className="leading-snug break-words">{rec}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Botões de Ação: Continuar e Voltar aos planos */}
+          <div className="pt-3 border-t border-slate-800/80 space-y-2">
+            <button
+              type="button"
+              onClick={() => {
+                if (onContinueToBriefing) {
+                  onContinueToBriefing(confirmingPlanObj.id);
+                } else {
+                  onNavigate('project');
+                }
+              }}
+              className={`min-h-[44px] w-full py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md flex items-center justify-center gap-2 active:scale-[0.985] cursor-pointer ${confirmingTheme.btnAction}`}
+            >
+              <span>{language === 'en' ? 'Continue to customize' : 'Continuar para personalizar'}</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setConfirmingPlanId(null)}
+              className="min-h-[42px] w-full py-2.5 px-4 rounded-xl text-xs sm:text-sm font-medium bg-slate-950 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-all flex items-center justify-center gap-1.5 active:scale-[0.985] cursor-pointer"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              <span>{language === 'en' ? 'Back to plans' : 'Voltar aos planos'}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 pb-4 animate-in fade-in duration-150 overflow-x-hidden">
       {/* Header Compacto */}
-      <section className="pt-0">
+      <section className="pt-2 sm:pt-2.5">
         <div className="min-w-0">
           <h1 className="text-sm sm:text-base font-bold text-white tracking-tight truncate">
             {t.services.title}
@@ -265,7 +499,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
               onClick={() => handleSelect(plan.id)}
               className={`relative rounded-xl border ${theme.cardBorder} p-3 sm:p-3.5 transition-all duration-150 shadow-sm overflow-hidden cursor-pointer active:scale-[0.99]`}
             >
-              {/* Topo do Card: Nome, Badges de Limite e Estado de Seleção */}
+              {/* Topo do Card: Nome, Badges e Estado de Seleção */}
               <div className="flex items-center justify-between gap-2 mb-1.5">
                 <div className="flex items-center gap-2 min-w-0">
                   <h2 className="text-sm sm:text-base font-extrabold text-white tracking-tight truncate">
@@ -279,16 +513,18 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
                 </div>
 
                 {/* Indicador de Seleção Visual Limpo */}
-                {isSelected ? (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-cyan-400 bg-cyan-950/60 border border-cyan-500/40 px-2 py-0.5 rounded-full shrink-0 animate-in fade-in duration-100">
-                    <Check className="w-3 h-3 stroke-[3]" />
-                    <span>{language === 'en' ? 'Selected' : 'Selecionado'}</span>
-                  </span>
-                ) : (
-                  <span className="text-[10px] text-slate-500 font-medium shrink-0">
-                    {language === 'en' ? 'Tap to select' : 'Toque para selecionar'}
-                  </span>
-                )}
+                <div className="shrink-0">
+                  {isSelected ? (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-cyan-400 bg-cyan-950/60 border border-cyan-500/40 px-2 py-0.5 rounded-full shrink-0 animate-in fade-in duration-100">
+                      <Check className="w-3 h-3 stroke-[3]" />
+                      <span>{language === 'en' ? 'Selected' : 'Selecionado'}</span>
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-slate-500 font-medium shrink-0">
+                      {language === 'en' ? 'Tap to select' : 'Toque para selecionar'}
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Preço e Prazo em Destaque */}
@@ -402,28 +638,19 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
                 </div>
               )}
 
-              {/* Botão no Card: Selecionar ou Indicar Selecionado */}
-              <div className="mt-3 pt-1.5">
+              {/* Rodapé do Card: Botão Iniciar no Canto Inferior Direito */}
+              <div className="mt-3 pt-2 border-t border-slate-800/70 flex items-center justify-end">
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleSelect(plan.id);
+                    handleStartPlan(plan.id);
                   }}
-                  className={`min-h-[40px] w-full py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 active:scale-[0.985] ${
-                    isSelected
-                      ? 'bg-slate-800 border border-cyan-500/40 text-cyan-300 shadow-sm'
-                      : 'bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white'
-                  }`}
+                  className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer shadow-xs active:scale-95 ${theme.btnAction}`}
+                  aria-label={`${language === 'en' ? 'Start' : 'Iniciar'} ${plan.nome}`}
                 >
-                  {isSelected ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-cyan-400 stroke-[3]" />
-                      <span>{language === 'en' ? 'Plan Selected' : 'Plano Selecionado'}</span>
-                    </>
-                  ) : (
-                    <span>{language === 'en' ? `Select ${plan.nome} Plan` : `Selecionar Plano ${plan.nome}`}</span>
-                  )}
+                  <Play className="w-3 h-3 fill-current shrink-0" />
+                  <span>{language === 'en' ? 'Start' : 'Iniciar'}</span>
                 </button>
               </div>
             </div>
@@ -568,19 +795,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
             </button>
           </div>
         </section>
-      ) : (
-        <section className="rounded-2xl bg-slate-900 border border-slate-800 p-4 text-center space-y-1.5 shadow-sm">
-          <div className="flex items-center justify-center gap-2 text-slate-300 font-bold text-xs sm:text-sm">
-            <Layers className="w-4 h-4 text-cyan-400" />
-            <span>{language === 'en' ? 'Select a plan above' : 'Toque em um dos planos acima'}</span>
-          </div>
-          <p className="text-[11px] text-slate-400 max-w-sm mx-auto">
-            {language === 'en'
-              ? 'Choose Essential, Professional, Custom, or Premium to see scope details and start the briefing.'
-              : 'Selecione Essencial, Profissional, Personalizado ou Premium para conferir o escopo e iniciar o briefing.'}
-          </p>
-        </section>
-      )}
+      ) : null}
 
       {/* Caixa de Garantia & Dúvidas NexaWeb */}
       <div className="rounded-2xl bg-slate-900 border border-slate-800 p-3.5 sm:p-4 space-y-1 shadow-sm">

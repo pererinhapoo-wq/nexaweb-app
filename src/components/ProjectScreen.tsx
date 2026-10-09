@@ -26,6 +26,7 @@ import {
   findAdvancedFeatureById,
   AdvancedFeatureItem,
 } from '../data/advancedFeaturesData';
+import { calculateBudget, BudgetCalculationResult } from '../utils/pricingEngine';
 import { AlertCircle } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 import { BackButton } from './BackButton';
@@ -99,7 +100,10 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
   // 7: Conteúdo & Inspirações (Ideias livres, link referência e contatos do responsável)
   // 8: Arquivos (Até 6 arquivos: logo e fotos)
   // 9: Resumo & Envio (Revisão estruturada com atalhos de edição e envio oficial)
-  const [currentStep, setCurrentStep] = useState<BriefingStep>(1);
+  const [currentStep, setCurrentStep] = useState<BriefingStep>(() => {
+    if (initialPlan) return 2;
+    return 1;
+  });
 
   // Modo de início da Etapa 1: 'propria' | 'plano' (inicia null sem seleção automática)
   const [startMode, setStartMode] = useState<'propria' | 'plano' | null>(() => {
@@ -115,6 +119,14 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
 
   // Plano selecionado (inicia vazio caso nenhum plano tenha sido passado como ponto de partida)
   const [selectedPlan, setSelectedPlan] = useState<string>(initialPlan || '');
+
+  // Sincroniza plano inicial caso atualizado externamente
+  useEffect(() => {
+    if (initialPlan) {
+      setSelectedPlan(initialPlan);
+      setStartMode('plano');
+    }
+  }, [initialPlan]);
 
   // Segmento dinâmico selecionado: inicia vazio para o usuário escolher
   const [selectedSegment, setSelectedSegment] = useState<string>('');
@@ -161,6 +173,12 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     if (!activePlanId) return 0;
     return getPlanAdvancedFeaturesLimit(activePlanId);
   }, [selectedPlan, initialPlan]);
+
+  // Cálculo canônico oficial do orçamento através do motor de preços
+  const budgetCalculation = useMemo<BudgetCalculationResult>(() => {
+    const activePlanId = selectedPlan || initialPlan || 'profissional';
+    return calculateBudget(activePlanId, selectedAdvancedFeatures, selectedSegment);
+  }, [selectedPlan, initialPlan, selectedAdvancedFeatures, selectedSegment]);
 
   // Funcionalidades agrupadas pelas 13 categorias filtradas para o segmento atual e plano ativo
   const groupedAdvancedFeatures = useMemo(() => {
@@ -855,7 +873,14 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
 
     lines.push('🌟 *BRIEFING OFICIAL — NEXAWEB APP*');
     lines.push('━━━━━━━━━━━━━━━━━━━━━━━━');
-    lines.push(`💼 *Plano Selecionado:* Plano ${activePlanObj.nome} (${activePlanObj.preco})`);
+    lines.push(`💼 *Plano Selecionado:* Plano ${activePlanObj.nome} (${budgetCalculation.formattedBasePrice})`);
+    if (budgetCalculation.extrasTotal > 0) {
+      lines.push(`➕ *Adicionais Confirmados:* ${budgetCalculation.formattedExtrasTotal}`);
+    }
+    lines.push(`💰 *Orçamento Estimado:* ${budgetCalculation.formattedTotalPrice}`);
+    if (budgetCalculation.scopeNotice) {
+      lines.push(`⚠️ *Aviso de Escopo:* ${budgetCalculation.scopeNotice}`);
+    }
     lines.push(`⏱️ *Prazo Previsto:* ${activePlanObj.prazo}`);
 
     if (startMode === 'propria') {
@@ -1005,7 +1030,8 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
           ...selectedFeatures,
           ...selectedAdvancedFeatures,
         ],
-        orcamentoEstimado: activePlanObj.preco,
+        orcamentoEstimado: budgetCalculation.formattedTotalPrice,
+        valorNumerico: budgetCalculation.totalPrice,
         briefingSummary: summary,
         origem: 'NexaWeb App · Etapa 6',
       });
@@ -1293,6 +1319,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
           freeServicesText={freeServicesText}
           selectedAdvancedFeatures={selectedAdvancedFeatures}
           advancedFeaturesLimit={advancedFeaturesLimit}
+          budgetCalculation={budgetCalculation}
           visualStyle={visualStyle}
           colorMode={colorMode}
           customColorDetails={customColorDetails}

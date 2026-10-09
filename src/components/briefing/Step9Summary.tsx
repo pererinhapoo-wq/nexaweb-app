@@ -13,6 +13,7 @@ import { NexawebPlan } from '../../data/servicesData';
 import { SegmentBriefingConfig } from '../../data/segmentBriefingSchemas';
 import { SITE_OBJECTIVES } from './briefingTypes';
 import { findAdvancedFeatureById } from '../../data/advancedFeaturesData';
+import { BudgetCalculationResult } from '../../utils/pricingEngine';
 
 interface Step9SummaryProps {
   activePlanObj: NexawebPlan;
@@ -33,6 +34,7 @@ interface Step9SummaryProps {
   freeServicesText: string;
   selectedAdvancedFeatures: string[];
   advancedFeaturesLimit: number;
+  budgetCalculation?: BudgetCalculationResult;
   visualStyle: string;
   colorMode: 'suggest' | 'brand' | 'custom' | '';
   customColorDetails: string;
@@ -78,6 +80,7 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
   freeServicesText,
   selectedAdvancedFeatures,
   advancedFeaturesLimit,
+  budgetCalculation,
   visualStyle,
   colorMode,
   customColorDetails,
@@ -154,38 +157,80 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
 
       {/* Card Resumo Estruturado com Ações Rápidas de Edição */}
       <div className="rounded-2xl p-4 sm:p-5 bg-slate-900 border border-slate-800 space-y-4 shadow-sm text-xs">
-        {/* Bloco 1: Plano & Origem */}
-        <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
-          <div>
-            <span className="text-[10px] font-mono uppercase text-cyan-400 font-bold block">
-              Plano Selecionado
-            </span>
-            <span className="text-sm font-bold text-white">
-              Plano {activePlanObj.nome}
-            </span>
-            <span className="text-[10.5px] text-slate-400 block mt-0.5">
-              Prazo previsto: {activePlanObj.prazo}
-            </span>
-            {selectedModel && (
-              <span className="text-[10.5px] text-cyan-300 block mt-0.5">
-                Modelo: {selectedModel} ({modelApproach === 'exact' ? 'Formato exato' : 'Inspiração'})
+        {/* Bloco 1: Plano & Origem com Cálculo Unificado */}
+        <div className="border-b border-slate-800/80 pb-3.5 space-y-2.5">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <span className="text-[10px] font-mono uppercase text-cyan-400 font-bold block">
+                Plano Selecionado
               </span>
-            )}
+              <span className="text-sm font-bold text-white">
+                Plano {activePlanObj.nome}
+              </span>
+              <span className="text-[10.5px] text-slate-400 block mt-0.5">
+                Prazo previsto: {activePlanObj.prazo}
+              </span>
+              {selectedModel && (
+                <span className="text-[10.5px] text-cyan-300 block mt-0.5">
+                  Modelo: {selectedModel} ({modelApproach === 'exact' ? 'Formato exato' : 'Inspiração'})
+                </span>
+              )}
+            </div>
+            <div className="text-right flex items-center gap-2">
+              <span className="text-sm sm:text-base font-mono font-bold text-cyan-300">
+                {budgetCalculation ? budgetCalculation.formattedTotalPrice : activePlanObj.preco}
+              </span>
+              <button
+                type="button"
+                onClick={() => onEditStep(1)}
+                className="p-1.5 rounded-lg bg-slate-950 text-slate-400 hover:text-cyan-300 border border-slate-800 transition-colors"
+                title="Editar plano ou modelo"
+                aria-label="Editar plano"
+              >
+                <Edit2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
-          <div className="text-right flex items-center gap-2">
-            <span className="text-sm font-mono font-bold text-cyan-300">
-              {activePlanObj.preco}
-            </span>
-            <button
-              type="button"
-              onClick={() => onEditStep(1)}
-              className="p-1.5 rounded-lg bg-slate-950 text-slate-400 hover:text-cyan-300 border border-slate-800 transition-colors"
-              title="Editar plano ou modelo"
-              aria-label="Editar plano"
-            >
-              <Edit2 className="w-3.5 h-3.5" />
-            </button>
-          </div>
+
+          {/* Discriminação transparente do orçamento */}
+          {budgetCalculation && (
+            <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800/70 space-y-1.5 text-[11px]">
+              <div className="flex items-center justify-between text-slate-400">
+                <span>Preço-base oficial ({activePlanObj.nome}):</span>
+                <span className="font-mono text-slate-200">{budgetCalculation.formattedBasePrice}</span>
+              </div>
+
+              {budgetCalculation.selectedFeatures.length > 0 && (
+                <div className="space-y-1 pt-1 border-t border-slate-850">
+                  <span className="text-[10px] font-bold text-amber-300 uppercase tracking-wider block">
+                    Adicionais Confirmados:
+                  </span>
+                  {budgetCalculation.selectedFeatures.map((feat) => (
+                    <div key={feat.id} className="flex items-center justify-between text-slate-300 pl-1">
+                      <span>• {feat.nome} {feat.isRealtime ? '(Tempo real)' : ''}:</span>
+                      <span className="font-mono text-amber-300 font-semibold">{feat.formattedPreco}</span>
+                    </div>
+                  ))}
+                  <div className="flex items-center justify-between text-slate-400 pt-0.5">
+                    <span>Subtotal dos adicionais:</span>
+                    <span className="font-mono text-amber-300">{budgetCalculation.formattedExtrasTotal}</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between pt-1 border-t border-slate-800 font-bold text-xs">
+                <span className="text-white">Orçamento Estimado Total:</span>
+                <span className="font-mono text-cyan-300">{budgetCalculation.formattedTotalPrice}</span>
+              </div>
+
+              {budgetCalculation.scopeNotice && (
+                <div className="mt-1 p-2 rounded-lg bg-amber-500/10 border border-amber-500/25 text-[10.5px] text-amber-300 flex items-start gap-1.5 leading-snug">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-400" />
+                  <span>{budgetCalculation.scopeNotice}</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Bloco 2: Informações Principais */}

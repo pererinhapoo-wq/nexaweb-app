@@ -709,6 +709,7 @@ function AppContent() {
             currentTab !== 'admin' &&
             currentTab !== 'portfolio' &&
             currentTab !== 'portal' &&
+            currentTab !== 'services' &&
             !selectedProjectDetail
           }
           onBack={handleHeaderBack}
