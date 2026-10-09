@@ -1,6 +1,7 @@
 import React from 'react';
 import { ChevronRight } from 'lucide-react';
 import { BackButton } from '../BackButton';
+import { useTranslation } from '../../contexts/LanguageContext';
 
 interface Step7ContentProps {
   customProjectIdea: string;
@@ -41,23 +42,41 @@ export const Step7Content: React.FC<Step7ContentProps> = ({
   onClearError,
   highlightedFieldId,
 }) => {
+  const { t, language } = useTranslation();
+
+  const requiredNotice = language === 'en'
+    ? 'Fields with * are required'
+    : language === 'es'
+    ? 'Campos con * obligatorios'
+    : language === 'fr'
+    ? 'Champs avec * obligatoires'
+    : 'Campos com * obrigatórios';
+
+  const ideaInstruction = language === 'en'
+    ? 'In your own words, describe your vision for the website, key differentiators, or important details:'
+    : language === 'es'
+    ? 'Describa con sus propias palabras lo que imagina para el sitio, diferenciales o detalles importantes:'
+    : language === 'fr'
+    ? 'Décrivez avec vos propres mots ce que vous imaginez pour le site, vos atouts ou points d’attention :'
+    : 'Conte com suas palavras o que imagina para o site, diferenciais ou detalhes importantes:';
+
   return (
     <div className="space-y-4 animate-in fade-in duration-150">
       {/* Cabeçalho da Etapa 7 */}
       <div className="rounded-2xl p-4 bg-gradient-to-br from-indigo-950/60 via-slate-900 to-slate-950 border border-indigo-900/40 shadow-sm space-y-1">
         <div className="flex items-center justify-between">
           <span className="text-[10px] font-mono uppercase text-cyan-300 font-bold">
-            Conteúdo & Contato
+            {t.briefing.step7.badge}
           </span>
           <span className="text-xs font-mono font-bold text-cyan-400">
-            Plano {planName}
+            {t.briefing.planPrefix} {planName}
           </span>
         </div>
         <h2 className="text-sm sm:text-base font-extrabold text-white">
-          Conteúdo, Inspirações & Responsável
+          {t.briefing.step7.title}
         </h2>
         <p className="text-[11px] text-slate-400">
-          Compartilhe suas ideias sobre o projeto e informe os dados para alinhamento.
+          {t.briefing.step7.subtitle}
         </p>
       </div>
 
@@ -65,16 +84,16 @@ export const Step7Content: React.FC<Step7ContentProps> = ({
         {/* 1. Descrição Livre & Particularidades (Opcional) */}
         <div className="space-y-1.5">
           <label className="text-[11px] font-bold text-cyan-300 uppercase tracking-wider block">
-            1. Ideia do Projeto & Particularidades (opcional)
+            {t.briefing.step7.ideaLabel}
           </label>
           <p className="text-[10.5px] text-slate-400">
-            Conte com suas palavras o que imagina para o site, diferenciais ou detalhes importantes:
+            {ideaInstruction}
           </p>
           <textarea
             value={customProjectIdea}
             onChange={(e) => setCustomProjectIdea(e.target.value)}
             rows={3}
-            placeholder="Ex: Quero um site moderno focado em atrair clientes da minha região. Gostaria que tivesse destaque para os depoimentos e botão rápido para agendar pelo WhatsApp..."
+            placeholder={t.briefing.step7.ideaPlaceholder}
             className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 resize-none scroll-mt-24"
           />
         </div>
@@ -82,13 +101,13 @@ export const Step7Content: React.FC<Step7ContentProps> = ({
         {/* 2. Link de Referência ou Inspiração (Opcional) */}
         <div className="pt-2 border-t border-slate-800/80 space-y-1.5">
           <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">
-            2. Link de Referência ou Inspiração (opcional)
+            {t.briefing.step7.refLinkLabel}
           </label>
           <input
             type="url"
             value={customReferenceLink}
             onChange={(e) => setCustomReferenceLink(e.target.value)}
-            placeholder="https://exemplo.com.br ou instagram.com/..."
+            placeholder={t.briefing.step7.refLinkPlaceholder}
             className="w-full min-h-[46px] bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 scroll-mt-24"
           />
         </div>
@@ -97,13 +116,15 @@ export const Step7Content: React.FC<Step7ContentProps> = ({
         <div className="pt-2 border-t border-slate-800/80 space-y-3">
           <div className="flex items-center justify-between">
             <label className="text-[11px] font-bold text-cyan-300 uppercase tracking-wider block">
-              3. Dados do Responsável pelo Projeto *
+              {t.briefing.step7.responsibleLabel}
             </label>
-            <span className="text-[10px] text-slate-400">Campos com * obrigatórios</span>
+            <span className="text-[10px] text-slate-400">{requiredNotice}</span>
           </div>
 
           <div>
-            <span className="text-[10.5px] text-slate-300 block mb-1">Seu Nome Completo *</span>
+            <span className="text-[10.5px] text-slate-300 block mb-1">
+              {t.briefing.step7.responsibleName}
+            </span>
             <input
               id="briefing-field-contact-name"
               type="text"
@@ -112,7 +133,7 @@ export const Step7Content: React.FC<Step7ContentProps> = ({
                 setContactName(e.target.value);
                 onClearError();
               }}
-              placeholder="Ex: João da Silva"
+              placeholder={t.briefing.step7.responsibleNamePlaceholder}
               className={`w-full min-h-[46px] bg-slate-950 border rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 scroll-mt-24 transition-all duration-300 ${
                 highlightedFieldId === 'briefing-field-contact-name'
                   ? 'border-rose-500 ring-2 ring-rose-500/70'
@@ -123,7 +144,9 @@ export const Step7Content: React.FC<Step7ContentProps> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div>
-              <span className="text-[10.5px] text-slate-300 block mb-1">WhatsApp para Contato *</span>
+              <span className="text-[10.5px] text-slate-300 block mb-1">
+                {t.briefing.step7.responsiblePhone}
+              </span>
               <input
                 id="briefing-field-contact-phone"
                 type="tel"
@@ -133,7 +156,7 @@ export const Step7Content: React.FC<Step7ContentProps> = ({
                   setContactPhone(e.target.value);
                   onClearError();
                 }}
-                placeholder="Ex: (11) 99999-9999"
+                placeholder={t.briefing.step7.responsiblePhonePlaceholder}
                 className={`w-full min-h-[46px] bg-slate-950 border rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 font-mono scroll-mt-24 transition-all duration-300 ${
                   highlightedFieldId === 'briefing-field-contact-phone'
                     ? 'border-rose-500 ring-2 ring-rose-500/70'
@@ -143,25 +166,29 @@ export const Step7Content: React.FC<Step7ContentProps> = ({
             </div>
 
             <div>
-              <span className="text-[10.5px] text-slate-300 block mb-1">E-mail (opcional)</span>
+              <span className="text-[10.5px] text-slate-300 block mb-1">
+                {t.briefing.step7.responsibleEmail}
+              </span>
               <input
                 type="email"
                 inputMode="email"
                 value={contactEmail}
                 onChange={(e) => setContactEmail(e.target.value)}
-                placeholder="Ex: contato@empresa.com.br"
+                placeholder={t.briefing.step7.responsibleEmailPlaceholder}
                 className="w-full min-h-[46px] bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 scroll-mt-24"
               />
             </div>
           </div>
 
           <div>
-            <span className="text-[10.5px] text-slate-300 block mb-1">Observações Adicionais (opcional)</span>
+            <span className="text-[10.5px] text-slate-300 block mb-1">
+              {t.briefing.step7.specificNotesLabel}
+            </span>
             <textarea
               value={specificNotes}
               onChange={(e) => setSpecificNotes(e.target.value)}
               rows={2}
-              placeholder="Ex: Melhor horário para contato, preferência de atendimento via WhatsApp..."
+              placeholder={t.briefing.step7.specificNotesPlaceholder}
               className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 resize-none scroll-mt-24"
             />
           </div>
@@ -173,7 +200,7 @@ export const Step7Content: React.FC<Step7ContentProps> = ({
         {onPrev ? (
           <BackButton
             onClick={onPrev}
-            label="Voltar"
+            label={t.briefing.back}
           />
         ) : (
           <div className="w-11 h-11 shrink-0" aria-hidden="true" />
@@ -184,7 +211,7 @@ export const Step7Content: React.FC<Step7ContentProps> = ({
           onClick={onNext}
           className="min-h-[44px] h-11 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white font-semibold text-xs shadow-sm shadow-indigo-950/30 border border-indigo-400/20 inline-flex items-center justify-center gap-1.5 transition-all duration-150 cursor-pointer shrink-0 ml-auto"
         >
-          <span>Avançar</span>
+          <span>{t.briefing.continue}</span>
           <ChevronRight className="w-3.5 h-3.5 shrink-0 -mr-0.5" strokeWidth={2} />
         </button>
       </div>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Lightbulb, Layers, Check, ChevronRight } from 'lucide-react';
 import { NexawebPlan } from '../../data/servicesData';
+import { useTranslation } from '../../contexts/LanguageContext';
 
 interface Step1OriginProps {
   startMode: 'propria' | 'plano' | null;
@@ -31,19 +32,25 @@ export const Step1Origin: React.FC<Step1OriginProps> = ({
   highlightedFieldId,
   onClearError,
 }) => {
+  const { t, language } = useTranslation();
   const [showPlanGrid, setShowPlanGrid] = useState<boolean>(!hasInitialPlan);
+
+  const collapseLabel = language === 'en' ? 'Collapse' : language === 'es' ? 'Plegar' : language === 'fr' ? 'Réduire' : 'Recolher';
+  const changePlanQuestion = language === 'en' ? 'Want to change the chosen plan?' : language === 'es' ? '¿Desea cambiar el plan elegido?' : language === 'fr' ? 'Souhaitez-vous modifier la formule choisie ?' : 'Deseja mudar o plano escolhido?';
+  const customStepHeading = language === 'en' ? 'We will structure your exclusive website step by step.' : language === 'es' ? 'Estructuraremos su sitio exclusivo paso a paso.' : language === 'fr' ? 'Nous allons structurer votre site exclusif étape par étape.' : 'Vamos estruturar seu site exclusivo passo a passo.';
+  const customStepSub = language === 'en' ? 'In the next steps, you will define your business name, primary objective, industry, and all required features.' : language === 'es' ? 'En las siguientes etapas, definirá el nombre de su negocio, objetivo principal, sector y todas las funcionalidades necesarias.' : language === 'fr' ? 'Dans les prochaines étapes, vous définirez le nom de votre activité, l’objectif principal, le secteur et toutes les fonctionnalités requises.' : 'Nas próximas etapas, você definirá o nome do seu negócio, objetivo principal, segmento e todas as funcionalidades necessárias.';
 
   return (
     <div className="space-y-4 animate-in fade-in duration-150">
       {hasSavedData && onResetBriefing && (
         <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs">
-          <span className="text-slate-400">Existe um rascunho em andamento para este plano.</span>
+          <span className="text-slate-400">{t.briefing.draftNotice}</span>
           <button
             type="button"
             onClick={onResetBriefing}
-            className="text-cyan-400 hover:text-cyan-300 font-bold underline transition-colors"
+            className="text-cyan-400 hover:text-cyan-300 font-bold underline transition-colors cursor-pointer"
           >
-            Começar novo do zero
+            {t.briefing.startNewFromScratch}
           </button>
         </div>
       )}
@@ -51,10 +58,10 @@ export const Step1Origin: React.FC<Step1OriginProps> = ({
       {/* Cabeçalho da Etapa 1 */}
       <div className="rounded-2xl p-4 sm:p-5 bg-gradient-to-br from-indigo-950/70 via-slate-900 to-slate-950 border border-indigo-900/40 shadow-sm space-y-1">
         <h2 className="text-base sm:text-lg font-black text-white tracking-tight">
-          Como você deseja começar seu site?
+          {t.briefing.step1.title}
         </h2>
         <p className="text-xs text-slate-300">
-          Escolha uma das 2 opções simples para dar início ao seu projeto:
+          {t.briefing.step1.subtitle}
         </p>
       </div>
 
@@ -92,10 +99,10 @@ export const Step1Origin: React.FC<Step1OriginProps> = ({
           </div>
           <div>
             <span className="text-xs font-bold text-white block">
-              1. Ideia própria / Sob medida
+              {t.briefing.step1.optCustomTitle}
             </span>
             <span className="text-[10.5px] text-slate-400 leading-tight block mt-0.5">
-              Projeto criado do seu jeito
+              {t.briefing.step1.optCustomDesc}
             </span>
           </div>
         </button>
@@ -126,10 +133,10 @@ export const Step1Origin: React.FC<Step1OriginProps> = ({
           </div>
           <div>
             <span className="text-xs font-bold text-white block">
-              2. Escolher direto um Plano
+              {t.briefing.step1.optPlanTitle}
             </span>
             <span className="text-[10.5px] text-slate-400 leading-tight block mt-0.5">
-              Conhecer os 4 planos oficiais
+              {t.briefing.step1.optPlanDesc}
             </span>
           </div>
         </button>
@@ -139,13 +146,13 @@ export const Step1Origin: React.FC<Step1OriginProps> = ({
       {startMode === 'propria' && (
         <div className="rounded-2xl p-4 bg-slate-900 border border-slate-800 space-y-2 shadow-sm animate-in fade-in duration-150">
           <span className="text-[10px] font-mono uppercase text-amber-400 font-bold block">
-            Projeto Sob Medida
+            {t.services.customBadge}
           </span>
           <p className="text-xs text-white font-bold">
-            Vamos estruturar seu site exclusivo passo a passo.
+            {customStepHeading}
           </p>
           <p className="text-[11px] text-slate-400 leading-relaxed">
-            Nas próximas etapas, você definirá o nome do seu negócio, objetivo principal, segmento e todas as funcionalidades necessárias.
+            {customStepSub}
           </p>
         </div>
       )}
@@ -157,10 +164,10 @@ export const Step1Origin: React.FC<Step1OriginProps> = ({
               <div className="flex items-center justify-between">
                 <div>
                   <span className="text-[10px] font-mono uppercase text-cyan-400 font-bold block">
-                    Plano Selecionado
+                    {t.briefing.step1.selectedPlanBadge}
                   </span>
                   <p className="text-xs sm:text-sm font-extrabold text-white">
-                    Plano {activePlanObj.nome}
+                    {t.briefing.planPrefix} {activePlanObj.nome}
                   </p>
                 </div>
                 <span className="text-xs font-mono font-bold text-cyan-300 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/50">
@@ -168,18 +175,18 @@ export const Step1Origin: React.FC<Step1OriginProps> = ({
                 </span>
               </div>
               <p className="text-[11px] text-slate-300">
-                {activePlanObj.descricao} · Prazo previsto: {activePlanObj.prazo}
+                {activePlanObj.descricao} · {t.services.estimatedTimeline}: {activePlanObj.prazo}
               </p>
               <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between">
                 <span className="text-[10.5px] text-slate-400">
-                  Deseja mudar o plano escolhido?
+                  {changePlanQuestion}
                 </span>
                 <button
                   type="button"
                   onClick={() => setShowPlanGrid(true)}
-                  className="text-[11px] text-cyan-400 hover:text-cyan-300 font-semibold underline"
+                  className="text-[11px] text-cyan-400 hover:text-cyan-300 font-semibold underline cursor-pointer"
                 >
-                  Alterar plano
+                  {t.briefing.step1.changePlan}
                 </button>
               </div>
             </div>
@@ -187,15 +194,15 @@ export const Step1Origin: React.FC<Step1OriginProps> = ({
             <div className="space-y-2.5">
               <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
                 <span className="text-xs font-bold text-white">
-                  Selecione um dos 4 Planos Oficiais
+                  {t.briefing.step1.choosePlanTitle}
                 </span>
                 {hasInitialPlan && (
                   <button
                     type="button"
                     onClick={() => setShowPlanGrid(false)}
-                    className="text-[10.5px] text-slate-400 hover:text-cyan-300 underline"
+                    className="text-[10.5px] text-slate-400 hover:text-cyan-300 underline cursor-pointer"
                   >
-                    Recolher
+                    {collapseLabel}
                   </button>
                 )}
               </div>
@@ -226,7 +233,7 @@ export const Step1Origin: React.FC<Step1OriginProps> = ({
                       <div>
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-xs font-black uppercase tracking-wider text-white">
-                            Plano {p.nome}
+                            {t.briefing.planPrefix} {p.nome}
                           </span>
                           <span className="text-xs font-mono font-black text-cyan-300">
                             {p.preco}
@@ -262,7 +269,7 @@ export const Step1Origin: React.FC<Step1OriginProps> = ({
           onClick={onNext}
           className="min-h-[44px] h-11 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white font-semibold text-xs shadow-sm shadow-indigo-950/30 border border-indigo-400/20 inline-flex items-center justify-center gap-1.5 transition-all duration-150 cursor-pointer shrink-0 ml-auto"
         >
-          <span>Avançar</span>
+          <span>{t.briefing.continue}</span>
           <ChevronRight className="w-3.5 h-3.5 shrink-0 -mr-0.5" strokeWidth={2} />
         </button>
       </div>

@@ -273,8 +273,8 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
               onSearchQueryChange?.('');
             }}
             className="w-8 h-8 min-h-[32px] min-w-[32px] flex items-center justify-center p-1.5 text-slate-400 hover:text-white absolute right-1 top-1/2 -translate-y-1/2 rounded-lg"
-            title={language === 'en' ? 'Clear search' : 'Limpar pesquisa'}
-            aria-label={language === 'en' ? 'Clear search' : 'Limpar pesquisa'}
+            title={t.portfolio.clearSearch}
+            aria-label={t.portfolio.clearSearch}
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -321,8 +321,8 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
           onClick={handleToggleFilter}
           aria-haspopup="listbox"
           aria-expanded={isFilterDropdownOpen}
-          aria-label={language === 'en' ? 'Select filter' : 'Selecione filtro'}
-          title={language === 'en' ? 'Select filter' : 'Selecione filtro'}
+          aria-label={t.portfolio.selectFilter}
+          title={t.portfolio.selectFilter}
           className={`w-full min-h-[44px] px-3.5 py-2.5 rounded-xl border flex items-center justify-between gap-2 text-xs transition-all active:scale-[0.99] cursor-pointer shadow-sm select-none ${
             selectedSegment !== 'todos'
               ? 'bg-cyan-500/15 border-cyan-500/50 text-white ring-1 ring-cyan-500/30 pr-16'
@@ -334,19 +334,19 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
           <div className="flex items-center gap-2 min-w-0">
             <SlidersHorizontal className="w-4 h-4 text-cyan-400 shrink-0" />
             <span className="text-slate-400 shrink-0 text-[11px] font-semibold uppercase tracking-wider">
-              {language === 'en' ? 'Category:' : 'Categoria:'}
+              {t.portfolio.categoryLabel}
             </span>
             <span className={`truncate text-xs font-semibold ${selectedSegment !== 'todos' ? 'text-cyan-300' : 'text-slate-200'}`}>
               {selectedSegment !== 'todos'
                 ? activeSegmentCategory?.nome || selectedSegment
-                : (language === 'en' ? 'Select filter' : 'Selecione filtro')}
+                : t.portfolio.selectFilter}
             </span>
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
             {selectedSegment === 'todos' && (
               <span className="text-[10px] text-slate-500 font-mono">
-                {allCategories.length} {language === 'en' ? 'options' : 'opções'}
+                {allCategories.length} {t.portfolio.optionsCount}
               </span>
             )}
             <ChevronDown
@@ -362,8 +362,8 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
             type="button"
             onClick={handleClearSegment}
             className="absolute right-8 top-1/2 -translate-y-1/2 min-h-[36px] min-w-[36px] flex items-center justify-center p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer z-20"
-            title={language === 'en' ? 'Clear filter' : 'Limpar filtro'}
-            aria-label={language === 'en' ? 'Clear filter' : 'Limpar filtro'}
+            title={t.portfolio.clearFilters}
+            aria-label={t.portfolio.clearFilters}
           >
             <X className="w-3.5 h-3.5 text-cyan-400" />
           </button>
@@ -382,7 +382,7 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
             {/* Popup compacto com sombra sutil e borda arredondada */}
             <div
               role="listbox"
-              aria-label={language === 'en' ? 'Select filter' : 'Selecione filtro'}
+              aria-label={t.portfolio.selectFilter}
               className="absolute left-0 right-0 top-full mt-1.5 z-40 rounded-2xl bg-slate-900/98 backdrop-blur-md border border-slate-700/80 shadow-2xl shadow-black/80 p-1.5 space-y-1 max-h-[300px] overflow-y-auto no-scrollbar animate-in fade-in zoom-in-95 duration-150 origin-top"
             >
               {allCategories.map((cat) => {
@@ -410,7 +410,7 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
                   >
                     <span className="truncate pr-2 font-medium">
                       {cat.id === 'todos'
-                        ? (language === 'en' ? 'All Categories (Show All)' : 'Todos os Segmentos (Ver Todos)')
+                        ? t.portfolio.allCategoriesShowAll
                         : cat.nome}
                     </span>
                     <div className="flex items-center gap-2 shrink-0">
@@ -431,8 +431,8 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
       <div className="flex items-center justify-between text-xs text-slate-400 px-0.5">
         <span className="font-semibold text-slate-300">
           {filteredProjects.length === 1
-            ? '1 projeto encontrado'
-            : `${filteredProjects.length} projetos encontrados`}
+            ? t.portfolio.projectFound
+            : t.portfolio.projectsFound.replace('{count}', String(filteredProjects.length))}
         </span>
 
         {(searchQuery || selectedPlan !== 'todas' || selectedSegment !== 'todos') && (
@@ -441,7 +441,7 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
             onClick={handleClearAllFilters}
             className="text-[11px] text-cyan-400 hover:text-cyan-300 font-semibold transition-colors"
           >
-            Limpar filtros
+            {t.portfolio.clearFilters}
           </button>
         )}
       </div>
@@ -464,7 +464,7 @@ export const PortfolioScreen: React.FC<PortfolioScreenProps> = ({
               onClick={handleClearAllFilters}
               className="min-h-[40px] px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-750 text-xs font-semibold text-cyan-400 border border-slate-700 transition-colors"
             >
-              {t.portfolio.clearSearch || (language === 'en' ? 'Clear search and filters' : 'Limpar pesquisa e filtros')}
+              {t.portfolio.clearSearch}
             </button>
           </div>
         ) : (

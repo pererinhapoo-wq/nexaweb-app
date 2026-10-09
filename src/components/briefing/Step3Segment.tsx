@@ -1,7 +1,8 @@
 import React from 'react';
 import { Check, ChevronRight } from 'lucide-react';
-import { CANONICAL_SEGMENTS, SegmentBriefingConfig } from '../../data/segmentBriefingSchemas';
+import { getCanonicalSegments, SegmentBriefingConfig } from '../../data/segmentBriefingSchemas';
 import { BackButton } from '../BackButton';
+import { useTranslation } from '../../contexts/LanguageContext';
 
 interface Step3SegmentProps {
   selectedSegment: string;
@@ -22,23 +23,30 @@ export const Step3Segment: React.FC<Step3SegmentProps> = ({
   highlightedFieldId,
   onClearError,
 }) => {
+  const { t, language } = useTranslation();
+  const canonicalSegments = getCanonicalSegments(language);
+
+  const activeSegmentName = selectedSegment
+    ? canonicalSegments[selectedSegment]?.name || segmentConfig.name
+    : t.briefing.step3.toSelect;
+
   return (
     <div className="space-y-4 animate-in fade-in duration-150">
       {/* Cabeçalho da Etapa 3 */}
       <div className="rounded-2xl p-4 bg-gradient-to-br from-indigo-950/60 via-slate-900 to-slate-950 border border-indigo-900/40 shadow-sm space-y-1">
         <div className="flex items-center justify-between">
           <span className="text-[10px] font-mono uppercase text-cyan-300 font-bold">
-            Segmento de Atuação
+            {t.briefing.step3.badge}
           </span>
           <span className="text-xs font-mono font-bold text-cyan-400">
-            {selectedSegment ? segmentConfig.name : 'A selecionar'}
+            {activeSegmentName}
           </span>
         </div>
         <h2 className="text-sm sm:text-base font-extrabold text-white">
-          Qual é o segmento principal do seu negócio?
+          {t.briefing.step3.title}
         </h2>
         <p className="text-[11px] text-slate-400">
-          Personalizamos a estrutura, serviços sugeridos e opções do site com base no seu nicho.
+          {t.briefing.step3.subtitle}
         </p>
       </div>
 
@@ -52,7 +60,7 @@ export const Step3Segment: React.FC<Step3SegmentProps> = ({
         }`}
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {Object.values(CANONICAL_SEGMENTS).map((seg) => {
+          {Object.values(canonicalSegments).map((seg) => {
             const isSelected = selectedSegment === seg.segmentKey;
             return (
               <button
@@ -62,7 +70,7 @@ export const Step3Segment: React.FC<Step3SegmentProps> = ({
                   onSelectSegment(seg.segmentKey);
                   onClearError?.();
                 }}
-                className={`min-h-[48px] p-2.5 rounded-xl border text-left transition-all active:scale-[0.99] flex items-center justify-between gap-2.5 ${
+                className={`min-h-[48px] p-2.5 rounded-xl border text-left transition-all active:scale-[0.99] flex items-center justify-between gap-2.5 cursor-pointer ${
                   isSelected
                     ? 'bg-indigo-950/70 border-cyan-500/80 ring-1 ring-cyan-500/30 text-white shadow-sm'
                     : 'bg-slate-950/70 border-slate-800 hover:border-slate-700 text-slate-300'
@@ -111,7 +119,7 @@ export const Step3Segment: React.FC<Step3SegmentProps> = ({
         {onPrev ? (
           <BackButton
             onClick={onPrev}
-            label="Voltar"
+            label={t.briefing.back}
           />
         ) : (
           <div className="w-11 h-11 shrink-0" aria-hidden="true" />
@@ -122,7 +130,7 @@ export const Step3Segment: React.FC<Step3SegmentProps> = ({
           onClick={onNext}
           className="min-h-[44px] h-11 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white font-semibold text-xs shadow-sm shadow-indigo-950/30 border border-indigo-400/20 inline-flex items-center justify-center gap-1.5 transition-all duration-150 cursor-pointer shrink-0 ml-auto"
         >
-          <span>Avançar</span>
+          <span>{t.briefing.continue}</span>
           <ChevronRight className="w-3.5 h-3.5 shrink-0 -mr-0.5" strokeWidth={2} />
         </button>
       </div>

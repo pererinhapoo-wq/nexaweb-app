@@ -48,6 +48,8 @@ import {
   VISUAL_STYLES,
   SiteObjectiveOption,
   VisualStyleOption,
+  getSiteObjectives,
+  getVisualStyles,
 } from './briefing/briefingTypes';
 
 // Re-exportações para compatibilidade
@@ -86,7 +88,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
   confirmedDraft,
   resetSignal,
 }) => {
-  const { language } = useTranslation();
+  const { t, language } = useTranslation();
 
   const plans = getNexawebPlans(language);
 
@@ -133,8 +135,8 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
 
   // Configuração ativa do segmento dinâmico
   const segmentConfig = useMemo(() => {
-    return getSegmentConfig(selectedSegment);
-  }, [selectedSegment]);
+    return getSegmentConfig(selectedSegment, language);
+  }, [selectedSegment, language]);
 
   // --- ETAPA 2: INFORMAÇÕES PRINCIPAIS & OBJETIVO ---
   const [businessName, setBusinessName] = useState('');
@@ -726,7 +728,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     // Essencial tem limite 0
     if (advancedFeaturesLimit === 0) {
       setFeatureLimitMessage(
-        'O plano Essencial possui escopo fechado (0 funcionalidades avançadas). Para incluir funcionalidades adicionais, selecione o plano Profissional (até 5), Personalizado (até 3) ou Premium (até 8).'
+        t.briefing.essentialFeaturesLimitAlert
       );
       return;
     }
@@ -734,7 +736,9 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     // Bloqueia nova seleção ao atingir o limite
     if (selectedAdvancedFeatures.length >= advancedFeaturesLimit) {
       setFeatureLimitMessage(
-        `Limite de ${advancedFeaturesLimit} funcionalidades avançadas atingido para o plano ${activePlanObj.nome}. Desmarque uma opção para escolher outra.`
+        t.briefing.featureLimitReached
+          .replace('{limit}', String(advancedFeaturesLimit))
+          .replace('{plan}', activePlanObj.nome)
       );
       return;
     }
@@ -750,14 +754,14 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     if (currentStep === 1) {
       if (!startMode) {
         triggerFieldError(
-          'Por favor, escolha uma das 2 opções para iniciar seu projeto.',
+          t.briefing.errorOriginOptions,
           'briefing-field-origin-options'
         );
         return;
       }
       if (startMode === 'plano' && !selectedPlan) {
         triggerFieldError(
-          'Por favor, selecione um dos 4 planos oficiais para continuar.',
+          t.briefing.errorPlanGrid,
           'briefing-field-plan-grid'
         );
         return;
@@ -774,14 +778,14 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     if (currentStep === 2) {
       if (!businessName.trim()) {
         triggerFieldError(
-          'Por favor, informe o Nome do seu negócio ou projeto para avançar.',
+          t.briefing.errorBusinessName,
           'briefing-field-business-name'
         );
         return;
       }
       if (!siteObjective) {
         triggerFieldError(
-          'Por favor, selecione o Objetivo Principal do site para prosseguir.',
+          t.briefing.errorSiteObjective,
           'briefing-field-site-objective'
         );
         return;
@@ -795,7 +799,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     if (currentStep === 3) {
       if (!selectedSegment) {
         triggerFieldError(
-          'Por favor, selecione o Segmento de atuação do seu negócio para prosseguir.',
+          t.briefing.errorSegmentGrid,
           'briefing-field-segment-grid'
         );
         return;
@@ -823,7 +827,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     if (currentStep === 6) {
       if (!visualStyle) {
         triggerFieldError(
-          'Por favor, selecione o Estilo Visual desejado para o seu site.',
+          t.briefing.errorVisualStyle,
           'briefing-field-visual-style'
         );
         return;
@@ -837,14 +841,14 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     if (currentStep === 7) {
       if (!contactName.trim()) {
         triggerFieldError(
-          'Por favor, preencha o Nome do responsável e o WhatsApp de contato para prosseguir.',
+          t.briefing.errorContactNameAndPhone,
           'briefing-field-contact-name'
         );
         return;
       }
       if (!contactPhone.trim()) {
         triggerFieldError(
-          'Por favor, preencha o Nome do responsável e o WhatsApp de contato para prosseguir.',
+          t.briefing.errorContactNameAndPhone,
           'briefing-field-contact-phone'
         );
         return;
@@ -870,43 +874,57 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
   // Gerador formatado da mensagem canônica do briefing
   const generateBriefingMessage = (): string => {
     const lines: string[] = [];
+    const bm = t.briefing.briefingMessage;
 
-    lines.push('🌟 *BRIEFING OFICIAL — NEXAWEB APP*');
+    lines.push(bm.header);
     lines.push('━━━━━━━━━━━━━━━━━━━━━━━━');
-    lines.push(`💼 *Plano Selecionado:* Plano ${activePlanObj.nome} (${budgetCalculation.formattedBasePrice})`);
+    lines.push(
+      bm.selectedPlan
+        .replace('{plan}', activePlanObj.nome)
+        .replace('{price}', budgetCalculation.formattedBasePrice)
+    );
     if (budgetCalculation.extrasTotal > 0) {
-      lines.push(`➕ *Adicionais Confirmados:* ${budgetCalculation.formattedExtrasTotal}`);
+      lines.push(
+        bm.confirmedExtras.replace('{extras}', budgetCalculation.formattedExtrasTotal)
+      );
     }
-    lines.push(`💰 *Orçamento Estimado:* ${budgetCalculation.formattedTotalPrice}`);
+    lines.push(
+      bm.estimatedBudget.replace('{total}', budgetCalculation.formattedTotalPrice)
+    );
     if (budgetCalculation.scopeNotice) {
-      lines.push(`⚠️ *Aviso de Escopo:* ${budgetCalculation.scopeNotice}`);
+      lines.push(
+        bm.scopeNotice.replace('{notice}', budgetCalculation.scopeNotice)
+      );
     }
-    lines.push(`⏱️ *Prazo Previsto:* ${activePlanObj.prazo}`);
+    lines.push(
+      bm.expectedTimeline.replace('{timeline}', activePlanObj.prazo)
+    );
 
     if (startMode === 'propria') {
-      lines.push('🎯 *Ponto de Partida:* Ideia própria / Projeto sob medida');
+      lines.push(bm.startingPoint.replace('{point}', t.briefing.step9.customProjectOrigin));
     } else {
-      lines.push('🎯 *Ponto de Partida:* Escolha direta de plano');
+      lines.push(bm.startingPoint.replace('{point}', t.briefing.step9.directPlanOrigin));
     }
 
-    lines.push(`🏢 *Nome do Negócio:* ${businessName || 'A definir'}`);
-    lines.push(`🏷️ *Segmento Identificado:* ${segmentConfig.icon} ${segmentConfig.name}`);
+    lines.push(bm.businessName.replace('{name}', businessName || bm.toDefine));
+    lines.push(bm.identifiedSegment.replace('{segment}', `${segmentConfig.icon} ${segmentConfig.name}`));
 
     if (siteObjective) {
-      const objItem = SITE_OBJECTIVES.find((o) => o.id === siteObjective);
-      lines.push(`🎯 *Objetivo Principal do Site:* ${objItem ? objItem.label : siteObjective}`);
+      const objectives = getSiteObjectives(language);
+      const objItem = objectives.find((o) => o.id === siteObjective);
+      lines.push(bm.mainObjective.replace('{objective}', objItem ? objItem.label : siteObjective));
     }
 
-    lines.push(`🌐 *Idioma do Site:* ${siteLanguage}`);
+    lines.push(bm.siteLanguage.replace('{lang}', siteLanguage));
 
     if (businessLocation) {
-      lines.push(`📍 *Localização / Região:* ${businessLocation}`);
+      lines.push(bm.location.replace('{loc}', businessLocation));
     }
     if (businessBranches) {
-      lines.push(`🏢 *Unidades / Filiais:* ${businessBranches}`);
+      lines.push(bm.branches.replace('{branches}', businessBranches));
     }
     if (googleMapsLink) {
-      lines.push(`🗺️ *Google Maps:* ${googleMapsLink}`);
+      lines.push(bm.googleMaps.replace('{maps}', googleMapsLink));
     }
 
     lines.push('');
@@ -914,7 +932,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     if (selectedPrimaryOptions.length > 0) {
       lines.push(selectedPrimaryOptions.map((o) => `  • ${o}`).join('\n'));
     } else {
-      lines.push('  • Itens padrão do segmento');
+      lines.push(`  • ${bm.toDefine}`);
     }
 
     if (selectedSecondaryOptions.length > 0) {
@@ -931,64 +949,69 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
 
     if (selectedAdvancedFeatures.length > 0) {
       lines.push('');
-      lines.push(`🚀 *Funcionalidades Avançadas Selecionadas (${selectedAdvancedFeatures.length} de ${advancedFeaturesLimit}):*`);
+      lines.push(
+        bm.selectedAdvancedFeatures
+          .replace('{count}', String(selectedAdvancedFeatures.length))
+          .replace('{limit}', String(advancedFeaturesLimit))
+      );
       selectedAdvancedFeatures.forEach((featId) => {
         const feat = findAdvancedFeatureById(featId);
         if (feat) {
-          const complexTag = feat.isComplex ? ' [Avançado / avaliação]' : '';
+          const complexTag = feat.isComplex ? ` [${t.briefing.step5.advancedEvaluation}]` : '';
           lines.push(`  • ${feat.nome} (${feat.categoria})${complexTag}`);
         }
       });
       const hasComplex = selectedAdvancedFeatures.some((id) => findAdvancedFeatureById(id)?.isComplex);
       if (hasComplex) {
-        lines.push('  ℹ️ *Nota:* Itens com [Avançado / avaliação] têm disponibilidade e viabilidade confirmadas durante a análise técnica da proposta.');
+        lines.push(`  ${bm.advancedEvaluationNotice}`);
       }
     }
 
     if (operatingSchedule) {
-      lines.push(`⏰ *Horários de Funcionamento:* ${operatingSchedule}`);
+      lines.push(bm.operatingHours.replace('{hours}', operatingSchedule));
     }
     if (teamDescription) {
-      lines.push(`👥 *Equipe / Profissionais:* ${teamDescription}`);
+      lines.push(bm.team.replace('{team}', teamDescription));
     }
     if (freeServicesText) {
-      lines.push(`📝 *Detalhes dos Serviços:* ${freeServicesText}`);
+      lines.push(bm.servicesDetails.replace('{details}', freeServicesText));
     }
 
     if (visualStyle) {
+      const styles = getVisualStyles(language);
+      const styleItem = styles.find((s) => s.id === visualStyle);
       lines.push('');
-      lines.push(`🎨 *Estilo Visual:* ${visualStyle}`);
+      lines.push(bm.visualStyle.replace('{style}', styleItem ? styleItem.label : visualStyle));
     }
     if (colorMode) {
-      lines.push(
-        colorMode === 'suggest'
-          ? '🎨 *Identidade Visual:* Sugestão NexaWeb (Harmonia visual)'
-          : colorMode === 'brand'
-          ? `🎨 *Cores da Marca:* ${customColorDetails || 'Cores da identidade visual existente'}`
-          : `🎨 *Cores Escolhidas:* ${customColorDetails || 'Tons específicos indicados'}`
-      );
+      const visualIdText = colorMode === 'suggest'
+        ? t.briefing.step9.suggestedPalette
+        : colorMode === 'brand'
+        ? t.briefing.step9.brandPalette.replace('{colors}', customColorDetails || t.briefing.step9.existingBrandColors)
+        : t.briefing.step9.customPalette.replace('{colors}', customColorDetails || t.briefing.step9.specificTones);
+      lines.push(bm.visualIdentity.replace('{visual}', visualIdText));
     }
 
     if (customProjectIdea) {
-      lines.push(`💡 *Descrição / Ideia do Projeto:* ${customProjectIdea}`);
+      lines.push(bm.projectIdea.replace('{idea}', customProjectIdea));
     }
     if (customReferenceLink) {
-      lines.push(`🔗 *Link de Referência:* ${customReferenceLink}`);
+      lines.push(bm.referenceLink.replace('{link}', customReferenceLink));
     }
 
     if (attachedFiles.length > 0) {
-      lines.push(`📎 *Arquivos Selecionados:* ${attachedFiles.length} foto(s)/logo`);
+      lines.push(bm.attachedFiles.replace('{count}', String(attachedFiles.length)));
     }
 
     lines.push('');
-    lines.push('👤 *DADOS DO RESPONSÁVEL:*');
-    lines.push(`  • Nome: ${contactName || 'Não informado'}`);
-    lines.push(`  • WhatsApp: ${contactPhone || 'Não informado'}`);
-    if (contactEmail) lines.push(`  • E-mail: ${contactEmail}`);
-    if (specificNotes) lines.push(`  • Observações: ${specificNotes}`);
+    lines.push(bm.responsibleData);
+    lines.push(`  • ${bm.name.replace('{name}', contactName || bm.notInformed)}`);
+    lines.push(`  • ${bm.whatsapp.replace('{phone}', contactPhone || bm.notInformed)}`);
+    if (contactEmail) lines.push(`  • ${bm.email.replace('{email}', contactEmail)}`);
+    if (specificNotes) lines.push(`  • ${bm.notes.replace('{notes}', specificNotes)}`);
 
     lines.push('');
-    lines.push('Aguardando contato oficial da equipe NexaWeb!');
+    lines.push(bm.waitingContact);
     return lines.join('\n');
   };
 
@@ -1060,7 +1083,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
           // fallback silencioso
         }
 
-        const message = res.message || 'Seu briefing foi registrado com sucesso. Nossa equipe entrará em contato!';
+        const message = res.message || t.briefing.submitSuccessDefault;
         setSubmissionSuccess({
           projectId: res.projectId,
           message,
@@ -1068,11 +1091,11 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
         });
       } else {
         setSubmissionError(
-          res.error || 'Não foi possível enviar o briefing. Verifique sua conexão e tente novamente.'
+          res.error || t.briefing.submitErrorDefault
         );
       }
     } catch {
-      setSubmissionError('Não foi possível enviar o briefing. Verifique sua conexão e tente novamente.');
+      setSubmissionError(t.briefing.submitErrorDefault);
     } finally {
       isSubmittingRef.current = false;
       setIsSubmitting(false);
@@ -1136,7 +1159,7 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
       <div className="flex items-center -ml-2 -mt-1 -mb-1 bg-transparent">
         <BackButton
           onClick={handleExitToHome}
-          label="Voltar para o início"
+          label={t.header.back}
         />
       </div>
 

@@ -1,19 +1,6 @@
 import React from 'react';
-import { BackButton } from '../BackButton';
-import { BriefingStep, BRIEFING_STEP_NAMES } from './briefingTypes';
+import { BriefingStep, getBriefingStepNames } from './briefingTypes';
 import { useTranslation } from '../../contexts/LanguageContext';
-
-const BRIEFING_STEP_NAMES_EN: Record<BriefingStep, string> = {
-  1: 'Type / Starting Point',
-  2: 'Main Information',
-  3: 'Industry / Niche',
-  4: 'Requirements',
-  5: 'Features',
-  6: 'Visual Style',
-  7: 'Content & Inspirations',
-  8: 'Files',
-  9: 'Summary & Submit',
-};
 
 interface BriefingStepHeaderProps {
   currentStep: BriefingStep;
@@ -29,22 +16,22 @@ export const BriefingStepHeader: React.FC<BriefingStepHeaderProps> = ({
   totalSteps = 9,
   planName,
   planPrice,
-  canGoBack,
-  onBackAction,
 }) => {
-  const { language } = useTranslation();
+  const { language, t } = useTranslation();
   const progressPercent = Math.min(100, Math.round((currentStep / totalSteps) * 100));
-  const stepName =
-    language === 'en'
-      ? BRIEFING_STEP_NAMES_EN[currentStep] || BRIEFING_STEP_NAMES[currentStep]
-      : BRIEFING_STEP_NAMES[currentStep];
+  const stepNames = getBriefingStepNames(language);
+  const stepName = stepNames[currentStep];
+
+  const stepIndicatorText = t.briefing.stepIndicator
+    .replace('{current}', String(currentStep))
+    .replace('{total}', String(totalSteps));
 
   return (
     <div className="bg-slate-900 border border-slate-800/80 rounded-xl p-3 sm:p-3.5 shadow-sm space-y-2">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0 flex flex-col justify-center">
           <span className="text-[9.5px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 w-fit">
-            {language === 'en' ? `Step ${currentStep} of ${totalSteps}` : `Etapa ${currentStep} de ${totalSteps}`}
+            {stepIndicatorText}
           </span>
           <span className="text-xs sm:text-[13px] font-bold text-white truncate mt-0.5">
             {stepName}
@@ -55,7 +42,7 @@ export const BriefingStepHeader: React.FC<BriefingStepHeaderProps> = ({
           {planPrice ? (
             <>
               <span className="text-[9.5px] font-mono text-slate-400 block uppercase">
-                {language === 'en' ? `Plan ${planName}` : `Plano ${planName}`}
+                {t.briefing.planPrefix} {planName}
               </span>
               <span className="text-xs font-mono font-bold text-cyan-400">
                 {planPrice}
@@ -63,7 +50,7 @@ export const BriefingStepHeader: React.FC<BriefingStepHeaderProps> = ({
             </>
           ) : (
             <span className="text-[10px] text-slate-400 font-medium">
-              {language === 'en' ? 'No plan selected' : 'Sem plano selecionado'}
+              {t.briefing.noPlanSelected}
             </span>
           )}
         </div>
@@ -77,7 +64,7 @@ export const BriefingStepHeader: React.FC<BriefingStepHeaderProps> = ({
         />
       </div>
 
-      {/* Indicador de passos informativo discreto (não duplicar botões de voltar) */}
+      {/* Indicador de passos informativo discreto */}
       <div className="grid grid-cols-9 gap-1" aria-hidden="true">
         {Array.from({ length: totalSteps }, (_, i) => i + 1).map((stepNum) => (
           <div

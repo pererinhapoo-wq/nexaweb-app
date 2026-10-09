@@ -106,9 +106,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
 
     // Essencial tem limite 0
     if (advancedFeaturesLimit === 0) {
-      setFeatureLimitMessage(
-        'O Plano Essencial possui escopo fechado (0 funcionalidades avançadas). Para incluir funcionalidades avançadas, selecione o Plano Profissional (até 5), Personalizado (até 3) ou Premium (até 8).'
-      );
+      setFeatureLimitMessage(t.services.essentialLimitAlert);
       return;
     }
 
@@ -116,7 +114,9 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
     if (selectedFeatures.length >= advancedFeaturesLimit) {
       const planObj = plans.find((p) => p.id === selectedPlanId);
       setFeatureLimitMessage(
-        `Limite de ${advancedFeaturesLimit} funcionalidades avançadas atingido para o Plano ${planObj?.nome || selectedPlanId.toUpperCase()}. Desmarque uma opção para escolher outra.`
+        t.services.limitReachedAlert
+          .replace('{limit}', String(advancedFeaturesLimit))
+          .replace('{plan}', planObj?.nome || selectedPlanId.toUpperCase())
       );
       return;
     }
@@ -129,31 +129,31 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
     switch (planId) {
       case 'essencial':
         return {
-          role: 'Porta de entrada',
-          focus: 'Foco em começar profissionalmente',
-          limitLabel: '0 avançadas (escopo fechado)',
+          role: t.services.roleEssential,
+          focus: t.services.focusEssential,
+          limitLabel: t.services.scopeClosed,
           limit: 0,
         };
       case 'personalizado':
         return {
-          role: 'Projeto sob medida',
-          focus: 'Maior liberdade de escopo',
-          limitLabel: 'Até 3 funcionalidades avançadas',
+          role: t.services.roleCustom,
+          focus: t.services.focusCustom,
+          limitLabel: t.services.upTo3,
           limit: 3,
         };
       case 'profissional':
         return {
-          role: 'Crescimento e presença',
-          focus: 'Mais recursos e maior autoridade',
-          limitLabel: 'Até 5 funcionalidades avançadas',
+          role: t.services.roleProfessional,
+          focus: t.services.focusProfessional,
+          limitLabel: t.services.upTo5,
           limit: 5,
         };
       case 'premium':
       default:
         return {
-          role: 'Experiência avançada',
-          focus: 'Solução VIP e recursos sofisticados',
-          limitLabel: 'Até 8 funcionalidades avançadas',
+          role: t.services.rolePremium,
+          focus: t.services.focusPremium,
+          limitLabel: t.services.upTo8,
           limit: 8,
         };
     }
@@ -161,53 +161,27 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
 
   // Explicação clara de escopo e funcionalidades avançadas em linguagem simples
   const getScopeExplanation = (planId: string) => {
-    if (language === 'en') {
-      switch (planId) {
-        case 'essencial':
-          return {
-            scopeDesc: 'Fixed scope with essential structure (0 advanced features). Includes business presentation, core pages, WhatsApp, social links, cloud hosting, and basic SEO.',
-            featuresDesc: 'Advanced features are extra interactive modules. This plan focuses on launching quickly and professionally with standard essential components.',
-          };
-        case 'personalizado':
-          return {
-            scopeDesc: 'Tailor-made scope starting from R$ 2.800 with delivery timeline according to approved scope. Includes bespoke visual identity and architecture.',
-            featuresDesc: 'Allows choosing up to 3 advanced features during customization to match your specific business requirements.',
-          };
-        case 'profissional':
-          return {
-            scopeDesc: 'Expanded scope focused on authority and conversion. Includes rich sections, Core Web Vitals optimization, and complete presentation.',
-            featuresDesc: 'Allows selecting up to 5 advanced features during customization (e.g. customized forms, dynamic showcases, lead capture).',
-          };
-        case 'premium':
-        default:
-          return {
-            scopeDesc: 'Complete VIP solution starting from R$ 4.500 with delivery according to scope. Includes art direction, high-impact branding, and priority support.',
-            featuresDesc: 'Allows selecting up to 8 advanced features for a comprehensive, high-end digital experience.',
-          };
-      }
-    }
-
     switch (planId) {
       case 'essencial':
         return {
-          scopeDesc: 'Escopo fechado com estrutura essencial (0 funcionalidades avançadas). Já inclui apresentação do negócio, páginas essenciais, WhatsApp, redes sociais, hospedagem segura e SEO básico.',
-          featuresDesc: 'Funcionalidades avançadas são módulos extras e ferramentas interativas. Este plano é focado em começar de forma rápida e profissional com a estrutura essencial.',
+          scopeDesc: t.services.scopeDescEssential,
+          featuresDesc: t.services.featuresDescEssential,
         };
       case 'personalizado':
         return {
-          scopeDesc: 'Projeto sob medida com valor a partir de R$ 2.800 e prazo conforme escopo. Inclui identidade visual autoral e arquitetura pensada para o seu modelo de negócio.',
-          featuresDesc: 'Permite selecionar até 3 funcionalidades avançadas na personalização para atender exatamente ao que sua marca precisa.',
+          scopeDesc: t.services.scopeDescCustom,
+          featuresDesc: t.services.featuresDescCustom,
         };
       case 'profissional':
         return {
-          scopeDesc: 'Escopo amplo para crescimento e maior autoridade. Inclui seções estratégicas de alta conversão, performance Core Web Vitals e apresentação completa.',
-          featuresDesc: 'Permite escolher até 5 funcionalidades avançadas na personalização (como formulários específicos, destaques interativos ou captação de clientes).',
+          scopeDesc: t.services.scopeDescProfessional,
+          featuresDesc: t.services.featuresDescProfessional,
         };
       case 'premium':
       default:
         return {
-          scopeDesc: 'Solução VIP e experiência avançada com valor a partir de R$ 4.500 e acompanhamento dedicado. Inclui direção de arte exclusiva e padrão visual refinado.',
-          featuresDesc: 'Permite escolher até 8 funcionalidades avançadas na personalização para uma experiência digital imersiva e completa.',
+          scopeDesc: t.services.scopeDescPremium,
+          featuresDesc: t.services.featuresDescPremium,
         };
     }
   };
@@ -307,16 +281,14 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
         <section className="pt-2 sm:pt-2.5 flex items-center gap-2">
           <BackButton
             onClick={() => setConfirmingPlanId(null)}
-            label={language === 'en' ? 'Back to plans' : 'Voltar aos planos'}
+            label={t.services.backToPlans}
           />
           <div className="min-w-0">
             <h1 className="text-sm sm:text-base font-bold text-white tracking-tight truncate">
-              {language === 'en' ? 'Plan Summary' : 'Resumo do Plano'}
+              {t.services.planSummary}
             </h1>
             <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed truncate">
-              {language === 'en'
-                ? 'Review plan details before starting the briefing'
-                : 'Revise os detalhes do plano antes de iniciar a personalização'}
+              {t.services.reviewBeforeBriefing}
             </p>
           </div>
         </section>
@@ -325,17 +297,17 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
         <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400 bg-slate-950/70 border border-slate-800/80 px-3 py-2 rounded-xl">
           <span className="text-cyan-400 font-bold flex items-center gap-1.5">
             <span className="w-4 h-4 rounded-full bg-cyan-500/20 text-cyan-300 text-[10px] flex items-center justify-center font-bold">1</span>
-            {language === 'en' ? '1. Understand the plan' : '1. Entender o plano'}
+            {t.services.flowStep1}
           </span>
           <span className="text-slate-600">→</span>
           <span className="text-slate-400 flex items-center gap-1.5">
             <span className="w-4 h-4 rounded-full bg-slate-800 text-slate-400 text-[10px] flex items-center justify-center">2</span>
-            {language === 'en' ? '2. Customize the site' : '2. Personalizar o site'}
+            {t.services.flowStep2}
           </span>
           <span className="text-slate-600">→</span>
           <span className="text-slate-400 flex items-center gap-1.5">
             <span className="w-4 h-4 rounded-full bg-slate-800 text-slate-400 text-[10px] flex items-center justify-center">3</span>
-            {language === 'en' ? '3. Review briefing' : '3. Revisar o briefing'}
+            {t.services.flowStep3}
           </span>
         </div>
 
@@ -361,7 +333,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
           <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 py-2.5 px-3.5 rounded-xl bg-slate-950/70 border border-slate-800/80">
             <div>
               <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block mb-0.5">
-                {language === 'en' ? 'Price' : 'Preço'}
+                {t.services.price}
               </span>
               <span className={`text-lg sm:text-xl font-black font-mono ${confirmingTheme.priceColor}`}>
                 {confirmingPlanObj.preco}
@@ -370,7 +342,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
             {confirmingPlanObj.prazo && (
               <div className="sm:text-right">
                 <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block mb-0.5">
-                  {language === 'en' ? 'Estimated timeline' : 'Prazo estimado'}
+                  {t.services.estimatedTimeline}
                 </span>
                 <span className="text-xs sm:text-sm text-slate-300 font-mono flex items-center sm:justify-end gap-1.5">
                   <Clock className="w-3.5 h-3.5 text-slate-500 shrink-0" />
@@ -389,7 +361,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
           <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-2 text-xs">
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 block mb-0.5">
-                {language === 'en' ? 'About the scope of this plan:' : 'O que inclui o escopo deste plano:'}
+                {t.services.aboutScope}
               </span>
               <p className="text-slate-300 leading-relaxed text-[11.5px]">
                 {scopeExplanation.scopeDesc}
@@ -397,7 +369,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
             </div>
             <div className="pt-2 border-t border-slate-800/60">
               <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 block mb-0.5">
-                {language === 'en' ? 'Advanced interactive features:' : 'Recursos e funcionalidades avançadas:'}
+                {t.services.advancedInteractiveFeatures}
               </span>
               <p className="text-slate-300 leading-relaxed text-[11.5px]">
                 {scopeExplanation.featuresDesc}
@@ -408,7 +380,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
           {/* Limite Oficial de Recursos Avançados */}
           <div className="py-2 px-3 rounded-xl bg-slate-950/50 border border-slate-800/60 flex items-center justify-between text-xs">
             <span className="text-slate-400 font-medium">
-              {language === 'en' ? 'Advanced features limit:' : 'Limite de recursos avançados:'}
+              {t.services.advancedFeaturesLimit}
             </span>
             <span className="font-semibold text-slate-200">
               {confirmingPositioning.limitLabel}
@@ -418,7 +390,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
           {/* Principais Itens Incluídos */}
           <div className="pt-2 border-t border-slate-800/80 space-y-2">
             <span className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 block">
-              {language === 'en' ? 'Main included features:' : 'Principais itens incluídos:'}
+              {t.services.mainIncluded}
             </span>
             <div className="space-y-1.5">
               {confirmingPlanObj.recursos.map((rec, i) => (
@@ -445,7 +417,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
               }}
               className={`min-h-[44px] w-full py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md flex items-center justify-center gap-2 active:scale-[0.985] cursor-pointer ${confirmingTheme.btnAction}`}
             >
-              <span>{language === 'en' ? 'Continue to customize' : 'Continuar para personalizar'}</span>
+              <span>{t.services.continueToCustomize}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
 
@@ -455,7 +427,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
               className="min-h-[42px] w-full py-2.5 px-4 rounded-xl text-xs sm:text-sm font-medium bg-slate-950 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-all flex items-center justify-center gap-1.5 active:scale-[0.985] cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4" />
-              <span>{language === 'en' ? 'Back to plans' : 'Voltar aos planos'}</span>
+              <span>{t.services.backToPlans}</span>
             </button>
           </div>
         </div>
@@ -517,11 +489,11 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
                   {isSelected ? (
                     <span className="inline-flex items-center gap-1 text-[10px] font-bold text-cyan-400 bg-cyan-950/60 border border-cyan-500/40 px-2 py-0.5 rounded-full shrink-0 animate-in fade-in duration-100">
                       <Check className="w-3 h-3 stroke-[3]" />
-                      <span>{language === 'en' ? 'Selected' : 'Selecionado'}</span>
+                      <span>{t.services.selected}</span>
                     </span>
                   ) : (
                     <span className="text-[10px] text-slate-500 font-medium shrink-0">
-                      {language === 'en' ? 'Tap to select' : 'Toque para selecionar'}
+                      {t.services.tapToSelect}
                     </span>
                   )}
                 </div>
@@ -547,14 +519,14 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
 
               {/* Badge de Limite Oficial de Funcionalidades Avançadas */}
               <div className="mt-2 py-1 px-2.5 rounded-lg bg-slate-950/50 border border-slate-800/60 flex items-center justify-between text-[10.5px]">
-                <span className="text-slate-400 font-medium">{language === 'en' ? 'Scope:' : 'Escopo:'}</span>
+                <span className="text-slate-400 font-medium">{t.services.scopeLabel}</span>
                 <span className="font-semibold text-slate-200">{positioning.limitLabel}</span>
               </div>
 
               {/* Principais Recursos Inclusos (Resumo com 3 itens) */}
               <div className="mt-2.5 pt-2 border-t border-slate-800/80 space-y-1.5">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                  {t.services.whatsIncluded || (language === 'en' ? "What's included:" : 'Principais características:')}
+                  {t.services.whatsIncluded}
                 </span>
                 <div className="space-y-1">
                   {visibleFeatures.map((rec, i) => (
@@ -580,9 +552,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
                     aria-expanded={isExpanded}
                   >
                     <span>
-                      {isExpanded
-                        ? (language === 'en' ? 'Hide details' : 'Ocultar detalhes')
-                        : (language === 'en' ? "View what's included" : 'Ver o que está incluído')}
+                      {isExpanded ? t.services.hideIncluded : t.services.seeIncluded}
                     </span>
                     <ChevronDown
                       className={`w-3 h-3 transition-transform duration-200 ${
@@ -597,7 +567,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
               {isExpanded && relatedProjects.length > 0 && (
                 <div className="mt-2.5 pt-2 border-t border-slate-800/80 space-y-1.5 animate-in fade-in duration-150">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                    {language === 'en' ? 'Live demos for this plan:' : 'Demonstrações reais deste plano:'}
+                    {t.services.relatedDemos}
                   </span>
                   <div className="space-y-1.5">
                     {relatedProjects.map((relProj) => (
@@ -647,10 +617,10 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
                     handleStartPlan(plan.id);
                   }}
                   className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer shadow-xs active:scale-95 ${theme.btnAction}`}
-                  aria-label={`${language === 'en' ? 'Start' : 'Iniciar'} ${plan.nome}`}
+                  aria-label={`${t.services.startAction} ${plan.nome}`}
                 >
                   <Play className="w-3 h-3 fill-current shrink-0" />
-                  <span>{language === 'en' ? 'Start' : 'Iniciar'}</span>
+                  <span>{t.services.startAction}</span>
                 </button>
               </div>
             </div>
@@ -667,10 +637,10 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
             <div>
               <h3 className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
                 <Layers className="w-4 h-4 text-cyan-400" />
-                <span>{language === 'en' ? 'Advanced Features' : 'Funcionalidades Avançadas'}</span>
+                <span>{t.services.advancedFeaturesTitle}</span>
               </h3>
               <span className="text-[10.5px] text-slate-400 block mt-0.5">
-                {language === 'en' ? `Scope of ${activePlanObj.nome} Plan` : `Escopo do Plano ${activePlanObj.nome}`}
+                {t.services.scopeOfPlan.replace('{plan}', activePlanObj.nome)}
               </span>
             </div>
 
@@ -687,8 +657,10 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
               >
                 <span>
                   {advancedFeaturesLimit === 0
-                    ? (language === 'en' ? '0 of 0 selected (Fixed Scope)' : '0 de 0 selecionadas (Escopo Fechado)')
-                    : (language === 'en' ? `${selectedFeatures.length} of ${advancedFeaturesLimit} selected` : `${selectedFeatures.length} de ${advancedFeaturesLimit} selecionadas`)}
+                    ? t.services.fixedScopeZero
+                    : t.services.selectedCount
+                        .replace('{count}', String(selectedFeatures.length))
+                        .replace('{limit}', String(advancedFeaturesLimit))}
                 </span>
               </div>
             </div>
@@ -699,12 +671,10 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
             <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/25 text-[11px] text-blue-300 space-y-1">
               <p className="font-semibold flex items-center gap-1.5">
                 <AlertCircle className="w-4 h-4 shrink-0 text-blue-400" />
-                <span>{language === 'en' ? 'Essential Plan · Fixed Scope (0 advanced features)' : 'Plano Essencial · Escopo Fechado (0 funcionalidades avançadas)'}</span>
+                <span>{t.services.essentialScopeNoticeTitle}</span>
               </p>
               <p className="text-slate-300 leading-relaxed">
-                {language === 'en'
-                  ? 'The Essential Plan includes the complete business structure, essential pages, WhatsApp, and basic SEO. To select additional features, choose the Professional (up to 5), Custom (up to 3), or Premium Plan (up to 8).'
-                  : 'O Plano Essencial já inclui a estrutura completa do negócio, páginas essenciais, WhatsApp e SEO básico. Para selecionar funcionalidades adicionais, escolha o Plano Profissional (até 5), Personalizado (até 3) ou Premium (até 8).'}
+                {t.services.essentialScopeNoticeDesc}
               </p>
             </div>
           )}
@@ -770,7 +740,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
                             <div className="pt-1.5 mt-1 border-t border-slate-800/50 flex items-center justify-between gap-1">
                               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[9px] font-bold">
                                 <Sparkles className="w-2.5 h-2.5 text-amber-400 shrink-0" />
-                                <span>{language === 'en' ? 'Advanced / evaluation' : 'Avançado / avaliação'}</span>
+                                <span>{t.services.advancedEvaluationBadge}</span>
                               </span>
                             </div>
                           )}
@@ -790,7 +760,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
               onClick={handleContinue}
               className={`min-h-[44px] w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2 active:scale-[0.985] ${activePlanTheme.btnAction}`}
             >
-              <span>{language === 'en' ? `Start Briefing with ${activePlanObj.nome} Plan` : `Iniciar Briefing com Plano ${activePlanObj.nome}`}</span>
+              <span>{t.services.startBriefingWithPlan.replace('{plan}', activePlanObj.nome)}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -801,10 +771,10 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
       <div className="rounded-2xl bg-slate-900 border border-slate-800 p-3.5 sm:p-4 space-y-1 shadow-sm">
         <div className="flex items-center gap-2 text-xs font-bold text-white">
           <Shield className="w-4 h-4 text-cyan-400 shrink-0" />
-          <span>{t.services.questionsTitle || (language === 'en' ? 'Need help choosing the right plan?' : 'Dúvidas sobre qual plano escolher?')}</span>
+          <span>{t.services.questionsTitle}</span>
         </div>
         <p className="text-[11.5px] text-slate-400 leading-relaxed">
-          {t.services.questionsDesc || (language === 'en' ? 'Our team analyzes your business goals to guide the ideal technical and visual structure.' : 'Nossa equipe analisa as necessidades do seu negócio para sugerir a melhor estrutura técnica e visual para o seu projeto.')}
+          {t.services.questionsDesc}
         </p>
       </div>
     </div>

@@ -2,6 +2,7 @@ import React from 'react';
 import { Check, ChevronRight, AlertCircle, Sparkles } from 'lucide-react';
 import { AdvancedFeatureGroup, AdvancedFeatureItem } from '../../data/advancedFeaturesData';
 import { BackButton } from '../BackButton';
+import { useTranslation } from '../../contexts/LanguageContext';
 
 interface Step5FeaturesProps {
   planName: string;
@@ -24,23 +25,39 @@ export const Step5Features: React.FC<Step5FeaturesProps> = ({
   onNext,
   onPrev,
 }) => {
+  const { t, language } = useTranslation();
+
+  const optionsSuffix = language === 'en' ? 'options' : language === 'es' ? 'opciones' : language === 'fr' ? 'options' : 'opções';
+  const optionSuffix = language === 'en' ? 'option' : language === 'es' ? 'opción' : language === 'fr' ? 'option' : 'opção';
+  const availabilityNotice = language === 'en'
+    ? 'Availability subject to technical feasibility analysis of the project.'
+    : language === 'es'
+    ? 'Disponibilidad según análisis de viabilidad técnica del proyecto.'
+    : language === 'fr'
+    ? 'Disponibilité soumise à l’analyse de faisabilité technique du projet.'
+    : 'Disponibilidade conforme análise de viabilidade do projeto.';
+
+  const countText = t.briefing.step5.selectedCount
+    .replace('{count}', String(selectedAdvancedFeatures.length))
+    .replace('{limit}', String(advancedFeaturesLimit));
+
   return (
     <div className="space-y-4 animate-in fade-in duration-150">
       {/* Cabeçalho da Etapa 5 */}
       <div className="rounded-2xl p-4 bg-gradient-to-br from-indigo-950/60 via-slate-900 to-slate-950 border border-indigo-900/40 shadow-sm space-y-1">
         <div className="flex items-center justify-between">
           <span className="text-[10px] font-mono uppercase text-cyan-300 font-bold">
-            Recursos Avançados
+            {t.briefing.step5.badge}
           </span>
           <span className="text-xs font-mono font-bold text-cyan-400">
-            Plano {planName}
+            {t.briefing.planPrefix} {planName}
           </span>
         </div>
         <h2 className="text-sm sm:text-base font-extrabold text-white">
-          Funcionalidades Adicionais do Projeto
+          {t.briefing.step5.title}
         </h2>
         <p className="text-[11px] text-slate-400">
-          Selecione as funcionalidades que farão parte do escopo da proposta.
+          {t.briefing.step5.subtitle}
         </p>
       </div>
 
@@ -49,10 +66,10 @@ export const Step5Features: React.FC<Step5FeaturesProps> = ({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 pb-2 border-b border-slate-800/80">
           <div>
             <span className="text-xs font-bold text-white block">
-              Seleção de Funcionalidades
+              {t.briefing.step5.selectionTitle}
             </span>
             <span className="text-[10.5px] text-slate-400">
-              Limite correspondente ao Plano {planName}
+              {t.briefing.step5.limitForPlan} {planName}
             </span>
           </div>
 
@@ -67,9 +84,7 @@ export const Step5Features: React.FC<Step5FeaturesProps> = ({
                   : 'bg-slate-950 text-cyan-400 border-slate-800'
               }`}
             >
-              <span>
-                {selectedAdvancedFeatures.length} de {advancedFeaturesLimit} selecionadas
-              </span>
+              <span>{countText}</span>
             </div>
           </div>
         </div>
@@ -79,10 +94,10 @@ export const Step5Features: React.FC<Step5FeaturesProps> = ({
           <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/25 text-[11px] text-blue-300 space-y-1">
             <p className="font-semibold flex items-center gap-1.5">
               <AlertCircle className="w-4 h-4 shrink-0 text-blue-400" />
-              <span>Plano Essencial · Escopo Fechado (0 funcionalidades avançadas)</span>
+              <span>{t.briefing.step5.essentialAlertTitle}</span>
             </p>
             <p className="text-slate-300 leading-relaxed pl-5.5">
-              O Plano Essencial já inclui a apresentação completa do negócio, páginas essenciais, WhatsApp e SEO básico. Para selecionar funcionalidades adicionais, escolha o Plano Profissional (até 5), Personalizado (até 3) ou Premium (até 8).
+              {t.briefing.step5.essentialAlertDesc}
             </p>
           </div>
         )}
@@ -108,7 +123,7 @@ export const Step5Features: React.FC<Step5FeaturesProps> = ({
                   <span>{category}</span>
                 </span>
                 <span className="text-[10px] text-slate-400 font-mono">
-                  {items.length} {items.length === 1 ? 'opção' : 'opções'}
+                  {items.length} {items.length === 1 ? optionSuffix : optionsSuffix}
                 </span>
               </div>
 
@@ -158,10 +173,10 @@ export const Step5Features: React.FC<Step5FeaturesProps> = ({
                         <div className="pt-2 mt-1.5 border-t border-slate-800/50 flex flex-col gap-0.5">
                           <div className="inline-flex items-center gap-1 self-start px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[9.5px] font-bold">
                             <Sparkles className="w-2.5 h-2.5 text-amber-400 shrink-0" />
-                            <span>Avançado / avaliação</span>
+                            <span>{t.briefing.step5.advancedEvaluation}</span>
                           </div>
                           <span className="text-[9px] text-amber-400/75 leading-tight">
-                            Disponibilidade conforme análise de viabilidade do projeto.
+                            {availabilityNotice}
                           </span>
                         </div>
                       )}
@@ -179,7 +194,7 @@ export const Step5Features: React.FC<Step5FeaturesProps> = ({
         {onPrev ? (
           <BackButton
             onClick={onPrev}
-            label="Voltar"
+            label={t.briefing.back}
           />
         ) : (
           <div className="w-11 h-11 shrink-0" aria-hidden="true" />
@@ -190,7 +205,7 @@ export const Step5Features: React.FC<Step5FeaturesProps> = ({
           onClick={onNext}
           className="min-h-[44px] h-11 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white font-semibold text-xs shadow-sm shadow-indigo-950/30 border border-indigo-400/20 inline-flex items-center justify-center gap-1.5 transition-all duration-150 cursor-pointer shrink-0 ml-auto"
         >
-          <span>Avançar</span>
+          <span>{t.briefing.continue}</span>
           <ChevronRight className="w-3.5 h-3.5 shrink-0 -mr-0.5" strokeWidth={2} />
         </button>
       </div>

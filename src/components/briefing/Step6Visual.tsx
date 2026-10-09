@@ -1,7 +1,8 @@
 import React from 'react';
 import { Check, ChevronRight } from 'lucide-react';
-import { VISUAL_STYLES } from './briefingTypes';
+import { getVisualStyles } from './briefingTypes';
 import { BackButton } from '../BackButton';
+import { useTranslation } from '../../contexts/LanguageContext';
 
 interface Step6VisualProps {
   visualStyle: string;
@@ -30,23 +31,26 @@ export const Step6Visual: React.FC<Step6VisualProps> = ({
   highlightedFieldId,
   onClearError,
 }) => {
+  const { t, language } = useTranslation();
+  const styles = getVisualStyles(language);
+
   return (
     <div className="space-y-4 animate-in fade-in duration-150">
       {/* Cabeçalho da Etapa 6 */}
       <div className="rounded-2xl p-4 bg-gradient-to-br from-indigo-950/60 via-slate-900 to-slate-950 border border-indigo-900/40 shadow-sm space-y-1">
         <div className="flex items-center justify-between">
           <span className="text-[10px] font-mono uppercase text-cyan-300 font-bold">
-            Identidade Visual & Cores
+            {t.briefing.step6.badge}
           </span>
           <span className="text-xs font-mono font-bold text-cyan-400">
-            Plano {planName}
+            {t.briefing.planPrefix} {planName}
           </span>
         </div>
         <h2 className="text-sm sm:text-base font-extrabold text-white">
-          Estética & Personalidade Visual
+          {t.briefing.step6.title}
         </h2>
         <p className="text-[11px] text-slate-400">
-          Escolha o estilo e a paleta de cores que melhor traduzem sua marca.
+          {t.briefing.step6.subtitle}
         </p>
       </div>
 
@@ -61,10 +65,10 @@ export const Step6Visual: React.FC<Step6VisualProps> = ({
           }`}
         >
           <label className="text-[11px] font-bold text-cyan-300 uppercase tracking-wider block">
-            1. Estilo Visual Desejado *
+            {t.briefing.step6.styleLabel}
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
-            {VISUAL_STYLES.map((st) => {
+            {styles.map((st) => {
               const isChecked = visualStyle === st.id;
               return (
                 <div
@@ -99,46 +103,46 @@ export const Step6Visual: React.FC<Step6VisualProps> = ({
         {/* 2. Cores & Identidade Visual */}
         <div className="pt-2 border-t border-slate-800/80 space-y-2">
           <label className="text-[11px] font-bold text-white uppercase tracking-wider block">
-            2. Paleta de Cores
+            {t.briefing.step6.colorSectionLabel}
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <button
               type="button"
               onClick={() => setColorMode('suggest')}
-              className={`min-h-[46px] p-2.5 rounded-xl border text-left text-xs transition-all ${
+              className={`min-h-[46px] p-2.5 rounded-xl border text-left text-xs transition-all cursor-pointer ${
                 colorMode === 'suggest'
                   ? 'bg-cyan-950/40 border-cyan-500 text-white font-bold ring-1 ring-cyan-500/40'
                   : 'bg-slate-950 border-slate-800 text-slate-400'
               }`}
             >
-              <span className="block font-bold">Sugestão NexaWeb</span>
-              <span className="block text-[10px] text-slate-500">Harmonia para o segmento</span>
+              <span className="block font-bold">{t.briefing.step6.colorSuggestTitle}</span>
+              <span className="block text-[10px] text-slate-500">{t.briefing.step6.colorSuggestDesc}</span>
             </button>
 
             <button
               type="button"
               onClick={() => setColorMode('brand')}
-              className={`min-h-[46px] p-2.5 rounded-xl border text-left text-xs transition-all ${
+              className={`min-h-[46px] p-2.5 rounded-xl border text-left text-xs transition-all cursor-pointer ${
                 colorMode === 'brand'
                   ? 'bg-indigo-950/40 border-indigo-500 text-white font-bold ring-1 ring-indigo-500/40'
                   : 'bg-slate-950 border-slate-800 text-slate-400'
               }`}
             >
-              <span className="block font-bold">Minhas Cores</span>
-              <span className="block text-[10px] text-slate-500">Identidade existente</span>
+              <span className="block font-bold">{t.briefing.step6.colorBrandTitle}</span>
+              <span className="block text-[10px] text-slate-500">{t.briefing.step6.colorBrandDesc}</span>
             </button>
 
             <button
               type="button"
               onClick={() => setColorMode('custom')}
-              className={`min-h-[46px] p-2.5 rounded-xl border text-left text-xs transition-all ${
+              className={`min-h-[46px] p-2.5 rounded-xl border text-left text-xs transition-all cursor-pointer ${
                 colorMode === 'custom'
                   ? 'bg-purple-950/40 border-purple-500 text-white font-bold ring-1 ring-purple-500/40'
                   : 'bg-slate-950 border-slate-800 text-slate-400'
               }`}
             >
-              <span className="block font-bold">Tons Específicos</span>
-              <span className="block text-[10px] text-slate-500">Sob medida</span>
+              <span className="block font-bold">{t.briefing.step6.colorCustomTitle}</span>
+              <span className="block text-[10px] text-slate-500">{t.briefing.step6.colorCustomDesc}</span>
             </button>
           </div>
 
@@ -147,7 +151,7 @@ export const Step6Visual: React.FC<Step6VisualProps> = ({
               type="text"
               value={customColorDetails}
               onChange={(e) => setCustomColorDetails(e.target.value)}
-              placeholder="Ex: Azul marinho, dourado e branco..."
+              placeholder={t.briefing.step6.customColorsPlaceholder}
               className="w-full min-h-[46px] bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 mt-1 scroll-mt-20"
             />
           )}
@@ -159,7 +163,7 @@ export const Step6Visual: React.FC<Step6VisualProps> = ({
         {onPrev ? (
           <BackButton
             onClick={onPrev}
-            label="Voltar"
+            label={t.briefing.back}
           />
         ) : (
           <div className="w-11 h-11 shrink-0" aria-hidden="true" />
@@ -170,7 +174,7 @@ export const Step6Visual: React.FC<Step6VisualProps> = ({
           onClick={onNext}
           className="min-h-[44px] h-11 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white font-semibold text-xs shadow-sm shadow-indigo-950/30 border border-indigo-400/20 inline-flex items-center justify-center gap-1.5 transition-all duration-150 cursor-pointer shrink-0 ml-auto"
         >
-          <span>Avançar</span>
+          <span>{t.briefing.continue}</span>
           <ChevronRight className="w-3.5 h-3.5 shrink-0 -mr-0.5" strokeWidth={2} />
         </button>
       </div>

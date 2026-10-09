@@ -7,13 +7,13 @@ import {
   CheckCircle2,
   AlertCircle,
   ChevronRight,
-  ExternalLink,
 } from 'lucide-react';
 import { NexawebPlan } from '../../data/servicesData';
 import { SegmentBriefingConfig } from '../../data/segmentBriefingSchemas';
-import { SITE_OBJECTIVES } from './briefingTypes';
+import { getSiteObjectives, getVisualStyles } from './briefingTypes';
 import { findAdvancedFeatureById } from '../../data/advancedFeaturesData';
 import { BudgetCalculationResult } from '../../utils/pricingEngine';
+import { useTranslation } from '../../contexts/LanguageContext';
 
 interface Step9SummaryProps {
   activePlanObj: NexawebPlan;
@@ -94,16 +94,41 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
   isSubmitting,
   submissionSuccess,
   submissionError,
-  copied,
   onSubmit,
-  onCopy,
   onRetry,
   onOfflineProtocol,
   onEditStep,
   onNavigate,
 }) => {
+  const { t, language } = useTranslation();
+
+  const objectives = getSiteObjectives(language);
+  const visualStyles = getVisualStyles(language);
+
   const objectiveLabel =
-    SITE_OBJECTIVES.find((o) => o.id === siteObjective)?.label || siteObjective;
+    objectives.find((o) => o.id === siteObjective)?.label || siteObjective;
+
+  const styleLabel =
+    visualStyles.find((s) => s.id === visualStyle)?.label || visualStyle || t.briefing.step9.toDefine;
+
+  const colorModeLabel = (() => {
+    if (colorMode === 'suggest') return t.briefing.step9.suggestedPalette;
+    if (colorMode === 'brand') return t.briefing.step9.existingBrandColors;
+    if (colorMode === 'custom') {
+      return customColorDetails
+        ? `${t.briefing.step9.specificTones}: ${customColorDetails}`
+        : t.briefing.step9.specificTones;
+    }
+    return t.briefing.step9.toDefine;
+  })();
+
+  const modelApproachLabel = modelApproach === 'exact'
+    ? t.briefing.step9.exactModel
+    : t.briefing.step9.inspiredModel;
+
+  const filesCountText = attachedFiles.length > 0
+    ? t.briefing.step9.photosAttached.replace('{count}', String(attachedFiles.length))
+    : t.briefing.step9.noFilesAttached;
 
   // Quando o briefing é concluído com sucesso, exibe exclusivamente a tela de aprovação/sucesso
   if (submissionSuccess) {
@@ -111,13 +136,13 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
       <div className="p-4 sm:p-5 rounded-2xl bg-emerald-950/80 border border-emerald-500/40 space-y-3 animate-in fade-in duration-150">
         <div className="flex items-center gap-2 text-emerald-300 font-bold text-sm">
           <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-          <span>Briefing Registrado com Sucesso!</span>
+          <span>{t.briefing.step9.successTitle}</span>
         </div>
         <p className="text-xs text-slate-200 leading-relaxed">
           {submissionSuccess.message}
         </p>
         <div className="p-2.5 rounded-xl bg-slate-950/80 border border-emerald-500/30 flex items-center justify-between text-xs">
-          <span className="text-slate-400">Protocolo do Projeto:</span>
+          <span className="text-slate-400">{t.briefing.step9.protocolLabel}:</span>
           <span className="font-mono font-bold text-emerald-400">
             {submissionSuccess.projectId}
           </span>
@@ -128,7 +153,7 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
             onClick={() => onNavigate('portal')}
             className="min-h-[44px] h-11 flex-1 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-slate-950 font-bold text-xs shadow-sm shadow-emerald-950/40 flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer"
           >
-            <span>Acompanhar na Área do Cliente</span>
+            <span>{t.briefing.step9.trackInPortal}</span>
             <ChevronRight className="w-4 h-4 shrink-0" />
           </button>
           <button
@@ -136,7 +161,7 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
             onClick={() => onNavigate('home')}
             className="min-h-[44px] h-11 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.98] border border-slate-700/80 text-slate-300 hover:text-white text-xs font-semibold flex items-center justify-center transition-all duration-150 cursor-pointer"
           >
-            <span>Voltar ao Início</span>
+            <span>{t.briefing.step9.backToHome}</span>
           </button>
         </div>
       </div>
@@ -148,10 +173,10 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
       {/* Cabeçalho da Etapa 9 */}
       <div className="rounded-2xl p-4 bg-gradient-to-br from-indigo-950/60 via-slate-900 to-slate-950 border border-indigo-900/40 shadow-sm space-y-1">
         <h2 className="text-base sm:text-lg font-black text-white tracking-tight">
-          Revisão Final do Briefing
+          {t.briefing.step9.title}
         </h2>
         <p className="text-xs text-slate-300">
-          Confira o resumo das informações antes de enviar a proposta oficial:
+          {t.briefing.step9.subtitle}
         </p>
       </div>
 
@@ -162,17 +187,17 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
           <div className="flex items-start justify-between gap-3">
             <div>
               <span className="text-[10px] font-mono uppercase text-cyan-400 font-bold block">
-                Plano Selecionado
+                {t.briefing.step9.selectedPlan}
               </span>
               <span className="text-sm font-bold text-white">
-                Plano {activePlanObj.nome}
+                {t.briefing.planPrefix} {activePlanObj.nome}
               </span>
               <span className="text-[10.5px] text-slate-400 block mt-0.5">
-                Prazo previsto: {activePlanObj.prazo}
+                {t.briefing.step9.estimatedTimeline}: {activePlanObj.prazo}
               </span>
               {selectedModel && (
                 <span className="text-[10.5px] text-cyan-300 block mt-0.5">
-                  Modelo: {selectedModel} ({modelApproach === 'exact' ? 'Formato exato' : 'Inspiração'})
+                  {selectedModel} ({modelApproachLabel})
                 </span>
               )}
             </div>
@@ -183,9 +208,9 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
               <button
                 type="button"
                 onClick={() => onEditStep(1)}
-                className="p-1.5 rounded-lg bg-slate-950 text-slate-400 hover:text-cyan-300 border border-slate-800 transition-colors"
-                title="Editar plano ou modelo"
-                aria-label="Editar plano"
+                className="p-1.5 rounded-lg bg-slate-950 text-slate-400 hover:text-cyan-300 border border-slate-800 transition-colors cursor-pointer"
+                title={t.briefing.step9.editStep.replace('{step}', '1')}
+                aria-label={t.briefing.step9.editStep.replace('{step}', '1')}
               >
                 <Edit2 className="w-3.5 h-3.5" />
               </button>
@@ -196,30 +221,30 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
           {budgetCalculation && (
             <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800/70 space-y-1.5 text-[11px]">
               <div className="flex items-center justify-between text-slate-400">
-                <span>Preço-base oficial ({activePlanObj.nome}):</span>
+                <span>{t.services.price} ({activePlanObj.nome}):</span>
                 <span className="font-mono text-slate-200">{budgetCalculation.formattedBasePrice}</span>
               </div>
 
               {budgetCalculation.selectedFeatures.length > 0 && (
                 <div className="space-y-1 pt-1 border-t border-slate-850">
                   <span className="text-[10px] font-bold text-amber-300 uppercase tracking-wider block">
-                    Adicionais Confirmados:
+                    {t.briefing.step9.advancedFeatures}:
                   </span>
                   {budgetCalculation.selectedFeatures.map((feat) => (
                     <div key={feat.id} className="flex items-center justify-between text-slate-300 pl-1">
-                      <span>• {feat.nome} {feat.isRealtime ? '(Tempo real)' : ''}:</span>
+                      <span>• {feat.nome} {feat.isRealtime ? '(Realtime)' : ''}:</span>
                       <span className="font-mono text-amber-300 font-semibold">{feat.formattedPreco}</span>
                     </div>
                   ))}
                   <div className="flex items-center justify-between text-slate-400 pt-0.5">
-                    <span>Subtotal dos adicionais:</span>
+                    <span>Extras:</span>
                     <span className="font-mono text-amber-300">{budgetCalculation.formattedExtrasTotal}</span>
                   </div>
                 </div>
               )}
 
               <div className="flex items-center justify-between pt-1 border-t border-slate-800 font-bold text-xs">
-                <span className="text-white">Orçamento Estimado Total:</span>
+                <span className="text-white">{t.briefing.step9.estimatedBudget}:</span>
                 <span className="font-mono text-cyan-300">{budgetCalculation.formattedTotalPrice}</span>
               </div>
 
@@ -237,26 +262,26 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
         <div className="space-y-2 border-b border-slate-800/80 pb-3">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-              Informações do Negócio
+              {t.briefing.step9.businessIdentification}
             </span>
             <button
               type="button"
               onClick={() => onEditStep(2)}
-              className="text-[10px] text-cyan-400 hover:text-cyan-300 font-semibold underline flex items-center gap-1"
+              className="text-[10px] text-cyan-400 hover:text-cyan-300 font-semibold underline flex items-center gap-1 cursor-pointer"
             >
               <Edit2 className="w-2.5 h-2.5" />
-              <span>Editar</span>
+              <span>{t.onboarding.editStep}</span>
             </button>
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-slate-400">Nome do Negócio:</span>
+            <span className="text-slate-400">{t.briefing.step9.businessName}:</span>
             <span className="font-bold text-white text-right">{businessName || '—'}</span>
           </div>
 
           {siteObjective && (
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">Objetivo Principal:</span>
+              <span className="text-slate-400">{t.briefing.step9.objective}:</span>
               <span className="font-semibold text-cyan-300 text-right">
                 {objectiveLabel}
               </span>
@@ -265,23 +290,23 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
 
           {businessLocation && (
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">Localização / Região:</span>
+              <span className="text-slate-400">{t.briefing.step9.location}:</span>
               <span className="text-white text-right">{businessLocation}</span>
             </div>
           )}
 
           {businessBranches && (
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">Unidades:</span>
+              <span className="text-slate-400">{t.briefing.step9.branches}:</span>
               <span className="text-white text-right">{businessBranches}</span>
             </div>
           )}
 
           {googleMapsLink && (
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">Google Maps:</span>
+              <span className="text-slate-400">{t.briefing.step9.googleMaps}:</span>
               <span className="text-cyan-400 truncate max-w-[180px] text-right underline">
-                Link informado
+                Link
               </span>
             </div>
           )}
@@ -291,20 +316,20 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
         <div className="space-y-2 border-b border-slate-800/80 pb-3">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-              Segmento de Atuação
+              {t.briefing.step9.segment}
             </span>
             <button
               type="button"
               onClick={() => onEditStep(3)}
-              className="text-[10px] text-cyan-400 hover:text-cyan-300 font-semibold underline flex items-center gap-1"
+              className="text-[10px] text-cyan-400 hover:text-cyan-300 font-semibold underline flex items-center gap-1 cursor-pointer"
             >
               <Edit2 className="w-2.5 h-2.5" />
-              <span>Editar</span>
+              <span>{t.onboarding.editStep}</span>
             </button>
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-slate-400">Nicho Escolhido:</span>
+            <span className="text-slate-400">{t.briefing.step9.segment}:</span>
             <span className="font-bold text-white text-right flex items-center gap-1.5">
               <span>{segmentConfig.icon}</span>
               <span>{segmentConfig.name}</span>
@@ -316,15 +341,15 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
         <div className="space-y-2 border-b border-slate-800/80 pb-3">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-              Necessidades & Estrutura
+              {t.briefing.step9.scopeItems}
             </span>
             <button
               type="button"
               onClick={() => onEditStep(4)}
-              className="text-[10px] text-cyan-400 hover:text-cyan-300 font-semibold underline flex items-center gap-1"
+              className="text-[10px] text-cyan-400 hover:text-cyan-300 font-semibold underline flex items-center gap-1 cursor-pointer"
             >
               <Edit2 className="w-2.5 h-2.5" />
-              <span>Editar</span>
+              <span>{t.onboarding.editStep}</span>
             </button>
           </div>
 
@@ -367,7 +392,7 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
           {selectedFeatures.length > 0 && (
             <div className="pt-1">
               <span className="text-slate-400 block mb-1">
-                Diferenciais:
+                {segmentConfig.featuresLabel}:
               </span>
               <div className="flex flex-wrap gap-1">
                 {selectedFeatures.map((feat) => (
@@ -384,21 +409,21 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
 
           {operatingSchedule && (
             <div className="flex items-center justify-between pt-1">
-              <span className="text-slate-400">Horários:</span>
+              <span className="text-slate-400">{t.briefing.step4.scheduleLabel}:</span>
               <span className="text-white text-right">{operatingSchedule}</span>
             </div>
           )}
 
           {teamDescription && (
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">Equipe:</span>
+              <span className="text-slate-400">{t.briefing.step4.teamLabel}:</span>
               <span className="text-white text-right">{teamDescription}</span>
             </div>
           )}
 
           {freeServicesText && (
             <div className="pt-1">
-              <span className="text-slate-400 block mb-0.5">Detalhes de Serviços:</span>
+              <span className="text-slate-400 block mb-0.5">{t.briefing.step4.servicesDetailsLabel}:</span>
               <p className="text-[10.5px] text-slate-300 bg-slate-950 p-2 rounded-lg border border-slate-800/80">
                 {freeServicesText}
               </p>
@@ -410,15 +435,15 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
         <div className="space-y-2 border-b border-slate-800/80 pb-3">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-              Funcionalidades ({selectedAdvancedFeatures.length} de {advancedFeaturesLimit})
+              {t.briefing.step9.advancedFeatures} ({selectedAdvancedFeatures.length} / {advancedFeaturesLimit})
             </span>
             <button
               type="button"
               onClick={() => onEditStep(5)}
-              className="text-[10px] text-cyan-400 hover:text-cyan-300 font-semibold underline flex items-center gap-1"
+              className="text-[10px] text-cyan-400 hover:text-cyan-300 font-semibold underline flex items-center gap-1 cursor-pointer"
             >
               <Edit2 className="w-2.5 h-2.5" />
-              <span>Editar</span>
+              <span>{t.onboarding.editStep}</span>
             </button>
           </div>
 
@@ -434,7 +459,7 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
                     <span>{feat ? feat.nome : featId}</span>
                     {feat?.isComplex && (
                       <span className="text-[8.5px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-300">
-                        avaliação
+                        {t.briefing.step5.advancedEvaluation}
                       </span>
                     )}
                   </span>
@@ -444,8 +469,8 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
           ) : (
             <span className="text-[11px] text-slate-500 italic block">
               {advancedFeaturesLimit === 0
-                ? 'Plano Essencial · Escopo padrão incluído'
-                : 'Nenhuma funcionalidade adicional selecionada'}
+                ? t.services.scopeClosed
+                : t.briefing.step9.noneSelected}
             </span>
           )}
         </div>
@@ -454,34 +479,26 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
         <div className="space-y-2 border-b border-slate-800/80 pb-3">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-              Identidade Visual
+              {t.briefing.step9.visualIdentity}
             </span>
             <button
               type="button"
               onClick={() => onEditStep(6)}
-              className="text-[10px] text-cyan-400 hover:text-cyan-300 font-semibold underline flex items-center gap-1"
+              className="text-[10px] text-cyan-400 hover:text-cyan-300 font-semibold underline flex items-center gap-1 cursor-pointer"
             >
               <Edit2 className="w-2.5 h-2.5" />
-              <span>Editar</span>
+              <span>{t.onboarding.editStep}</span>
             </button>
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-slate-400">Estilo:</span>
-            <span className="font-semibold text-white text-right">{visualStyle || 'A definir'}</span>
+            <span className="text-slate-400">{t.briefing.step9.style}:</span>
+            <span className="font-semibold text-white text-right">{styleLabel}</span>
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-slate-400">Paleta:</span>
-            <span className="text-white text-right">
-              {colorMode === 'suggest'
-                ? 'Sugestão NexaWeb'
-                : colorMode === 'brand'
-                ? 'Minhas Cores'
-                : colorMode === 'custom'
-                ? `Tons Específicos: ${customColorDetails || 'Definidos'}`
-                : 'A definir pela equipe'}
-            </span>
+            <span className="text-slate-400">{t.briefing.step9.colors}:</span>
+            <span className="text-white text-right">{colorModeLabel}</span>
           </div>
         </div>
 
@@ -489,21 +506,21 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
         <div className="space-y-2 border-b border-slate-800/80 pb-3">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-              Conteúdo & Contato
+              {t.briefing.step7.badge}
             </span>
             <button
               type="button"
               onClick={() => onEditStep(7)}
-              className="text-[10px] text-cyan-400 hover:text-cyan-300 font-semibold underline flex items-center gap-1"
+              className="text-[10px] text-cyan-400 hover:text-cyan-300 font-semibold underline flex items-center gap-1 cursor-pointer"
             >
               <Edit2 className="w-2.5 h-2.5" />
-              <span>Editar</span>
+              <span>{t.onboarding.editStep}</span>
             </button>
           </div>
 
           {customProjectIdea && (
             <div>
-              <span className="text-slate-400 block mb-0.5">Descrição Livre:</span>
+              <span className="text-slate-400 block mb-0.5">{t.briefing.step9.projectIdea}:</span>
               <p className="text-[10.5px] text-slate-300 bg-slate-950 p-2 rounded-lg border border-slate-800/80">
                 {customProjectIdea}
               </p>
@@ -512,7 +529,7 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
 
           {customReferenceLink && (
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">Link de Referência:</span>
+              <span className="text-slate-400">{t.briefing.step9.referenceLink}:</span>
               <span className="text-cyan-400 truncate max-w-[180px] text-right underline">
                 {customReferenceLink}
               </span>
@@ -520,25 +537,25 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
           )}
 
           <div className="flex items-center justify-between pt-1 border-t border-slate-800/60">
-            <span className="text-slate-400">Responsável:</span>
+            <span className="text-slate-400">{t.briefing.step9.responsibleContact}:</span>
             <span className="font-bold text-white text-right">{contactName || '—'}</span>
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-slate-400">WhatsApp:</span>
+            <span className="text-slate-400">{t.briefing.step9.phone}:</span>
             <span className="font-mono text-cyan-300 text-right">{contactPhone || '—'}</span>
           </div>
 
           {contactEmail && (
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">E-mail:</span>
+              <span className="text-slate-400">{t.briefing.step9.email}:</span>
               <span className="text-white text-right">{contactEmail}</span>
             </div>
           )}
 
           {specificNotes && (
             <div className="pt-1">
-              <span className="text-slate-400 block mb-0.5">Observações:</span>
+              <span className="text-slate-400 block mb-0.5">{t.briefing.step9.notes}:</span>
               <p className="text-[10.5px] text-slate-300 bg-slate-950 p-2 rounded-lg border border-slate-800/80">
                 {specificNotes}
               </p>
@@ -550,24 +567,22 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
         <div className="space-y-2 pb-1">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-              Arquivos Anexados
+              {t.briefing.step9.attachedFiles}
             </span>
             <button
               type="button"
               onClick={() => onEditStep(8)}
-              className="text-[10px] text-cyan-400 hover:text-cyan-300 font-semibold underline flex items-center gap-1"
+              className="text-[10px] text-cyan-400 hover:text-cyan-300 font-semibold underline flex items-center gap-1 cursor-pointer"
             >
               <Edit2 className="w-2.5 h-2.5" />
-              <span>Editar</span>
+              <span>{t.onboarding.editStep}</span>
             </button>
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-slate-400">Fotos & Logo:</span>
+            <span className="text-slate-400">{t.briefing.step9.attachedFiles}:</span>
             <span className="font-mono font-bold text-cyan-300">
-              {attachedFiles.length > 0
-                ? `${attachedFiles.length} arquivo(s) anexado(s)`
-                : 'Nenhum arquivo (usaremos banco profissional)'}
+              {filesCountText}
             </span>
           </div>
         </div>
@@ -578,7 +593,7 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
         <div className="p-4 rounded-2xl bg-rose-950/80 border border-rose-500/50 space-y-2.5 animate-in fade-in">
           <div className="flex items-center gap-2 text-rose-300 font-bold text-xs">
             <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-            <span>Erro ao enviar proposta online</span>
+            <span>{t.briefing.step9.errorTitle}</span>
           </div>
           <p className="text-xs text-slate-300">
             {submissionError}
@@ -588,17 +603,17 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
               type="button"
               onClick={onRetry}
               disabled={isSubmitting}
-              className="min-h-[44px] flex-1 py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center justify-center gap-2"
+              className="min-h-[44px] flex-1 py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-              <span>Tentar Novamente</span>
+              <span>{t.briefing.retry}</span>
             </button>
             <button
               type="button"
               onClick={onOfflineProtocol}
-              className="min-h-[44px] flex-1 py-2 px-3 rounded-xl bg-slate-900 border border-slate-700 text-cyan-300 font-semibold text-xs flex items-center justify-center gap-1.5"
+              className="min-h-[44px] flex-1 py-2 px-3 rounded-xl bg-slate-900 border border-slate-700 text-cyan-300 font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
             >
-              <span>Salvar Offline com Protocolo</span>
+              <span>{t.briefing.step9.generateOfflineProtocol}</span>
             </button>
           </div>
         </div>
@@ -615,12 +630,12 @@ export const Step9Summary: React.FC<Step9SummaryProps> = ({
           {isSubmitting ? (
             <>
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              <span>Registrando seu projeto...</span>
+              <span>{t.briefing.submitting}</span>
             </>
           ) : (
             <>
               <Send className="w-3.5 h-3.5" />
-              <span>Enviar Briefing Oficial</span>
+              <span>{t.briefing.step9.reviewAndSubmit}</span>
             </>
           )}
         </button>
