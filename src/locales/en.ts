@@ -163,7 +163,7 @@ export const en: Translations = {
     inspirationApproachDesc: 'Aesthetic reference with freedom to define specific sections, colors, and modules.',
     featuresShowcaseTitle: 'What this model showcases',
     techDifferentialsTitle: 'Differentials & Technology',
-    startBriefingBtn: 'Start Briefing',
+    startBriefingBtn: 'Start project',
     inDevelopment: 'In development',
     backToPortfolio: 'Back to portfolio',
   },

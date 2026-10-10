@@ -163,7 +163,7 @@ export const es: Translations = {
     inspirationApproachDesc: 'Referencia estética con libertad para definir secciones, colores y módulos específicos.',
     featuresShowcaseTitle: 'Lo que este modelo presenta',
     techDifferentialsTitle: 'Diferenciales & Tecnología',
-    startBriefingBtn: 'Iniciar Briefing',
+    startBriefingBtn: 'Iniciar proyecto',
     inDevelopment: 'En desarrollo',
     backToPortfolio: 'Volver al portafolio',
   },

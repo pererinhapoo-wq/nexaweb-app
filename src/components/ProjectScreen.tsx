@@ -6,7 +6,11 @@ import {
   uploadBriefingImages,
   generateOfflineBriefingProtocol,
 } from '../utils/briefingService';
-import { registerClientProjectFromBriefing } from '../utils/portalService';
+import {
+  registerClientProjectFromBriefing,
+  generateUniqueProjectCode,
+  getAllProjects,
+} from '../utils/portalService';
 import {
   getBriefingDraftSync,
   getBriefingDraft,
@@ -130,8 +134,34 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     }
   }, [initialPlan]);
 
-  // Segmento dinâmico selecionado: inicia vazio para o usuário escolher
-  const [selectedSegment, setSelectedSegment] = useState<string>('');
+  // Sincroniza modelo e abordagem caso atualizados externamente
+  useEffect(() => {
+    if (initialModel) {
+      setSelectedModel(initialModel);
+      setSelectedSegment((prev) => {
+        if (!prev) {
+          const key = normalizeSegmentKey(initialModel);
+          return key && key !== 'sob_medida' ? key : prev;
+        }
+        return prev;
+      });
+    }
+  }, [initialModel]);
+
+  useEffect(() => {
+    if (initialModelApproach) {
+      setModelApproach(initialModelApproach);
+    }
+  }, [initialModelApproach]);
+
+  // Segmento dinâmico selecionado: inicia com o segmento do modelo caso informado, ou vazio para o usuário escolher
+  const [selectedSegment, setSelectedSegment] = useState<string>(() => {
+    if (initialModel) {
+      const key = normalizeSegmentKey(initialModel);
+      if (key && key !== 'sob_medida') return key;
+    }
+    return '';
+  });
 
   // Configuração ativa do segmento dinâmico
   const segmentConfig = useMemo(() => {
@@ -556,6 +586,8 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
       saveBriefingDraft(planToSave, {
         step: currentStep,
         selectedPlan: planToSave,
+        selectedModel,
+        modelApproach,
         businessName,
         siteObjective,
         selectedSegment,
@@ -579,6 +611,8 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     currentStep,
     selectedPlan,
     initialPlan,
+    selectedModel,
+    modelApproach,
     businessName,
     siteObjective,
     selectedSegment,
@@ -892,7 +926,13 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
       bm.expectedTimeline.replace('{timeline}', activePlanObj.prazo)
     );
 
-    if (startMode === 'propria') {
+    if (selectedModel) {
+      const approachText =
+        modelApproach === 'exact'
+          ? (t.projectDetail?.exactApproachTitle || 'Formato idêntico')
+          : (t.projectDetail?.inspirationApproachTitle || 'Inspiração para personalizar');
+      lines.push(bm.startingPoint.replace('{point}', `${selectedModel} (${approachText})`));
+    } else if (startMode === 'propria') {
       lines.push(bm.startingPoint.replace('{point}', t.briefing.step9.customProjectOrigin));
     } else {
       lines.push(bm.startingPoint.replace('{point}', t.briefing.step9.directPlanOrigin));
@@ -1051,8 +1091,13 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
         origem: 'NexaWeb App · Etapa 6',
       });
 
-      if (res.success && res.projectId) {
-        if (attachedFiles.length > 0) {
+      // Validação estrita: somente gera e exibe o código se o envio for bem-sucedido!
+      if (res.success) {
+        // Gera um código único individual para o projeto (nunca DEMO-2026, sem duplicatas)
+        const existingProjects = await getAllProjects();
+        const individualCode = generateUniqueProjectCode(existingProjects);
+
+        if (attachedFiles.length > 0 && res.projectId) {
           try {
             await uploadBriefingImages(res.projectId, attachedFiles);
           } catch {
@@ -1062,26 +1107,27 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
 
         await clearBriefingDraft(selectedPlan);
 
-        // Registra o projeto para acompanhamento instantâneo na Área do Cliente
+        // Associa o código individual ao projeto e armazena de forma persistente
         try {
           await registerClientProjectFromBriefing(
-            res.projectId,
+            individualCode,
             contactName,
             businessName,
             selectedPlan,
-            summary
+            summary,
+            res.projectId
           );
         } catch {
           // fallback silencioso
         }
 
-        const message = res.message || t.briefing.submitSuccessDefault;
         setSubmissionSuccess({
-          projectId: res.projectId,
-          message,
+          projectId: individualCode,
+          message: 'Guarde este código para consultar seu projeto.',
           isOfflineFallback: Boolean(res.isOfflineFallback),
         });
       } else {
+        // Se o envio falhar, NÃO gera código e exibe erro para nova tentativa
         setSubmissionError(
           res.error || t.briefing.submitErrorDefault
         );
@@ -1101,12 +1147,13 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
     setIsSubmitting(true);
     setSubmissionError(null);
     try {
-      const res = generateOfflineBriefingProtocol();
+      const existingProjects = await getAllProjects();
+      const individualCode = generateUniqueProjectCode(existingProjects);
       await clearBriefingDraft(selectedPlan);
 
       try {
         await registerClientProjectFromBriefing(
-          res.projectId!,
+          individualCode,
           contactName,
           businessName,
           selectedPlan,
@@ -1117,8 +1164,8 @@ export const ProjectScreen: React.FC<ProjectScreenProps> = ({
       }
 
       setSubmissionSuccess({
-        projectId: res.projectId!,
-        message: res.message!,
+        projectId: individualCode,
+        message: 'Guarde este código para consultar seu projeto.',
         isOfflineFallback: true,
       });
     } finally {

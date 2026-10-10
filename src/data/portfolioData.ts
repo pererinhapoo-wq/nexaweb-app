@@ -48,8 +48,11 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
       linkDemo: 'https://king-s-barber-2-yn3c.vercel.app/',
       imagemUrl: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=800&q=80',
       imagens: [
-        'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=800&q=80',
-        'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=800&q=80'
+        'https://king-s-barber-2-yn3c.vercel.app/assets/hero_kings_barber_1790816886244-C5Xee-BA.jpg',
+        'https://king-s-barber-2-yn3c.vercel.app/assets/service_fade_haircut_1790816895910-BogR4UIi.jpg',
+        'https://king-s-barber-2-yn3c.vercel.app/assets/service_beard_grooming_1790816905975-CRui_1xQ.jpg',
+        'https://king-s-barber-2-yn3c.vercel.app/assets/team_master_barber_1790816914439-Dei9K88O.jpg',
+        'https://king-s-barber-2-yn3c.vercel.app/assets/barbershop_interior_lounge_1790816923816-CBpQiwhw.jpg'
       ]
     },
 
@@ -76,8 +79,11 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
       linkDemo: 'https://sal-o-premium.vercel.app/',
       imagemUrl: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=800&q=80',
       imagens: [
-        'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=800&q=80',
-        'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=800&q=80'
+        'https://sal-o-premium.vercel.app/assets/hero_editorial_salon_1791177517311-C9WiYYfS.jpg',
+        'https://sal-o-premium.vercel.app/assets/specialist_master_stylist_1791177552940-D4AAiYGk.jpg',
+        'https://sal-o-premium.vercel.app/assets/gallery_hair_balayage_1791177532910-Dr1tKkoN.jpg',
+        'https://sal-o-premium.vercel.app/assets/gallery_salon_interior_1791177542993-C137vUgF.jpg',
+        'https://sal-o-premium.vercel.app/assets/hair_transformation_editorial_1791177562306-oaSM_RPZ.jpg'
       ]
     },
     {
@@ -100,8 +106,11 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
       linkDemo: 'https://nexaweb-nova-arq-1.vercel.app/',
       imagemUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
       imagens: [
-        'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
-        'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=800&q=80'
+        'https://nexaweb-nova-arq-1.vercel.app/assets/hero_architecture_1790883865890-DH0ewb0B.jpg',
+        'https://nexaweb-nova-arq-1.vercel.app/assets/proj_casa_horizonte_1790883876712-CDFQ7PT-.jpg',
+        'https://nexaweb-nova-arq-1.vercel.app/assets/proj_residencia_aurea_1790883886644-Co-U5f05.jpg',
+        'https://nexaweb-nova-arq-1.vercel.app/assets/feature_espaco_ideia_1790883905363-B3RNVLyZ.jpg',
+        'https://nexaweb-nova-arq-1.vercel.app/assets/proj_escritorio_linha_1790883896492-CU1DaN3b.jpg'
       ]
     },
     {
@@ -124,8 +133,10 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
       linkDemo: 'https://nexaweb-lumiere.vercel.app/',
       imagemUrl: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=800&q=80',
       imagens: [
-        'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=800&q=80',
-        'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80'
+        'https://nexaweb-lumiere.vercel.app/assets/hero_lumiere_wellness_1790886982882-_CGrplcT.jpg',
+        'https://nexaweb-lumiere.vercel.app/assets/treatment_skincare_facial_1790887003509-V322YoMS.jpg',
+        'https://nexaweb-lumiere.vercel.app/assets/clinic_interior_experience_1790886992775-Q7yruN5m.jpg',
+        'https://nexaweb-lumiere.vercel.app/assets/specialists_demonstration_1790887017397-BzM3CQcD.jpg'
       ]
     },
     {
@@ -172,8 +183,11 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
       linkDemo: 'https://pet-shop-personalidade-e-profission.vercel.app/',
       imagemUrl: 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=800&q=80',
       imagens: [
-        'https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=800&q=80',
-        'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?auto=format&fit=crop&w=800&q=80'
+        'https://pet-shop-personalidade-e-profission.vercel.app/assets/vet_hero_care_1791213411609-DLU4Dlgw.jpg',
+        'https://pet-shop-personalidade-e-profission.vercel.app/assets/cat_friendly_suite_1791213423130-BzuQ9VVq.jpg',
+        'https://pet-shop-personalidade-e-profission.vercel.app/assets/pet_spa_grooming_1791213433780-C1nfDM6R.jpg',
+        'https://pet-shop-personalidade-e-profission.vercel.app/assets/pet_boutique_nutrition_1791213443351-BF6TQvk1.jpg',
+        'https://pet-shop-personalidade-e-profission.vercel.app/assets/vet_helena_portrait_1791215175019-CsdiSaVN.jpg'
       ]
     },
     {
@@ -196,8 +210,10 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
       linkDemo: 'https://restaurante-premium-delta.vercel.app/',
       imagemUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80',
       imagens: [
-        'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80',
-        'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80'
+        'https://restaurante-premium-delta.vercel.app/assets/vitrae_hero_architecture_1790827939043-CruZLfzU.jpg',
+        'https://restaurante-premium-delta.vercel.app/assets/vitrae_ambience_consultorio_1790827951139-rVG4hpvs.jpg',
+        'https://restaurante-premium-delta.vercel.app/assets/vitrae_ambience_lounge_1790827963789-CdtfRx-P.jpg',
+        'https://restaurante-premium-delta.vercel.app/assets/vitrae_wellness_rehab_1790827972018-DH_IfCfQ.jpg'
       ]
     },
 
@@ -224,8 +240,11 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
       linkDemo: 'https://academia-premium-beryl.vercel.app/',
       imagemUrl: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80',
       imagens: [
-        'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80',
-        'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=800&q=80'
+        'https://academia-premium-beryl.vercel.app/assets/hero_aurea_performance_1790826920112-BrlHrDue.jpg',
+        'https://academia-premium-beryl.vercel.app/assets/facility_recovery_suite_1790826930359-De-nuvBN.jpg',
+        'https://academia-premium-beryl.vercel.app/assets/gym_precision_detail_1790826959491-YLZ5opRn.jpg',
+        'https://academia-premium-beryl.vercel.app/assets/trainer_marina_duarte_1790826939993-B-Of7Qun.jpg',
+        'https://academia-premium-beryl.vercel.app/assets/trainer_lucas_almeida_1790826949519-OeHbKQ5I.jpg'
       ]
     },
     {
@@ -272,8 +291,11 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
       linkDemo: 'https://imobili-ria-premium.vercel.app/',
       imagemUrl: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80',
       imagens: [
-        'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80',
-        'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80'
+        'https://imobili-ria-premium.vercel.app/assets/hero_luxury_penthouse_1790834541629-D47iXe8J.jpg',
+        'https://imobili-ria-premium.vercel.app/assets/property_villa_jardins_1790834552384-BjB5yIR9.jpg',
+        'https://imobili-ria-premium.vercel.app/assets/property_penthouse_terrace_1790834563010-SpNQk_7M.jpg',
+        'https://imobili-ria-premium.vercel.app/assets/property_loft_architectural_1790834573444-w5tes-VE.jpg',
+        'https://imobili-ria-premium.vercel.app/assets/property_mansion_golf_1790834582867-C6m7r73v.jpg'
       ]
     },
     {
@@ -296,8 +318,10 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
       linkDemo: 'https://loja-premium.vercel.app/',
       imagemUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80',
       imagens: [
-        'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80',
-        'https://images.unsplash.com/photo-1472851294608-062f824d29cc?auto=format&fit=crop&w=800&q=80'
+        'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=2070',
+        'https://images.unsplash.com/photo-1546868871-7041f2a55e12?q=80&w=1964',
+        'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=2070',
+        'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070'
       ]
     },
     {
@@ -320,8 +344,11 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
       linkDemo: 'https://grok-workspace-1-three-alpha.vercel.app/',
       imagemUrl: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80',
       imagens: [
-        'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80',
-        'https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=800&q=80'
+        'https://grok-workspace-1-three-alpha.vercel.app/images/hero.jpg',
+        'https://grok-workspace-1-three-alpha.vercel.app/images/about.jpg',
+        'https://grok-workspace-1-three-alpha.vercel.app/images/recepcao.jpg',
+        'https://grok-workspace-1-three-alpha.vercel.app/images/consultorio.jpg',
+        'https://grok-workspace-1-three-alpha.vercel.app/images/fachada.jpg'
       ]
     },
     {
@@ -344,8 +371,11 @@ export const getPortfolioProjects = (lang: Language = 'pt-BR'): PortfolioProject
       linkDemo: 'https://grok-workspace-puce.vercel.app/',
       imagemUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
       imagens: [
-        'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
-        'https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=800&q=80'
+        'https://grok-workspace-puce.vercel.app/images/hero.jpg',
+        'https://grok-workspace-puce.vercel.app/images/about.jpg',
+        'https://grok-workspace-puce.vercel.app/images/featured.jpg',
+        'https://grok-workspace-puce.vercel.app/images/gallery-salon.jpg',
+        'https://grok-workspace-puce.vercel.app/images/gallery-table.jpg'
       ]
     }
   ];

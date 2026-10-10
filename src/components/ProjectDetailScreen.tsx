@@ -7,7 +7,6 @@ import {
   Layers,
   Globe,
   Tag,
-  Send,
   Check,
 } from 'lucide-react';
 import { BackButton } from './BackButton';
@@ -33,10 +32,10 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  // 1. Lista de Imagens Reais do segmento
+  // 1. Lista de Imagens Reais do segmento (exibe até 5 imagens por projeto)
   const imageList = useMemo(() => {
     if (project.imagens && project.imagens.length > 0) {
-      return project.imagens;
+      return project.imagens.slice(0, 5);
     }
     if (project.imagemUrl) {
       return [project.imagemUrl];
@@ -46,11 +45,28 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
 
   const hasMultipleImages = imageList.length > 1;
 
-  // Estado do Carrossel (Estritamente Manual)
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [imageOverrides, setImageOverrides] = useState<Record<number, string>>({});
-  const [loadedImages, setLoadedImages] = useState<Record<number, boolean>>({});
-  const [failedImages, setFailedImages] = useState<Record<number, boolean>>({});
+  // Slides estendidos para loop infinito fluido com prévia à direita
+  const extendedSlides = useMemo(() => {
+    if (imageList.length <= 1) return imageList;
+    return [
+      imageList[imageList.length - 1], // Slot 0: clone do último para recuo suave
+      ...imageList,                    // Slots 1 .. N: slides originais
+      imageList[0],                    // Slot N+1: clone do primeiro
+      imageList[1 % imageList.length], // Slot N+2: clone do segundo para prévia no slot N+1
+    ];
+  }, [imageList]);
+
+  // Estado da Galeria (Slot ativo no trilho estendido)
+  const [activeSlot, setActiveSlot] = useState(1);
+  const [isTransitioning, setIsTransitioning] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isUserInteracting, setIsUserInteracting] = useState(false);
+
+  const [loadedUrls, setLoadedUrls] = useState<Record<string, boolean>>({});
+  const [failedUrls, setFailedUrls] = useState<Record<string, boolean>>({});
+  const [imageOverrides, setImageOverrides] = useState<Record<string, string>>({});
+
+  const resumeTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Gesto de Swipe no celular
   const touchStartXRef = useRef<number | null>(null);
@@ -63,8 +79,8 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
   const mouseStartXRef = useRef<number>(0);
   const mouseDeltaXRef = useRef<number>(0);
 
-  // 2. Abordagem do Modelo: Exatamente o mesmo formato OU Inspiração para personalizar
-  const [selectedApproach, setSelectedApproach] = useState<'exact' | 'inspiration'>('exact');
+  // 2. Abordagem do Modelo: Formato padrão para o briefing
+  const selectedApproach: 'exact' | 'inspiration' = 'exact';
 
   const planName = project.planoId ? project.planoId.toUpperCase() : 'PROFISSIONAL';
 
@@ -85,32 +101,105 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
       })()
     : t.projectDetail?.inDevelopment || 'Em desenvolvimento';
 
-  // Navegação manual de imagem (sem setas na UI)
-  const handlePrevImage = useCallback(() => {
-    setCurrentImageIndex((prev) => (prev > 0 ? prev - 1 : imageList.length - 1));
-  }, [imageList.length]);
+  // Índice real correspondente para a UI (0 até N - 1)
+  const currentImageIndex = useMemo(() => {
+    if (imageList.length <= 1) return 0;
+    if (activeSlot === 0) return imageList.length - 1;
+    if (activeSlot >= imageList.length + 1) return (activeSlot - 1) % imageList.length;
+    return activeSlot - 1;
+  }, [activeSlot, imageList.length]);
 
-  const handleNextImage = useCallback(() => {
-    setCurrentImageIndex((prev) => (prev < imageList.length - 1 ? prev + 1 : 0));
-  }, [imageList.length]);
-
-  // Pré-carregamento sob demanda SOMENTE da próxima imagem
-  const preloadedImagesRef = useRef<Set<string>>(new Set());
-
+  // Pré-carregamento otimizado na memória para fluidez imediata
+  const preloadedUrlsRef = useRef<Set<string>>(new Set());
   useEffect(() => {
-    if (hasMultipleImages) {
-      const nextIdx = (currentImageIndex + 1) % imageList.length;
-      const nextUrl = imageList[nextIdx];
-      if (nextUrl && !preloadedImagesRef.current.has(nextUrl)) {
-        preloadedImagesRef.current.add(nextUrl);
+    imageList.forEach((url) => {
+      if (url && !preloadedUrlsRef.current.has(url)) {
+        preloadedUrlsRef.current.add(url);
         const img = new Image();
-        img.src = nextUrl;
+        img.src = url;
       }
-    }
-  }, [currentImageIndex, imageList, hasMultipleImages]);
+    });
+  }, [imageList]);
 
-  // Handlers de toque para swipe natural no celular (sem travar a rolagem vertical da página)
+  // Pausa temporária na troca automática durante ou logo após qualquer interação
+  const pauseAutoPlayTemporarily = useCallback(() => {
+    setIsPaused(true);
+    if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
+    resumeTimerRef.current = setTimeout(() => {
+      setIsPaused(false);
+    }, 4500);
+  }, []);
+
+  // Navegação para a próxima imagem com transição suave
+  const handleNext = useCallback(() => {
+    if (!hasMultipleImages) return;
+    setIsTransitioning(true);
+    setActiveSlot((prev) => prev + 1);
+    pauseAutoPlayTemporarily();
+  }, [hasMultipleImages, pauseAutoPlayTemporarily]);
+
+  // Navegação para a imagem anterior
+  const handlePrev = useCallback(() => {
+    if (!hasMultipleImages) return;
+    setIsTransitioning(true);
+    setActiveSlot((prev) => prev - 1);
+    pauseAutoPlayTemporarily();
+  }, [hasMultipleImages, pauseAutoPlayTemporarily]);
+
+  // Salto direto para um índice específico (via controles discretos de paginação)
+  const handleGoTo = useCallback(
+    (targetIndex: number) => {
+      if (!hasMultipleImages) return;
+      setIsTransitioning(true);
+      setActiveSlot(targetIndex + 1);
+      pauseAutoPlayTemporarily();
+    },
+    [hasMultipleImages, pauseAutoPlayTemporarily]
+  );
+
+  // Conclusão da transição CSS para reposicionamento instantâneo do loop infinito
+  const handleTransitionEnd = () => {
+    if (activeSlot >= imageList.length + 1) {
+      setIsTransitioning(false);
+      setActiveSlot(1);
+    } else if (activeSlot <= 0) {
+      setIsTransitioning(false);
+      setActiveSlot(imageList.length);
+    }
+  };
+
+  // Reabilita transições no próximo frame após um salto instantâneo de loop
+  useEffect(() => {
+    if (!isTransitioning) {
+      const raf = requestAnimationFrame(() => {
+        setIsTransitioning(true);
+      });
+      return () => cancelAnimationFrame(raf);
+    }
+  }, [isTransitioning]);
+
+  // Troca automática de imagens a cada 5 segundos com respeito a movimento reduzido e pausas
+  useEffect(() => {
+    if (!hasMultipleImages) return;
+
+    if (typeof window !== 'undefined') {
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const appReduced = document.documentElement.classList.contains('reduced-motion');
+      if (prefersReduced || appReduced) return;
+    }
+
+    if (isPaused || isUserInteracting) return;
+
+    const timer = setInterval(() => {
+      handleNext();
+    }, 5000);
+
+    return () => clearInterval(timer);
+  }, [hasMultipleImages, isPaused, isUserInteracting, handleNext]);
+
+  // Handlers de toque para swipe natural no celular
   const handleTouchStart = (e: React.TouchEvent) => {
+    setIsUserInteracting(true);
     touchStartXRef.current = e.touches[0].clientX;
     touchStartYRef.current = e.touches[0].clientY;
     touchDeltaXRef.current = 0;
@@ -122,8 +211,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
     const deltaX = e.touches[0].clientX - touchStartXRef.current;
     const deltaY = e.touches[0].clientY - (touchStartYRef.current || 0);
 
-    // Identifica intenção horizontal vs vertical após os primeiros 8px
-    if (isHorizontalIntentRef.current === null && (Math.abs(deltaX) > 8 || Math.abs(deltaY) > 8)) {
+    if (isHorizontalIntentRef.current === null && (Math.abs(deltaX) > 7 || Math.abs(deltaY) > 7)) {
       isHorizontalIntentRef.current = Math.abs(deltaX) > Math.abs(deltaY) * 1.3;
     }
 
@@ -133,13 +221,15 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
   };
 
   const handleTouchEnd = () => {
+    setIsUserInteracting(false);
+    pauseAutoPlayTemporarily();
     if (touchStartXRef.current === null) return;
     const delta = touchDeltaXRef.current;
-    if (isHorizontalIntentRef.current === true && Math.abs(delta) > 35) {
+    if (isHorizontalIntentRef.current === true && Math.abs(delta) > 30) {
       if (delta < 0) {
-        handleNextImage();
+        handleNext();
       } else {
-        handlePrevImage();
+        handlePrev();
       }
     }
     touchStartXRef.current = null;
@@ -148,8 +238,9 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
     isHorizontalIntentRef.current = null;
   };
 
-  // Handlers para mouse (desktop preview)
+  // Handlers para mouse (desktop preview e hover pause)
   const handleMouseDown = (e: React.MouseEvent) => {
+    setIsUserInteracting(true);
     isMouseDownRef.current = true;
     mouseStartXRef.current = e.clientX;
     mouseDeltaXRef.current = 0;
@@ -161,16 +252,29 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
   };
 
   const handleMouseUp = () => {
+    setIsUserInteracting(false);
+    pauseAutoPlayTemporarily();
     if (!isMouseDownRef.current) return;
     isMouseDownRef.current = false;
-    if (Math.abs(mouseDeltaXRef.current) > 35) {
+    if (Math.abs(mouseDeltaXRef.current) > 30) {
       if (mouseDeltaXRef.current < 0) {
-        handleNextImage();
+        handleNext();
       } else {
-        handlePrevImage();
+        handlePrev();
       }
     }
     mouseDeltaXRef.current = 0;
+  };
+
+  const handleMouseEnter = () => {
+    setIsUserInteracting(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsUserInteracting(false);
+    if (isMouseDownRef.current) {
+      handleMouseUp();
+    }
   };
 
   const handleStart = () => {
@@ -178,115 +282,158 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
   };
 
   return (
-    <div className="space-y-4 pb-20 sm:pb-20 animate-in fade-in duration-200">
-      {/* 1. Barra de Acesso e Badge do Plano */}
-      <div className="flex items-center justify-end gap-2 pb-1 border-b border-slate-800/60">
+    <div className="space-y-4 pb-10 sm:pb-12 animate-in fade-in duration-200">
+      {/* 1. Barra superior com botão Voltar alinhado à esquerda na mesma margem do título e badge do plano */}
+      <div className="flex items-center justify-between gap-2 pt-1.5 sm:pt-2">
+        <BackButton
+          onClick={onBack}
+          label={t.header?.back || 'Voltar'}
+          className="!justify-start -ml-1.5"
+        />
         <span className="text-[9.5px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
           {t.briefing?.planPrefix || 'Plano'} {planName}
         </span>
       </div>
 
-      {/* 2. Carrossel / Imagem Principal (Swipe com Toque, Sem Setas) */}
+      {/* 2. Galeria de Cartões com Profundidade Sutil e Prévia Discreta da Próxima Imagem */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-lg">
         <div
-          className="relative w-full aspect-[16/10] bg-slate-950 overflow-hidden select-none touch-pan-y cursor-grab active:cursor-grabbing"
+          className="relative w-full aspect-[16/10] bg-slate-950 overflow-hidden select-none p-2.5 sm:p-3"
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
         >
-          {/* Skeleton Shimmer enquanto imagem carrega */}
-          {!loadedImages[currentImageIndex] && !failedImages[currentImageIndex] && (
-            <div className="absolute inset-0 bg-slate-800/60 animate-pulse pointer-events-none z-0" />
-          )}
+          {/* Trilho horizontal dos cartões com transição lateral suave */}
+          <div
+            onTransitionEnd={handleTransitionEnd}
+            className="flex h-full will-change-transform"
+            style={{
+              transform: hasMultipleImages
+                ? `translateX(calc(-${activeSlot} * (100% - 34px))) translateZ(0)`
+                : 'none',
+              transition: isTransitioning
+                ? 'transform 500ms cubic-bezier(0.25, 1, 0.5, 1)'
+                : 'none',
+            }}
+          >
+            {extendedSlides.map((imgSrc, slotIdx) => {
+              const isCurrent = hasMultipleImages ? slotIdx === activeSlot : true;
+              const isNext = hasMultipleImages ? slotIdx === activeSlot + 1 : false;
+              const originalUrl = imgSrc;
+              const activeUrl = imageOverrides[originalUrl] || originalUrl;
+              const isLoaded = Boolean(loadedUrls[originalUrl]);
+              const isFailed = Boolean(failedUrls[originalUrl]);
 
-          {/* Imagem Real do Segmento com Fallback em 3 Níveis */}
-          {!failedImages[currentImageIndex] ? (
-            <img
-              key={`img-${currentImageIndex}-${imageOverrides[currentImageIndex] || imageList[currentImageIndex]}`}
-              src={imageOverrides[currentImageIndex] || imageList[currentImageIndex]}
-              alt={`Demonstração ${project.titulo} - Imagem ${currentImageIndex + 1}`}
-              loading={currentImageIndex === 0 ? 'eager' : 'lazy'}
-              decoding="async"
-              onLoad={() => {
-                const url = imageOverrides[currentImageIndex] || imageList[currentImageIndex];
-                cacheImageLoaded(url);
-                setLoadedImages((prev) => ({ ...prev, [currentImageIndex]: true }));
-              }}
-              onError={() => {
-                const originalUrl = imageList[currentImageIndex];
-                const activeUrl = imageOverrides[currentImageIndex] || originalUrl;
-                cacheImageFailed(activeUrl);
+              return (
+                <div
+                  key={`slot-${slotIdx}-${originalUrl}`}
+                  onClick={() => {
+                    if (isNext) {
+                      handleNext();
+                    }
+                  }}
+                  style={{
+                    width: hasMultipleImages ? 'calc(100% - 46px)' : '100%',
+                    marginRight: hasMultipleImages ? '12px' : '0px',
+                    flexShrink: 0,
+                  }}
+                  className={`relative h-full rounded-xl sm:rounded-2xl overflow-hidden bg-slate-900 border select-none transition-all duration-500 ${
+                    isCurrent
+                      ? 'border-slate-700/80 shadow-2xl shadow-slate-950/90 scale-100 opacity-100 z-10'
+                      : isNext
+                      ? 'border-slate-800/80 shadow-md scale-[0.94] opacity-55 hover:opacity-75 cursor-pointer z-0'
+                      : 'border-slate-800/50 shadow-sm scale-[0.9] opacity-25 z-0 pointer-events-none'
+                  }`}
+                >
+                  {/* Skeleton Shimmer enquanto imagem carrega */}
+                  {!isLoaded && !isFailed && (
+                    <div className="absolute inset-0 bg-slate-800/60 animate-pulse pointer-events-none z-0" />
+                  )}
 
-                const chain = buildImageFallbackChain(
-                  originalUrl,
-                  project.categoria || project.segmentoAlvo
-                );
+                  {!isFailed ? (
+                    <img
+                      src={activeUrl}
+                      alt={`Demonstração ${project.titulo} - Imagem ${slotIdx}`}
+                      loading={slotIdx <= 2 ? 'eager' : 'lazy'}
+                      decoding="async"
+                      onLoad={() => {
+                        cacheImageLoaded(activeUrl);
+                        setLoadedUrls((prev) => ({ ...prev, [originalUrl]: true }));
+                      }}
+                      onError={() => {
+                        cacheImageFailed(activeUrl);
+                        const chain = buildImageFallbackChain(
+                          originalUrl,
+                          project.categoria || project.segmentoAlvo
+                        );
+                        if (activeUrl !== chain[1] && chain[1]) {
+                          setImageOverrides((prev) => ({ ...prev, [originalUrl]: chain[1] }));
+                        } else if (activeUrl !== chain[2] && chain[2]) {
+                          setImageOverrides((prev) => ({ ...prev, [originalUrl]: chain[2] }));
+                        } else {
+                          setFailedUrls((prev) => ({ ...prev, [originalUrl]: true }));
+                        }
+                      }}
+                      className={`w-full h-full object-cover object-center transition-opacity duration-300 ${
+                        isLoaded ? 'opacity-100' : 'opacity-0'
+                      }`}
+                    />
+                  ) : (
+                    /* Fallback elegante caso a imagem falhe */
+                    <div
+                      className={`absolute inset-0 w-full h-full bg-gradient-to-br ${project.corDestaque} p-4 flex flex-col justify-between overflow-hidden select-none media-fallback-content`}
+                    >
+                      <div className="flex items-center justify-between relative z-10">
+                        <div className="flex items-center gap-1.5 bg-black/45 px-2.5 py-1 rounded-full border border-white/15">
+                          <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                          <span className="text-[10px] font-mono text-white/90 ml-1 truncate max-w-[150px]">
+                            {hostname}
+                          </span>
+                        </div>
+                        <span className="text-[9.5px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-black/50 text-white border border-white/20">
+                          {planName}
+                        </span>
+                      </div>
 
-                if (activeUrl !== chain[1] && chain[1]) {
-                  // Nível 2: Imagem alternativa do segmento
-                  setImageOverrides((prev) => ({ ...prev, [currentImageIndex]: chain[1] }));
-                } else if (activeUrl !== chain[2] && chain[2]) {
-                  // Nível 3: Imagem global segura
-                  setImageOverrides((prev) => ({ ...prev, [currentImageIndex]: chain[2] }));
-                } else {
-                  // Fallback visual com gradiente do projeto
-                  setFailedImages((prev) => ({ ...prev, [currentImageIndex]: true }));
-                }
-              }}
-              className={`w-full h-full object-cover object-center transition-opacity duration-300 ${
-                loadedImages[currentImageIndex] ? 'opacity-100' : 'opacity-0'
-              }`}
-            />
-          ) : (
-            /* Fallback elegante caso a imagem falhe */
-            <div
-              className={`absolute inset-0 w-full h-full bg-gradient-to-br ${project.corDestaque} p-4 flex flex-col justify-between overflow-hidden select-none media-fallback-content`}
-            >
-              <div className="flex items-center justify-between relative z-10">
-                <div className="flex items-center gap-1.5 bg-black/45 px-2.5 py-1 rounded-full border border-white/15">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                  <span className="text-[10px] font-mono text-white/90 ml-1 truncate max-w-[150px]">
-                    {hostname}
-                  </span>
+                      <div className="relative z-10 space-y-1">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-white/80">
+                          <Globe className="w-3.5 h-3.5 text-cyan-200" />
+                          {project.categoria}
+                        </span>
+                        <h3 className="text-base font-extrabold text-white tracking-tight drop-shadow-md">
+                          {project.titulo}
+                        </h3>
+                      </div>
+                    </div>
+                  )}
+
                 </div>
-                <span className="text-[9.5px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-black/50 text-white border border-white/20">
-                  {planName}
-                </span>
-              </div>
+              );
+            })}
+          </div>
 
-              <div className="relative z-10 space-y-1">
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-white/80">
-                  <Globe className="w-3.5 h-3.5 text-cyan-200" />
-                  {project.categoria}
-                </span>
-                <h3 className="text-base font-extrabold text-white tracking-tight drop-shadow-md">
-                  {project.titulo}
-                </h3>
-              </div>
-            </div>
-          )}
-
-          {/* Badge discreto de contagem quando houver múltiplas imagens */}
+          {/* Badge discreto de contagem sobre o cartão principal */}
           {hasMultipleImages && (
-            <div className="absolute top-2.5 right-2.5 z-20 pointer-events-none">
-              <span className="text-[9.5px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-950/80 backdrop-blur-md text-white border border-slate-700/80 shadow-md media-badge">
+            <div className="absolute top-4 right-4 sm:right-5 z-20 pointer-events-none">
+              <span className="text-[9.5px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-950/85 backdrop-blur-md text-white border border-slate-700/80 shadow-md">
                 {currentImageIndex + 1}/{imageList.length}
               </span>
             </div>
           )}
 
-          {/* Indicadores pequenos (bolinhas) - SEM SETAS */}
+          {/* Indicadores discretos de paginação (pontos na base do cartão principal) */}
           {hasMultipleImages && (
             <div
               role="tablist"
-              aria-label={`Galeria de imagens de ${project.titulo}`}
-              className="absolute bottom-2 left-0 right-0 z-20 flex items-center justify-center gap-0.5 pointer-events-none"
+              aria-label={`Galeria de fotos de ${project.titulo}`}
+              className="absolute bottom-3.5 left-2.5 right-[56px] z-20 flex items-center justify-center gap-1 pointer-events-none"
             >
               {imageList.map((_, idx) => (
                 <button
@@ -297,15 +444,14 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
                   aria-label={`Ver imagem ${idx + 1} de ${imageList.length}`}
                   onClick={(e) => {
                     e.stopPropagation();
-                    e.preventDefault();
-                    setCurrentImageIndex(idx);
+                    handleGoTo(idx);
                   }}
-                  className="pointer-events-auto min-h-[32px] min-w-[22px] flex items-center justify-center p-1 focus:outline-none"
+                  className="pointer-events-auto p-1 focus:outline-none cursor-pointer"
                 >
                   <span
-                    className={`h-1.5 rounded-full transition-all duration-200 ${
+                    className={`block h-1.5 rounded-full transition-all duration-300 ${
                       idx === currentImageIndex
-                        ? 'w-4 bg-cyan-400 shadow-sm'
+                        ? 'w-4 bg-cyan-400 shadow-sm shadow-cyan-400/50'
                         : 'w-1.5 bg-white/40 hover:bg-white/70'
                     }`}
                   />
@@ -314,27 +460,39 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
             </div>
           )}
         </div>
+      </div>
 
-        {/* Informações Básicas do Projeto */}
-        <div className="p-4 sm:p-5 space-y-2.5">
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span className="inline-flex items-center gap-1 font-semibold text-cyan-400">
-              <Globe className="w-3.5 h-3.5" />
-              {project.categoria}
-            </span>
-            <span className="text-slate-500 font-mono text-[11px] truncate max-w-[180px]">
-              {hostname}
-            </span>
-          </div>
+      {/* Botão "Iniciar projeto" posicionado imediatamente abaixo do banner e antes das informações */}
+      <div className="flex items-center justify-end relative z-10 pt-0.5">
+        <button
+          type="button"
+          onClick={handleStart}
+          aria-label={t.projectDetail.startBriefingBtn || 'Iniciar projeto'}
+          className="inline-flex items-center justify-center px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-semibold text-xs sm:text-sm shadow-md shadow-indigo-950/40 hover:shadow-cyan-950/40 transition-all duration-150 active:scale-95 cursor-pointer touch-manipulation"
+        >
+          <span>{t.projectDetail.startBriefingBtn || 'Iniciar projeto'}</span>
+        </button>
+      </div>
 
-          <h1 className="text-lg sm:text-xl font-extrabold text-white tracking-tight">
-            {project.titulo}
-          </h1>
-
-          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-            {project.descricaoCompleta || project.descricaoCurta}
-          </p>
+      {/* Informações Básicas do Projeto */}
+      <div className="p-4 sm:p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-2.5 shadow-sm">
+        <div className="flex items-center justify-between text-xs text-slate-400">
+          <span className="inline-flex items-center gap-1 font-semibold text-cyan-400">
+            <Globe className="w-3.5 h-3.5" />
+            {project.categoria}
+          </span>
+          <span className="text-slate-500 font-mono text-[11px] truncate max-w-[180px]">
+            {hostname}
+          </span>
         </div>
+
+        <h1 className="text-lg sm:text-xl font-extrabold text-white tracking-tight">
+          {project.titulo}
+        </h1>
+
+        <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+          {project.descricaoCompleta || project.descricaoCurta}
+        </p>
       </div>
 
       {/* 3. Link Real do Projeto (REMOVIDO botão "Ver site", exibindo SOMENTE o link real clicável) */}
@@ -370,36 +528,19 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
         </div>
       )}
 
-      {/* 5. Escolha da Abordagem do Modelo (Antes de iniciar o briefing) */}
+      {/* 5. Abordagem para seu Site (Informativo) */}
       <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 shadow-sm">
         <div className="flex items-center justify-between">
-          <label className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+          <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
             {t.projectDetail.approachTitle}
-          </label>
-          <span className="text-[10px] text-slate-400 font-medium">
-            {t.projectDetail.selectOption}
           </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-          {/* Opção A: Quero exatamente este formato */}
-          <button
-            type="button"
-            onClick={() => setSelectedApproach('exact')}
-            className={`min-h-[60px] p-3 rounded-xl border text-left transition-all active:scale-[0.99] flex items-start gap-3 ${
-              selectedApproach === 'exact'
-                ? 'bg-cyan-950/40 border-cyan-500 ring-1 ring-cyan-500/50 text-white shadow-md'
-                : 'bg-slate-950/70 border-slate-800 text-slate-300 hover:border-slate-700'
-            }`}
-          >
-            <div
-              className={`mt-0.5 p-1 rounded-lg shrink-0 ${
-                selectedApproach === 'exact'
-                  ? 'bg-cyan-500/20 text-cyan-400'
-                  : 'bg-slate-800 text-slate-500'
-              }`}
-            >
+          {/* Opção 1: Quero exatamente este formato */}
+          <div className="min-h-[60px] p-3 rounded-xl border border-slate-800 bg-slate-950/70 text-slate-300 flex items-start gap-3">
+            <div className="mt-0.5 p-1 rounded-lg shrink-0 bg-cyan-500/15 border border-cyan-500/30 text-cyan-400">
               <Check className="w-4 h-4" />
             </div>
             <div className="flex-1 min-w-0">
@@ -410,25 +551,11 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
                 {t.projectDetail.exactApproachDesc}
               </span>
             </div>
-          </button>
+          </div>
 
-          {/* Opção B: Usar como inspiração para personalizar */}
-          <button
-            type="button"
-            onClick={() => setSelectedApproach('inspiration')}
-            className={`min-h-[60px] p-3 rounded-xl border text-left transition-all active:scale-[0.99] flex items-start gap-3 ${
-              selectedApproach === 'inspiration'
-                ? 'bg-indigo-950/40 border-indigo-500 ring-1 ring-indigo-500/50 text-white shadow-md'
-                : 'bg-slate-950/70 border-slate-800 text-slate-300 hover:border-slate-700'
-            }`}
-          >
-            <div
-              className={`mt-0.5 p-1 rounded-lg shrink-0 ${
-                selectedApproach === 'inspiration'
-                  ? 'bg-indigo-500/20 text-indigo-400'
-                  : 'bg-slate-800 text-slate-500'
-              }`}
-            >
+          {/* Opção 2: Usar como inspiração para personalizar */}
+          <div className="min-h-[60px] p-3 rounded-xl border border-slate-800 bg-slate-950/70 text-slate-300 flex items-start gap-3">
+            <div className="mt-0.5 p-1 rounded-lg shrink-0 bg-indigo-500/15 border border-indigo-500/30 text-indigo-400">
               <Layers className="w-4 h-4" />
             </div>
             <div className="flex-1 min-w-0">
@@ -439,7 +566,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
                 {t.projectDetail.inspirationApproachDesc}
               </span>
             </div>
-          </button>
+          </div>
         </div>
       </div>
 
@@ -485,19 +612,6 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
         </div>
       )}
 
-      {/* Barra de Ação Fixa no Rodapé Mobile (Ação de solicitar briefing) */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 p-3 sm:p-4 bg-slate-950/95 backdrop-blur-md border-t border-slate-800 shadow-2xl safe-area-pb">
-        <div className="max-w-3xl mx-auto">
-          <button
-            type="button"
-            onClick={handleStart}
-            className="w-full min-h-[48px] flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-sm shadow-lg shadow-indigo-950/50 transition-all active:scale-[0.985]"
-          >
-            <Send className="w-4 h-4" />
-            <span>{t.projectDetail.startBriefingBtn}</span>
-          </button>
-        </div>
-      </div>
     </div>
   );
 };

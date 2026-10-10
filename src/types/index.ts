@@ -101,6 +101,11 @@ export interface ClientProject {
   previsaoEntrega: string;
   historico: ProjectUpdate[];
   solicitacoes: ClientRequest[];
+  codigoProjeto?: string;
+  isDemo?: boolean;
+  contratacaoConfirmada?: boolean;
+  autorizacaoServidor?: boolean;
+  serverProjectId?: string;
 }
 
 export interface ProjectBriefingData {

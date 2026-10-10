@@ -33,6 +33,8 @@ import {
   Globe,
   Tag,
   Loader2,
+  Lock,
+  Copy,
 } from 'lucide-react';
 import { BackButton } from './BackButton';
 import { useTranslation } from '../contexts/LanguageContext';
@@ -58,6 +60,27 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [project, setProject] = useState<ClientProject | null>(null);
+  const [copiedPortalCode, setCopiedPortalCode] = useState(false);
+
+  const handleCopyPortalCode = async (code: string) => {
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(code);
+      } else {
+        const el = document.createElement('textarea');
+        el.value = code;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+      }
+      setCopiedPortalCode(true);
+      setTimeout(() => setCopiedPortalCode(false), 2200);
+    } catch {
+      setCopiedPortalCode(true);
+      setTimeout(() => setCopiedPortalCode(false), 2200);
+    }
+  };
 
   // Etapas e Categorias localizadas reativas ao idioma atual
   const nexawebStages = useMemo(() => [
@@ -219,6 +242,12 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
       setSubmittingReq(false);
     }
   };
+
+  // O acesso real aos dados privados só é liberado para demonstrações oficiais ou após confirmação da contratação e autorização no servidor
+  const isPrivateAccessUnlocked = useMemo(() => {
+    if (!project) return false;
+    return Boolean(project.isDemo || (project.contratacaoConfirmada && project.autorizacaoServidor));
+  }, [project]);
 
   // Determina o índice ativo das etapas NexaWeb
   const currentStageIndex = useMemo(() => {
@@ -462,6 +491,165 @@ export const PortalScreen: React.FC<PortalScreenProps> = ({ onNavigate, onBack }
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      ) : !isPrivateAccessUnlocked ? (
+        /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            2. PROJETO IDENTIFICADO — AGUARDANDO CONFIRMAÇÃO DE CONTRATAÇÃO
+            O código identifica o projeto com sucesso, mas o acesso completo
+            a dados privados e solicitações é protegido até a validação
+            da contratação e autorização no servidor.
+           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+        <div className="space-y-4 animate-in fade-in duration-200">
+          <div className="rounded-2xl p-4 sm:p-5 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 border border-indigo-500/30 shadow-xl space-y-4">
+            {/* Top Bar: Voltar + Selo Projeto Identificado + Botão Sair/Trocar Código */}
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap">
+                {onBack && (
+                  <BackButton
+                    onClick={onBack}
+                    label={t.header?.back || 'Voltar'}
+                  />
+                )}
+
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 text-xs font-bold shadow-sm">
+                  <UserCheck className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                  <span>Projeto Identificado</span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="p-1.5 sm:px-3 sm:py-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors flex items-center gap-1.5 text-xs shrink-0 cursor-pointer"
+                title="Consultar outro código"
+                aria-label="Consultar outro código"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span className="text-[11px] font-medium">Consultar outro código</span>
+              </button>
+            </div>
+
+            {/* Informações Principais do Projeto Identificado */}
+            <div className="space-y-1.5">
+              <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
+                {project.nomeProjeto}
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-300">
+                Cliente: <span className="font-semibold text-slate-200">{project.nomeCliente}</span>
+              </p>
+            </div>
+
+            {/* Código do Projeto com Botão Copiar */}
+            <div className="p-3 sm:p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  Código de Identificação
+                </span>
+                {copiedPortalCode && (
+                  <span className="text-[11px] font-semibold text-emerald-400 flex items-center gap-1 animate-in fade-in">
+                    <Check className="w-3 h-3" />
+                    Código copiado!
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                <div className="font-mono text-base font-extrabold text-cyan-300 tracking-wider">
+                  {project.chaveAcesso}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleCopyPortalCode(project.chaveAcesso)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                    copiedPortalCode
+                      ? 'bg-emerald-500 text-slate-950'
+                      : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700'
+                  }`}
+                >
+                  {copiedPortalCode ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                  <span>{copiedPortalCode ? 'Copiado!' : 'Copiar código'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Tags: Plano e Status de Contratação */}
+            <div className="flex items-center gap-2 pt-0.5 flex-wrap text-xs">
+              {(() => {
+                const planBadge = getPlanBadge(project.planoId);
+                return (
+                  <div
+                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg border font-semibold ${planBadge.className}`}
+                  >
+                    <Tag className={`w-3.5 h-3.5 ${planBadge.iconColor}`} />
+                    <span>{planBadge.label}</span>
+                  </div>
+                );
+              })()}
+
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30 font-semibold">
+                <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span>Aguardando Confirmação de Contratação</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Card de Aviso de Segurança e Proteção aos Dados Privados */}
+          <div className="rounded-2xl p-4 sm:p-5 bg-slate-900/90 border border-slate-800 space-y-3 shadow-md">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center shrink-0 mt-0.5">
+                <Lock className="w-4 h-4 text-cyan-400" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-sm sm:text-base font-bold text-white">
+                  Acesso aos Dados Privados Protegido
+                </h3>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  O código identifica o seu projeto com sucesso no sistema da NexaWeb. Por diretrizes de segurança e confidencialidade, o acesso completo aos dados privados, homologação detalhada e canal de solicitações só é liberado após a confirmação da contratação e a validação da autorização no servidor.
+                </p>
+              </div>
+            </div>
+
+            {/* Etapas do Fluxo */}
+            <div className="pt-2 border-t border-slate-800/80 space-y-2 text-xs">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                Etapas do Atendimento:
+              </span>
+              <ul className="space-y-2">
+                <li className="flex items-start gap-2 text-slate-300">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                  <span><strong className="text-white">1. Briefing Enviado & Código Gerado:</strong> projeto registrado com sucesso.</span>
+                </li>
+                <li className="flex items-start gap-2 text-slate-300">
+                  <Clock className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                  <span><strong className="text-white">2. Confirmação da Contratação:</strong> alinhamento técnico do escopo e formalização do plano.</span>
+                </li>
+                <li className="flex items-start gap-2 text-slate-400">
+                  <ShieldCheck className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
+                  <span><strong className="text-slate-300">3. Liberação do Portal Completo:</strong> acesso liberado após autorização da contratação.</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Ações para contato e troca de código */}
+            <div className="pt-3 border-t border-slate-800/80 flex flex-col sm:flex-row gap-2.5">
+              <a
+                href="https://www.instagram.com/nexaw1/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="min-h-[44px] flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-950/40 transition-all active:scale-[0.98]"
+              >
+                <span>Falar com a Equipe NexaWeb</span>
+                <ExternalLink className="w-4 h-4" />
+              </a>
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="min-h-[44px] px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-semibold text-xs flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <span>Consultar outro código</span>
+              </button>
+            </div>
           </div>
         </div>
       ) : (

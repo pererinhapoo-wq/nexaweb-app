@@ -92,7 +92,7 @@ function AppContent() {
   const selectedProjectDetail = currentEntry.projectDetail || null;
   const selectedPlanForProject = currentEntry.selectedPlan;
   const selectedModelForProject =
-    currentEntry.selectedModel !== undefined ? currentEntry.selectedModel : undefined;
+    currentEntry.selectedModel !== undefined ? currentEntry.selectedModel : savedModel;
   const selectedModelApproachForProject =
     currentEntry.modelApproach || savedModelApproach;
   const selectedWebsiteLanguageForProject =
@@ -339,6 +339,9 @@ function AppContent() {
 
       if (options?.selectedPlan !== undefined) {
         setSavedPlan(options.selectedPlan);
+      }
+      if (options?.selectedModel !== undefined) {
+        setSavedModel(options.selectedModel);
       }
       if (options?.modelApproach) setSavedModelApproach(options.modelApproach);
       if (options?.selectedWebsiteLanguage) setSavedWebsiteLanguage(options.selectedWebsiteLanguage);
@@ -749,7 +752,7 @@ function AppContent() {
       {showIntro && <IntroSplash onFinish={() => setShowIntro(false)} />}
 
       {/* Header oficial Nexa (menu lateral + botão voltar posicionado no cabeçalho fixo quando aplicável) */}
-      {currentTab !== 'settings' && (
+      {currentTab !== 'settings' && !selectedProjectDetail && (
         <Header
           onOpenMenu={() => setIsMenuOpen(true)}
           showMenu={
@@ -758,12 +761,10 @@ function AppContent() {
             currentTab !== 'portfolio' &&
             currentTab !== 'portal' &&
             currentTab !== 'services' &&
-            currentTab !== 'our-services' &&
-            !selectedProjectDetail
+            currentTab !== 'our-services'
           }
           onBack={handleHeaderBack}
           showBackButton={Boolean(
-            selectedProjectDetail ||
             currentTab === 'admin'
           )}
         />
@@ -795,9 +796,11 @@ function AppContent() {
             <ProjectDetailScreen
               project={selectedProjectDetail}
               onBack={handleGoBack}
-              onStartBriefing={(proj) => {
+              onStartBriefing={(proj, approach) => {
                 navigateTo('project', {
                   selectedPlan: proj.planoId || undefined,
+                  selectedModel: proj.titulo,
+                  modelApproach: approach || 'exact',
                 });
               }}
             />

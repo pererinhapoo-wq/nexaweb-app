@@ -161,7 +161,7 @@ export const ptBR = {
     inspirationApproachDesc: 'Referência estética com liberdade para definir seções, cores e módulos específicos.',
     featuresShowcaseTitle: 'O que este modelo apresenta',
     techDifferentialsTitle: 'Diferenciais & Tecnologia',
-    startBriefingBtn: 'Iniciar Briefing',
+    startBriefingBtn: 'Iniciar projeto',
     inDevelopment: 'Em desenvolvimento',
     backToPortfolio: 'Voltar ao portfólio',
   },

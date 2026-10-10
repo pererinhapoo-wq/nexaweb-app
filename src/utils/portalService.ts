@@ -10,6 +10,10 @@ const PROJECTS_STORE_KEY = 'nexaweb_managed_projects';
 const DEFAULT_INITIAL_PROJECT: ClientProject = {
   id: 'proj-001',
   chaveAcesso: 'DEMO-2026',
+  codigoProjeto: 'DEMO-2026',
+  isDemo: true,
+  contratacaoConfirmada: true,
+  autorizacaoServidor: true,
   nomeCliente: 'Barbearia Imperial',
   nomeProjeto: 'Site Profissional Barbearia Imperial',
   planoId: 'profissional',
@@ -91,6 +95,10 @@ const DEFAULT_INITIAL_PROJECT: ClientProject = {
 const SECOND_PROJECT: ClientProject = {
   id: 'proj-002',
   chaveAcesso: 'NEXA-7789',
+  codigoProjeto: 'NEXA-7789',
+  isDemo: true,
+  contratacaoConfirmada: true,
+  autorizacaoServidor: true,
   nomeCliente: 'Studio Lumina Estética',
   nomeProjeto: 'Portal & Catálogo Estético Lumina',
   planoId: 'premium',
@@ -171,31 +179,75 @@ export function saveAllProjects(projects: ClientProject[]): void {
 
 // ---------------- CLIENT PORTAL METHODS ---------------- //
 
+/**
+ * Gera um código único e individual para o projeto enviado.
+ * - Formato: NX-XXXX-XXXX (ex: NX-8F3K-9A2E)
+ * - Nunca reutiliza o código demonstrativo DEMO-2026
+ * - Garante que não haja duplicatas comparando com a base existente
+ */
+export function generateUniqueProjectCode(existingProjects: ClientProject[] = []): string {
+  const existingCodes = new Set<string>();
+  existingProjects.forEach((p) => {
+    if (p.chaveAcesso) existingCodes.add(p.chaveAcesso.toUpperCase());
+    if (p.codigoProjeto) existingCodes.add(p.codigoProjeto.toUpperCase());
+    if (p.id) existingCodes.add(p.id.toUpperCase());
+  });
+  existingCodes.add('DEMO-2026');
+  existingCodes.add('DEMO');
+  existingCodes.add('NEXA-7789');
+
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  let attempts = 0;
+
+  do {
+    let p1 = '';
+    for (let i = 0; i < 4; i++) {
+      p1 += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    let p2 = '';
+    for (let i = 0; i < 4; i++) {
+      p2 += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    code = `NX-${p1}-${p2}`;
+    attempts++;
+  } while (existingCodes.has(code) && attempts < 100);
+
+  return code;
+}
+
 export async function loginClientPortal(chaveAcesso: string): Promise<ClientProject | null> {
   const cleanKey = chaveAcesso.trim().toUpperCase();
+  if (!cleanKey) return null;
 
-  // 1. Tentar chamada à API oficial se disponível
-  try {
-    const res = await fetch('/api/portal-auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ accessKey: cleanKey }),
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (data && data.project) {
-        await saveClientSession(cleanKey, data.project);
-        return data.project;
+  // 1. Tentar chamada à API oficial se fornecido token de acesso de longa duração
+  if (cleanKey.startsWith('NWX_') || cleanKey.length > 30) {
+    try {
+      const res = await fetch('/api/portal-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: cleanKey }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.project) {
+          await saveClientSession(cleanKey, data.project);
+          return data.project;
+        }
       }
+    } catch {
+      // Se a API externa não responder ou estiver offline no mobile, usa o banco local sincronizado
     }
-  } catch {
-    // Se a API externa não responder ou estiver offline no mobile, usa o banco local sincronizado
   }
 
-  // 2. Busca no banco de dados local
+  // 2. Busca no repositório de projetos existente
   const projects = await getAllProjects();
   const matched = projects.find(
-    (p) => p.chaveAcesso.toUpperCase() === cleanKey || cleanKey === 'DEMO' || cleanKey === 'DEMO-2026'
+    (p) =>
+      p.chaveAcesso.toUpperCase() === cleanKey ||
+      (p.codigoProjeto && p.codigoProjeto.toUpperCase() === cleanKey) ||
+      (cleanKey === 'DEMO-2026' && p.chaveAcesso === 'DEMO-2026') ||
+      (cleanKey === 'DEMO' && p.chaveAcesso === 'DEMO-2026')
   );
 
   if (matched) {
@@ -203,37 +255,7 @@ export async function loginClientPortal(chaveAcesso: string): Promise<ClientProj
     return matched;
   }
 
-  // Se o usuário digitou qualquer chave válida com 4+ caracteres, cria uma visualização do projeto dele
-  if (cleanKey.length >= 4) {
-    const customProject: ClientProject = {
-      id: `proj-${Date.now()}`,
-      chaveAcesso: cleanKey,
-      nomeCliente: `Cliente ${cleanKey}`,
-      nomeProjeto: `Projeto NexaWeb #${cleanKey}`,
-      planoId: 'profissional',
-      status: 'planejamento',
-      etapaAtual: 'Alinhamento Inicial',
-      progresso: 25,
-      mensagemStatus: 'Seu projeto está em fase de planejamento técnico e aprovação do escopo com a equipe NexaWeb.',
-      dataInicio: new Date().toLocaleDateString('pt-BR'),
-      previsaoEntrega: '7 dias úteis',
-      historico: [
-        {
-          id: 'up-init',
-          data: 'Hoje',
-          titulo: 'Chave de Acesso Ativada',
-          descricao: 'Projeto registrado no sistema da NexaWeb.',
-          status: 'concluido',
-        },
-      ],
-      solicitacoes: [],
-    };
-    projects.push(customProject);
-    saveAllProjects(projects);
-    await saveClientSession(cleanKey, customProject);
-    return customProject;
-  }
-
+  // Se o código não existir, retorna null com segurança sem expor ou inventar projetos
   return null;
 }
 
@@ -253,24 +275,30 @@ export async function getSavedClientSession(): Promise<ClientProject | null> {
 }
 
 export async function registerClientProjectFromBriefing(
-  projectId: string,
+  codigoProjeto: string,
   clientName: string,
   businessName: string,
   planId: string,
-  notes?: string
+  notes?: string,
+  serverProjectId?: string
 ): Promise<ClientProject> {
   const projects = await getAllProjects();
-  const cleanKey = projectId.trim().toUpperCase();
+  const cleanKey = codigoProjeto.trim().toUpperCase();
+
+  // O projeto é registrado associado ao código individual gerado.
+  // Por segurança, contratacaoConfirmada e autorizacaoServidor iniciam como false:
+  // o código identifica o projeto, mas o acesso a dados privados requer autorização.
   const newProject: ClientProject = {
     id: cleanKey,
     chaveAcesso: cleanKey,
+    codigoProjeto: cleanKey,
     nomeCliente: clientName.trim() || 'Cliente NexaWeb',
     nomeProjeto: businessName.trim() || 'Meu Site Profissional',
     planoId: planId,
     status: 'planejamento',
     etapaAtual: 'Briefing Recebido',
-    progresso: 15,
-    mensagemStatus: 'Seu briefing foi registrado com sucesso. Nossa equipe iniciará a análise técnica e o alinhamento da estrutura do seu site.',
+    progresso: 10,
+    mensagemStatus: 'Seu briefing foi registrado com sucesso. Aguardando confirmação da contratação e autorização no servidor.',
     dataInicio: new Date().toLocaleDateString('pt-BR'),
     previsaoEntrega: '7 a 10 dias úteis',
     historico: [
@@ -278,26 +306,23 @@ export async function registerClientProjectFromBriefing(
         id: `hist-brief-${Date.now()}`,
         data: 'Hoje',
         titulo: 'Briefing Oficial Recebido',
-        descricao: 'Briefing e especificações do projeto registrados no aplicativo.',
+        descricao: `Projeto registrado com o código individual ${cleanKey}. Aguardando validação de contratação.`,
         status: 'concluido',
       },
     ],
-    solicitacoes: notes
-      ? [
-          {
-            id: `req-init-${Date.now()}`,
-            projectId: cleanKey,
-            categoria: 'Briefing',
-            assunto: 'Envio de Briefing Inicial',
-            mensagem: notes,
-            dataEnvio: new Date().toLocaleDateString('pt-BR'),
-            status: 'pendente',
-          },
-        ]
-      : [],
+    solicitacoes: [],
+    contratacaoConfirmada: false,
+    autorizacaoServidor: false,
+    isDemo: false,
+    serverProjectId: serverProjectId,
   };
 
-  const existingIdx = projects.findIndex((p) => p.chaveAcesso.toUpperCase() === cleanKey);
+  const existingIdx = projects.findIndex(
+    (p) =>
+      p.chaveAcesso.toUpperCase() === cleanKey ||
+      (p.codigoProjeto && p.codigoProjeto.toUpperCase() === cleanKey)
+  );
+
   if (existingIdx !== -1) {
     projects[existingIdx] = newProject;
   } else {
