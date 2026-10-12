@@ -99,6 +99,9 @@ export const MATRIX_TO_OFFICIAL_FEATURE_MAP: Record<string, string> = {
   'engenharia_profissional_solicitacao_detalhada_de_proposta': 'solicitacao_orcamento',
   'engenharia_personalizado_galeria_de_fotos_em_alta_resolucao': 'galeria_fotos',
   'engenharia_premium_progresso_da_obra_ao_vivo': 'realtime_progresso_obras',
+
+  // --- SOB MEDIDA & OUTROS ---
+  'sob_medida_personalizado_formulario_personalizado_de_contato': 'formulario_personalizado',
 };
 
 export function resolveCanonicalFeature(featureId: string): ExtraFeature | undefined {
@@ -149,11 +152,9 @@ export function calculateBudget(
   uniqueFeatureIds.forEach((rawId) => {
     // 1. Localiza metadados originais da matriz de funcionalidades (para rótulo e complexidade)
     const matrixItem = findAdvancedFeatureById(rawId);
-    const itemName = matrixItem ? matrixItem.nome : rawId;
-    const isComplex = matrixItem ? Boolean(matrixItem.isComplex) : false;
-
-    // 2. Localiza correspondência canônica oficial se houver
     const canonicalFeat = resolveCanonicalFeature(rawId);
+    const itemName = matrixItem?.nome || canonicalFeat?.nome || rawId;
+    const isComplex = matrixItem ? Boolean(matrixItem.isComplex) : false;
 
     // Se o item for complexo
     if (isComplex) {
@@ -199,23 +200,23 @@ export function calculateBudget(
       return;
     }
 
-    // Aplicação do Modelo Híbrido:
-    // Recursos em tempo real (Realtime: + R$ 300) são sempre adicionais tabelados quando permitidos.
+    // Cobrança de Recursos Adicionais Oficiais:
+    // Recursos adicionais tabelados (OFFICIAL_EXTRA_FEATURES) são somados ao extrasTotal
     if (!chargedCanonicalIds.has(canonicalFeat.id)) {
       chargedCanonicalIds.add(canonicalFeat.id);
 
-      if (isRealtime) {
+      if (canonicalFeat.preco > 0) {
         extrasTotal += canonicalFeat.preco;
         selectedFeatures.push({
           id: rawId,
           nome: itemName,
           preco: canonicalFeat.preco,
           formattedPreco: `+ R$ ${canonicalFeat.preco.toLocaleString('pt-BR')}`,
-          isRealtime: true,
+          isRealtime,
           isSuggestedBySegment: suggestedIds.includes(canonicalFeat.id),
         });
       } else {
-        // Recursos padrão selecionados dentro da franquia do plano estão inclusos no preço-base
+        // Recursos sem cobrança adicional são identificados como inclusos no plano
         includedFeatures.push({
           id: rawId,
           nome: itemName,

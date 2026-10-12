@@ -49,7 +49,7 @@ export function getHelpFaq(_lang?: Language): HelpItem[] {
     {
       title: 'Qual plano escolher para o meu negócio?',
       content:
-        '• Plano Essencial (a partir de R$ 1.000): Ideal para Landing Pages de alta conversão, voltadas para captação direta de clientes e negócios locais.\n• Plano Profissional (a partir de R$ 1.700): Site institucional completo com catálogo, seções estruturadas, agendamento e SEO para presença forte.\n• Plano Personalizado / Premium: Estrutura personalizada com integrações sob medida e recursos exclusivos.',
+        '• Plano Essencial (R$ 1.000): Ideal para Landing Pages de alta conversão, voltadas para captação direta de clientes e negócios locais.\n• Plano Profissional (R$ 1.700): Site institucional completo com catálogo, seções estruturadas, agendamento e SEO para presença forte.\n• Plano Personalizado (a partir de R$ 2.800): Projeto autoral sob medida conforme escopo e necessidades do negócio.\n• Plano Premium (a partir de R$ 4.500): Solução VIP completa para marcas que buscam máxima autoridade e recursos avançados.',
     },
     {
       title: 'Como preencher o Briefing?',
@@ -120,7 +120,7 @@ export function getTermsData(_lang?: Language): TermsData {
     guidelines: [
       {
         title: 'Transparência comercial:',
-        desc: 'Todos os planos (Essencial, Profissional e Personalizado), valores base e recursos adicionais são informados com clareza nas abas de Serviços e Briefing.',
+        desc: 'Todos os planos (Essencial, Profissional, Personalizado e Premium), valores base e recursos adicionais são informados com clareza nas abas de Serviços e Briefing.',
       },
       {
         title: 'Validação prévia:',
