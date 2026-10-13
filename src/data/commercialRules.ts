@@ -354,6 +354,18 @@ export const SEGMENT_PRESETS: Record<string, SegmentPreset> = {
   },
 };
 
+// Aliases para as chaves canônicas existentes que correspondam aos presets atuais
+SEGMENT_PRESETS['restaurante'] = SEGMENT_PRESETS['food'];
+SEGMENT_PRESETS['barbearia'] = SEGMENT_PRESETS['barber'];
+SEGMENT_PRESETS['salao'] = SEGMENT_PRESETS['beauty'];
+SEGMENT_PRESETS['academia'] = SEGMENT_PRESETS['fitness'];
+SEGMENT_PRESETS['imobiliaria'] = SEGMENT_PRESETS['realEstate'];
+SEGMENT_PRESETS['clinica'] = SEGMENT_PRESETS['clinic'];
+SEGMENT_PRESETS['loja'] = SEGMENT_PRESETS['retail'];
+SEGMENT_PRESETS['prestador'] = SEGMENT_PRESETS['services'];
+SEGMENT_PRESETS['sob_medida'] = SEGMENT_PRESETS['other'];
+
+
 // 3. TABELA DE PLANOS E VALORES BASE OFICIAIS
 export interface OfficialPlanCommercial {
   id: 'essencial' | 'profissional' | 'personalizado' | 'premium';
