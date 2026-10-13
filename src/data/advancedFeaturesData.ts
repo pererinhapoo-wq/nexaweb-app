@@ -131,6 +131,7 @@ export const SEGMENT_FEATURES_MATRIX: Record<
       { nome: 'Pedidos via WhatsApp', categoria: 'Pedidos', descricao: 'Seleção de pratos com envio formatado para o WhatsApp' },
       { nome: 'Avaliações de clientes', categoria: 'Clientes', descricao: 'Depoimentos de clientes e notas de experiência' },
       { nome: 'Promoções e novidades', categoria: 'Conteúdo', descricao: 'Destaques sazonais e pratos especiais da semana' },
+      { nome: 'Disponibilidade de mesas em tempo real', categoria: 'Tempo real', descricao: 'Visualização ao vivo das mesas ocupadas e disponíveis no salão', isComplex: true },
     ],
     profissional: [
       { nome: 'Cardápio digital interativo', categoria: 'Catálogo', descricao: 'Menu com fotos apetitosas em alta resolução e filtros' },
@@ -146,6 +147,7 @@ export const SEGMENT_FEATURES_MATRIX: Record<
     premium: [
       { nome: 'Gestão avançada de pedidos', categoria: 'Pedidos', descricao: 'Fluxo de recepção e despacho de pedidos da cozinha', isComplex: true },
       { nome: 'Status do pedido em tempo real', categoria: 'Tempo real', descricao: 'Acompanhamento ao vivo do preparo e entrega pelo cliente', isComplex: true },
+      { nome: 'Disponibilidade de mesas em tempo real', categoria: 'Tempo real', descricao: 'Visualização ao vivo das mesas ocupadas e disponíveis no salão', isComplex: true },
       { nome: 'Integração de delivery', categoria: 'Integrações', descricao: 'Conexão com iFood, WhatsApp Business ou motoboys', isComplex: true },
       { nome: 'Integração com sistemas externos', categoria: 'Integrações', descricao: 'Conexão avaliada com PDV ou impressora de comandas', isComplex: true },
       { nome: 'Área do cliente frequente', categoria: 'Área do Cliente', descricao: 'Login para histórico de pedidos e pratos favoritos', isComplex: true },
@@ -559,6 +561,111 @@ export const SEGMENT_FEATURES_MATRIX: Record<
       { nome: 'Experiência e layout totalmente autorais', categoria: 'Recursos avançados', descricao: 'Design exclusivo sob medida com interações ricas', isComplex: true },
     ],
   },
+
+  // 15. HOTEL & POUSADA
+  hotel: {
+    personalizado: [
+      { nome: 'Reserva de quartos e diárias', categoria: 'Gestão', descricao: 'Seletor de acomodações com cálculo de diárias e pré-reserva' },
+      { nome: 'Ocupação e vagas em tempo real', categoria: 'Tempo real', descricao: 'Atualização instantânea de vagas e ocupação de quartos', isComplex: true },
+      { nome: 'Catálogo de acomodações e suítes', categoria: 'Catálogo', descricao: 'Apresentação detalhada dos tipos de quartos, camas e comodidades' },
+      { nome: 'Galeria visual do hotel e lazer', categoria: 'Conteúdo', descricao: 'Fotos em alta resolução das acomodações, piscina e áreas comuns' },
+      { nome: 'Horários de check-in e check-out', categoria: 'Atendimento / Agendamento', descricao: 'Informações claras de entrada, saída e políticas de cancelamento' },
+      { nome: 'Localização e guia da região', categoria: 'Conteúdo', descricao: 'Mapa de acesso e roteiro de atrações turísticas próximas' },
+      { nome: 'Depoimentos de hóspedes', categoria: 'Clientes', descricao: 'Avaliações de hóspedes sobre a experiência da estadia' },
+      { nome: 'Atendimento e recepção via WhatsApp', categoria: 'Atendimento / Agendamento', descricao: 'Canal direto para tirar dúvidas e confirmar reservas' },
+    ],
+    profissional: [
+      { nome: 'Reserva de quartos e diárias', categoria: 'Gestão', descricao: 'Seletor de acomodações com cálculo de diárias e pré-reserva' },
+      { nome: 'Catálogo completo de acomodações', categoria: 'Catálogo', descricao: 'Apresentação detalhada com fotos, diárias médias e comodidades' },
+      { nome: 'Galeria interativa de fotos', categoria: 'Conteúdo', descricao: 'Visualizador em alta resolução das suítes, chalés e instalações' },
+      { nome: 'Políticas de hospedagem e tarifas', categoria: 'Conteúdo', descricao: 'Tabela explicativa de diárias por temporada e regras da pousada' },
+      { nome: 'Avaliações e notas de hóspedes', categoria: 'Clientes', descricao: 'Mural de depoimentos e experiências de hóspedes anteriores' },
+      { nome: 'Lembretes automáticos pré-estadia', categoria: 'Automação', descricao: 'Envio automático de instruções de check-in via WhatsApp', isComplex: true },
+      { nome: 'Área do hóspede (minhas reservas)', categoria: 'Área do Cliente', descricao: 'Portal com login para consultar vouchers e histórico de estadias', isComplex: true },
+      { nome: 'Métricas de visualizações e reservas', categoria: 'Métricas / Analytics', descricao: 'Relatórios de acomodações mais procuradas', isComplex: true },
+      { nome: 'SEO para hotel e pousada regional', categoria: 'SEO', descricao: 'Otimização nas buscas do Google para turismo e hospedagem local' },
+    ],
+    premium: [
+      { nome: 'Reserva de quartos e diárias', categoria: 'Gestão', descricao: 'Seletor de acomodações com cálculo de diárias e pré-reserva' },
+      { nome: 'Ocupação e vagas em tempo real', categoria: 'Tempo real', descricao: 'Atualização instantânea de vagas e ocupação de quartos', isComplex: true },
+      { nome: 'Painel administrativo da recepção', categoria: 'Gestão', descricao: 'Gestão de tarifas, bloqueio de datas e controle de hóspedes', isComplex: true },
+      { nome: 'Integração com gateway de pagamentos', categoria: 'Integrações', descricao: 'Cobrança online de reservas via cartão e Pix sob avaliação', isComplex: true },
+      { nome: 'Integrações com PMS ou Channel Manager', categoria: 'Integrações', descricao: 'Conexão avaliada com sistemas de gestão hoteleira', isComplex: true },
+      { nome: 'Área VIP do hóspede frequente', categoria: 'Área do Cliente', descricao: 'Portal com histórico de hospedagens e benefícios exclusivos', isComplex: true },
+      { nome: 'Automação pós-estadia e avaliações', categoria: 'Automação', descricao: 'Pesquisa de satisfação e incentivo a review após o check-out', isComplex: true },
+      { nome: 'Experiência visual imersiva da hospedagem', categoria: 'Recursos avançados', descricao: 'Design de alto padrão com transições elegantes e tour fotográfico', isComplex: true },
+    ],
+  },
+
+  // 16. CURSOS & EDUCAÇÃO
+  cursos: {
+    personalizado: [
+      { nome: 'Módulos e progresso de aulas', categoria: 'Gestão', descricao: 'Estrutura de módulos, trilhas de aprendizagem e marcação de aulas concluídas' },
+      { nome: 'Aulas ao vivo e transmissões ativas', categoria: 'Tempo real', descricao: 'Indicador em tempo real de transmissões, aulas e salas ao vivo ativas', isComplex: true },
+      { nome: 'Área do aluno e login exclusivo', categoria: 'Área do Cliente', descricao: 'Área de membros com login para acesso individual de estudantes' },
+      { nome: 'Materiais e conteúdos exclusivos', categoria: 'Conteúdo', descricao: 'Área protegida para apostilas, PDFs, exercícios e downloads complementares' },
+      { nome: 'Grade curricular e catálogo de cursos', categoria: 'Catálogo', descricao: 'Apresentação detalhada de cursos, ementas e carga horária' },
+      { nome: 'Inscrições e captação de alunos via WhatsApp', categoria: 'Atendimento / Agendamento', descricao: 'Canal direto para matrículas, dúvidas e orientações pedagógicas' },
+      { nome: 'Depoimentos e avaliações de alunos', categoria: 'Clientes', descricao: 'Avaliações de estudantes sobre a experiência pedagógica' },
+      { nome: 'Página de apresentação do instrutor/escola', categoria: 'Conteúdo', descricao: 'Biografia profissional, credenciais acadêmicas e autoridade' },
+    ],
+    profissional: [
+      { nome: 'Módulos e progresso de aulas', categoria: 'Gestão', descricao: 'Estrutura de módulos, trilhas de aprendizagem e marcação de aulas concluídas' },
+      { nome: 'Área do aluno e login exclusivo', categoria: 'Área do Cliente', descricao: 'Área de membros com login para acesso individual de estudantes' },
+      { nome: 'Materiais e conteúdos exclusivos', categoria: 'Conteúdo', descricao: 'Área protegida para apostilas, PDFs, exercícios e downloads complementares' },
+      { nome: 'Grade curricular e catálogo de cursos', categoria: 'Catálogo', descricao: 'Apresentação detalhada de cursos, ementas e carga horária' },
+      { nome: 'Depoimentos e aprovações de alunos', categoria: 'Clientes', descricao: 'Mural de depoimentos e histórias de sucesso dos estudantes' },
+      { nome: 'Certificado digital de conclusão', categoria: 'Gestão', descricao: 'Validação e emissão de certificados de término de curso', isComplex: true },
+      { nome: 'Comunidade ou fórum de dúvidas', categoria: 'Clientes', descricao: 'Espaço interativo para suporte pedagógico e networking', isComplex: true },
+      { nome: 'Métricas de engajamento dos alunos', categoria: 'Métricas / Analytics', descricao: 'Relatórios de visualizações de aulas e taxa de conclusão', isComplex: true },
+      { nome: 'SEO para cursos e treinamentos', categoria: 'SEO', descricao: 'Otimização nas buscas do Google para cursos e formação profissional' },
+    ],
+    premium: [
+      { nome: 'Módulos e progresso de aulas', categoria: 'Gestão', descricao: 'Estrutura de módulos, trilhas de aprendizagem e marcação de aulas concluídas' },
+      { nome: 'Aulas ao vivo e transmissões ativas', categoria: 'Tempo real', descricao: 'Indicador em tempo real de transmissões, aulas e salas ao vivo ativas', isComplex: true },
+      { nome: 'Painel administrativo do instrutor/escola', categoria: 'Gestão', descricao: 'Gestão de turmas, matrículas, bloqueio de conteúdos e relatórios', isComplex: true },
+      { nome: 'Integração com gateway de pagamentos', categoria: 'Integrações', descricao: 'Cobrança online de matrículas e assinaturas via Pix e cartão sob avaliação', isComplex: true },
+      { nome: 'Área VIP de membros com login completo', categoria: 'Área do Cliente', descricao: 'Portal com trilhas gamificadas e benefícios exclusivos para alunos', isComplex: true },
+      { nome: 'Automação pedagógica e notificações', categoria: 'Automação', descricao: 'Disparos automáticos de lembretes de aulas e novidades da turma', isComplex: true },
+      { nome: 'Analytics avançado de retenção e evasão', categoria: 'Métricas / Analytics', descricao: 'Monitoramento do funil de engajamento e conclusão de cursos', isComplex: true },
+      { nome: 'Ambiente de ensino autoral e interativo', categoria: 'Recursos avançados', descricao: 'Experiência de aprendizado imersiva com design sofisticado e microinterações', isComplex: true },
+    ],
+  },
+
+  // 17. EVENTOS, CERIMONIAL & PRODUÇÃO
+  eventos: {
+    personalizado: [
+      { nome: 'Check-in e controle de participantes em tempo real', categoria: 'Tempo real', descricao: 'Controle instantâneo de ingressos, portaria e lista ao vivo de presença', isComplex: true },
+      { nome: 'Cronograma interativo e programação do evento', categoria: 'Conteúdo', descricao: 'Linha do tempo com palestrantes, horários e atrações do evento' },
+      { nome: 'Galeria visual de edições anteriores', categoria: 'Conteúdo', descricao: 'Fotos e vídeos em alta resolução de momentos marcantes e estrutura' },
+      { nome: 'Apresentação de palestrantes e atrações', categoria: 'Conteúdo', descricao: 'Cards com biografia, fotos e temas abordados pelos convidados' },
+      { nome: 'Formulário de inscrição e interesse', categoria: 'Atendimento / Agendamento', descricao: 'Campos personalizados para pré-inscrição de participantes' },
+      { nome: 'Localização do evento e mapa de acesso', categoria: 'Conteúdo', descricao: 'Mapa integrado com rotas, estacionamento e recomendações' },
+      { nome: 'Depoimentos de participantes e parceiros', categoria: 'Clientes', descricao: 'Avaliações e relatos de edições anteriores do evento' },
+      { nome: 'Atendimento e suporte via WhatsApp', categoria: 'Atendimento / Agendamento', descricao: 'Canal direto para dúvidas sobre ingressos e informações gerais' },
+    ],
+    profissional: [
+      { nome: 'Cronograma interativo e programação do evento', categoria: 'Conteúdo', descricao: 'Linha do tempo com palestrantes, horários e atrações do evento' },
+      { nome: 'Galeria interativa de edições anteriores', categoria: 'Conteúdo', descricao: 'Visualizador em alta resolução de fotos e cobertura de eventos' },
+      { nome: 'Apresentação detalhada de palestrantes', categoria: 'Conteúdo', descricao: 'Páginas completas com fotos, temas e redes sociais dos convidados' },
+      { nome: 'Formulário detalhado de inscrição', categoria: 'Atendimento / Agendamento', descricao: 'Triagem de perfil, categoria de ingresso e dados de contato' },
+      { nome: 'Mapa interativo do local e credenciamento', categoria: 'Conteúdo', descricao: 'Instruções de portaria, estandes e acesso ao evento' },
+      { nome: 'Depoimentos e destaques de edições passadas', categoria: 'Clientes', descricao: 'Mural de depoimentos e estatísticas de público anteriores' },
+      { nome: 'Lembretes e avisos pré-evento', categoria: 'Automação', descricao: 'Automação de notificações e instruções de chegada aos participantes', isComplex: true },
+      { nome: 'Área do participante (meu ingresso)', categoria: 'Área do Cliente', descricao: 'Consulta de comprovante de inscrição e orientações personalizadas', isComplex: true },
+      { nome: 'Métricas de visualização e conversão', categoria: 'Métricas / Analytics', descricao: 'Relatórios de acessos à programação e cliques de inscrição', isComplex: true },
+    ],
+    premium: [
+      { nome: 'Check-in e controle de participantes em tempo real', categoria: 'Tempo real', descricao: 'Controle instantâneo de ingressos, portaria e lista ao vivo de presença', isComplex: true },
+      { nome: 'Painel administrativo da organização do evento', categoria: 'Gestão', descricao: 'Gestão de lotes, credenciamento, emissão de relatórios e recepção', isComplex: true },
+      { nome: 'Integração com venda de ingressos e pagamentos', categoria: 'Integrações', descricao: 'Cobrança online de entradas via Pix e cartão sob avaliação de escopo', isComplex: true },
+      { nome: 'Área VIP do participante e credencial digital', categoria: 'Área do Cliente', descricao: 'Portal exclusivo com crachá virtual e acesso a materiais do evento', isComplex: true },
+      { nome: 'Notificações automáticas e avisos ao vivo', categoria: 'Automação', descricao: 'Avisos instantâneos de início de palestras e avisos importantes', isComplex: true },
+      { nome: 'Analytics completo de engajamento do público', categoria: 'Métricas / Analytics', descricao: 'Métricas de taxa de comparecimento e avaliação das atrações', isComplex: true },
+      { nome: 'Experiência imersiva e identidade visual autoral', categoria: 'Recursos avançados', descricao: 'Design exclusivo de alto impacto com efeitos e transições sofisticadas', isComplex: true },
+      { nome: 'Assessoria de cerimonial e cronograma minuto a minuto', categoria: 'Gestão', descricao: 'Painel de acompanhamento de tempos e protocolos do evento', isComplex: true },
+    ],
+  },
 };
 
 /**
@@ -606,6 +713,40 @@ export function normalizeMatrixSegmentKey(segmentKey: string): string {
   if (s.includes('criador') || s.includes('influenc') || s.includes('creator') || s.includes('midia') || s.includes('mídia')) {
     return 'criador';
   }
+  if (
+    s.includes('hotel') ||
+    s.includes('hotéi') ||
+    s.includes('hotei') ||
+    s.includes('pousad') ||
+    s.includes('hosped') ||
+    s.includes('resort') ||
+    s.includes('chale') ||
+    s.includes('chalé')
+  ) {
+    return 'hotel';
+  }
+  if (
+    s.includes('curso') ||
+    s.includes('escola') ||
+    s.includes('educa') ||
+    s.includes('profess') ||
+    s.includes('treinamento') ||
+    /\bead\b/i.test(s) ||
+    s.includes('infoprodut') ||
+    s.includes('mentoria') ||
+    s.includes('aula')
+  ) {
+    return 'cursos';
+  }
+  if (
+    s.includes('evento') ||
+    s.includes('cerimonial') ||
+    s.includes('congresso') ||
+    s.includes('festa') ||
+    s.includes('webinar')
+  ) {
+    return 'eventos';
+  }
 
   return 'sob_medida';
 }
@@ -646,6 +787,12 @@ Object.entries(SEGMENT_FEATURES_MATRIX).forEach(([segKey, plans]) => {
       // Índices alternativos para retrocompatibilidade
       ALL_FEATURES_BY_ID.set(`${segKey}_${item.nome}`, featureObj);
       ALL_FEATURES_BY_ID.set(item.nome.toLowerCase(), featureObj);
+
+      if (segKey === 'cursos') {
+        const eduId = generateFeatureId('educacao', planLvl, item.nome);
+        ALL_FEATURES_BY_ID.set(eduId, featureObj);
+        ALL_FEATURES_BY_ID.set(`educacao_${item.nome}`, featureObj);
+      }
     });
   });
 });

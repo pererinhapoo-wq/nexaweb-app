@@ -572,6 +572,120 @@ export const CANONICAL_SEGMENTS: Record<string, SegmentBriefingConfig> = {
     specialCalloutLabel: 'Foco Total em Conversão',
     specialCalloutDesc: 'Design sem distrações, direcionando o visitante para a ação desejada.',
   },
+
+  hotel: {
+    segmentKey: 'hotel',
+    name: 'Hotel & Pousada',
+    icon: '🏨',
+    tagline: 'Hotéis, pousadas, resorts, chalés e hospedagens de temporada',
+    defaultServicesPlaceholder: 'Ex: Suítes executivas, chalés com hidromassagem, café da manhã colonial, day use...',
+    primaryOptionsLabel: 'Tipos de Acomodação & Quartos',
+    primaryOptions: [
+      'Suíte Standard / Casal',
+      'Suíte Master com Hidro',
+      'Chalé Rústico Familiar',
+      'Quarto Família / Conectado',
+      'Apartamento com Vista',
+      'Bangalô / Acomodação VIP',
+    ],
+    secondaryOptionsLabel: 'Serviços & Experiência',
+    secondaryOptions: [
+      'Café da Manhã Incluso',
+      'Piscina & Área de Lazer',
+      'Restaurante & Bar no Local',
+      'Estacionamento Gratuito',
+      'Recepção 24h & Concierge',
+      'Pet Friendly (Aceita Pets)',
+    ],
+    featuresLabel: 'Diferenciais do Estabelecimento',
+    features: [
+      'Localização Privilegiada',
+      'Wi-Fi de Alta Velocidade',
+      'Ambiente Climatizado (Ar-condicionado)',
+      'Espaço para Eventos & Retiros',
+      'Vista Panorâmica da Região',
+    ],
+    schedulePlaceholder: 'Ex: Check-in: a partir das 14h | Check-out: até às 12h',
+    teamPlaceholder: 'Ex: Equipe de recepção, governança e atendimento ao hóspede',
+    specialCalloutLabel: 'Reservas & Diárias Online',
+    specialCalloutDesc: 'Canal direto para consulta de acomodações e solicitação de reservas.',
+  },
+
+  cursos: {
+    segmentKey: 'cursos',
+    name: 'Cursos & Educação',
+    icon: '🎓',
+    tagline: 'Cursos online, escolas, treinamentos, EAD, infoprodutos e mentorias',
+    defaultServicesPlaceholder: 'Ex: Curso de Idiomas, Formação em Programação, Mentoria de Carreira, Treinamento Corporativo...',
+    primaryOptionsLabel: 'Formatos & Modalidades de Ensino',
+    primaryOptions: [
+      'Aulas Gravadas / EAD',
+      'Transmissões e Aulas ao Vivo',
+      'Mentoria em Grupo ou Individual',
+      'Cursos Livres & Certificações',
+      'Treinamentos Corporativos',
+      'Workshops & Imersões Práticas',
+    ],
+    secondaryOptionsLabel: 'Recursos para Alunos & Conteúdo',
+    secondaryOptions: [
+      'Área de Membros com Login',
+      'Materiais Complementares (PDF/Exercícios)',
+      'Acompanhamento de Progresso do Aluno',
+      'Certificado Digital de Conclusão',
+      'Comunidade ou Fórum de Dúvidas',
+      'Suporte ao Aluno via WhatsApp',
+    ],
+    featuresLabel: 'Diferenciais da Plataforma / Instituição',
+    features: [
+      'Metodologia Prática e Direta ao Ponto',
+      'Professores Especialistas de Mercado',
+      'Acesso Vitalício ou por Assinatura',
+      'Plataforma 100% Responsiva e Intuitiva',
+      'Garantia de Satisfação e Suporte Dedicado',
+    ],
+    schedulePlaceholder: 'Ex: Aulas ao vivo às terças e quintas às 20h | Conteúdo gravado disponível 24h',
+    teamPlaceholder: 'Ex: Professores, instrutores, coordenadores pedagógicos e suporte ao aluno',
+    specialCalloutLabel: 'Plataforma de Cursos & Educação',
+    specialCalloutDesc: 'Ambiente completo para apresentação de cursos, matrículas e engajamento de alunos.',
+  },
+
+  eventos: {
+    segmentKey: 'eventos',
+    name: 'Eventos & Cerimonial',
+    icon: '🎟️',
+    tagline: 'Festas, congressos, produções, cerimonial, casamentos e eventos corporativos',
+    defaultServicesPlaceholder: 'Ex: Produção de Congressos, Cerimonial de Casamentos, Festas Corporativas, Gestão de Feiras e Webinars...',
+    primaryOptionsLabel: 'Tipos & Formatos de Eventos',
+    primaryOptions: [
+      'Congressos & Seminários',
+      'Festas & Confraternizações',
+      'Casamentos & Bodas',
+      'Webinars & Eventos Online',
+      'Feiras & Exposições Comerciais',
+      'Workshops & Treinamentos Presenciais',
+    ],
+    secondaryOptionsLabel: 'Serviços & Organização',
+    secondaryOptions: [
+      'Assessoria & Cerimonial Completo',
+      'Controle de Ingressos & Inscrições',
+      'Credenciamento & Portaria',
+      'Decoração, Iluminação & Som',
+      'Buffet & Gastronomia Especial',
+      'Fotografia & Cobertura em Vídeo',
+    ],
+    featuresLabel: 'Diferenciais da Produtora / Cerimonial',
+    features: [
+      'Cronograma e Gestão Impecável de Prazos',
+      'Equipe Treinada para Recepção e Apoio',
+      'Parcerias com os Melhores Fornecedores',
+      'Atendimento Personalizado e Planejamento 360°',
+      'Segurança, Conforto e Experiência Inesquecível',
+    ],
+    schedulePlaceholder: 'Ex: Recepção às 19h | Início cerimonial às 20h | Encerramento às 02h',
+    teamPlaceholder: 'Ex: Produtores executivos, cerimonialistas, recepcionistas e coordenadores de pista',
+    specialCalloutLabel: 'Gestão de Eventos & Credenciamento',
+    specialCalloutDesc: 'Solução completa para apresentação do evento, inscrições e recepção organizada.',
+  },
 };
 
 /**
@@ -618,6 +732,40 @@ export function normalizeSegmentKey(segOrModel: string): string {
   }
   if (s.includes('criador') || s.includes('influenc') || s.includes('creator') || s.includes('midia') || s.includes('mídia') || s.includes('vertex') || s.includes('tecnolog')) {
     return 'criador';
+  }
+  if (
+    s.includes('hotel') ||
+    s.includes('hotéi') ||
+    s.includes('hotei') ||
+    s.includes('pousad') ||
+    s.includes('hosped') ||
+    s.includes('resort') ||
+    s.includes('chale') ||
+    s.includes('chalé')
+  ) {
+    return 'hotel';
+  }
+  if (
+    s.includes('curso') ||
+    s.includes('escola') ||
+    s.includes('educa') ||
+    s.includes('profess') ||
+    s.includes('treinamento') ||
+    /\bead\b/i.test(s) ||
+    s.includes('infoprodut') ||
+    s.includes('mentoria') ||
+    s.includes('aula')
+  ) {
+    return 'cursos';
+  }
+  if (
+    s.includes('evento') ||
+    s.includes('cerimonial') ||
+    s.includes('congresso') ||
+    s.includes('festa') ||
+    s.includes('webinar')
+  ) {
+    return 'eventos';
   }
 
   return 'sob_medida';
