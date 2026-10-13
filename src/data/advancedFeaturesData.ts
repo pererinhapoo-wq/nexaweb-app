@@ -303,6 +303,7 @@ export const SEGMENT_FEATURES_MATRIX: Record<
       { nome: 'Galeria de fotos do imóvel', categoria: 'Conteúdo', descricao: 'Fotos em alta resolução com visualizador ampliado' },
       { nome: 'Formulário de interesse e contato', categoria: 'Atendimento / Agendamento', descricao: 'Contato direto do cliente interessado no imóvel específico' },
       { nome: 'Equipe de corretores (CRECI)', categoria: 'Conteúdo', descricao: 'Apresentação dos corretores credenciados responsáveis' },
+      { nome: 'Status do imóvel em tempo real', categoria: 'Tempo real', descricao: 'Sinalização instantânea de unidades disponíveis ou reservadas', isComplex: true },
     ],
     profissional: [
       { nome: 'Busca avançada de imóveis', categoria: 'Catálogo', descricao: 'Filtros combinados por quartos, suítes, vagas, bairro e condomínio' },
@@ -323,6 +324,7 @@ export const SEGMENT_FEATURES_MATRIX: Record<
       { nome: 'Painel de distribuição de leads', categoria: 'Gestão', descricao: 'Roteamento de contatos para corretores de plantão', isComplex: true },
       { nome: 'Analytics imobiliário completo', categoria: 'Métricas / Analytics', descricao: 'Dashboard com métricas de propostas e visitas agendadas', isComplex: true },
       { nome: 'Simulador interativo de financiamento', categoria: 'Recursos avançados', descricao: 'Estimativa de parcelas bancárias para o cliente', isComplex: true },
+      { nome: 'Status do imóvel em tempo real', categoria: 'Tempo real', descricao: 'Sinalização instantânea de unidades disponíveis ou reservadas', isComplex: true },
     ],
   },
 

@@ -56,7 +56,6 @@ export const MATRIX_TO_OFFICIAL_FEATURE_MAP: Record<string, string> = {
   'restaurante_profissional_montagem_de_pedidos_online': 'pedido_online',
   'restaurante_profissional_reserva_de_mesas_online': 'agendamento_simples',
   'restaurante_personalizado_reserva_de_mesas': 'agendamento_simples',
-  'restaurante_premium_status_do_pedido_em_tempo_real': 'realtime_mesas_restaurante',
 
   // --- SALÃO DE BELEZA ---
   'salao_personalizado_agendamento_de_horarios': 'agendamento_simples',
@@ -87,6 +86,8 @@ export const MATRIX_TO_OFFICIAL_FEATURE_MAP: Record<string, string> = {
   'imobiliaria_profissional_busca_avancada_de_imoveis': 'busca_imoveis',
   'imobiliaria_profissional_favoritos_salvos_no_navegador': 'favoritos_busca',
   'imobiliaria_personalizado_galeria_de_fotos_do_imóvel': 'galeria_fotos',
+  'imobiliaria_personalizado_status_do_imovel_em_tempo_real': 'realtime_status_imovel',
+  'imobiliaria_premium_status_do_imovel_em_tempo_real': 'realtime_status_imovel',
 
   // --- PRESTADOR DE SERVIÇOS ---
   'prestador_personalizado_solicitacao_de_orcamento': 'solicitacao_orcamento',
